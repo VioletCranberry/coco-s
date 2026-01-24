@@ -98,8 +98,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
-| MCP-01 | Phase 2 | Pending |
-| MCP-02 | Phase 3 | Pending |
+| MCP-01 | Phase 4 | Pending |
+| MCP-02 | Phase 4 | Pending |
 | MCP-03 | Phase 4 | Pending |
 | MCP-04 | Phase 4 | Pending |
 | MCP-05 | Phase 2 | Pending |
