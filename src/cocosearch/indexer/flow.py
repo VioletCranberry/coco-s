@@ -1,0 +1,149 @@
+"""CocoIndex flow definition for code indexing.
+
+Defines the main indexing flow that:
+1. Reads files from a codebase directory
+2. Chunks code using Tree-sitter for semantic boundaries
+3. Generates embeddings via Ollama
+4. Stores results in PostgreSQL with vector indexes
+"""
+
+import cocoindex
+
+from cocosearch.indexer.config import IndexingConfig
+from cocosearch.indexer.embedder import code_to_embedding, extract_extension
+from cocosearch.indexer.file_filter import build_exclude_patterns
+
+
+def create_code_index_flow(
+    index_name: str,
+    codebase_path: str,
+    include_patterns: list[str],
+    exclude_patterns: list[str],
+    chunk_size: int = 1000,
+    chunk_overlap: int = 300,
+) -> cocoindex.Flow:
+    """Create a CocoIndex flow for indexing a codebase.
+
+    Args:
+        index_name: Unique name for this index (used in flow name and table name).
+        codebase_path: Path to the codebase root directory.
+        include_patterns: File patterns to include (e.g., ["*.py", "*.js"]).
+        exclude_patterns: File patterns to exclude.
+        chunk_size: Maximum chunk size in bytes (default 1000).
+        chunk_overlap: Overlap between chunks in bytes (default 300).
+
+    Returns:
+        CocoIndex Flow instance configured for the codebase.
+    """
+
+    @cocoindex.flow_def(name=f"CodeIndex_{index_name}")
+    def code_index_flow(
+        flow_builder: cocoindex.FlowBuilder,
+        data_scope: cocoindex.DataScope,
+    ) -> None:
+        # Step 1: Add LocalFile source for reading codebase files
+        data_scope["files"] = flow_builder.add_source(
+            cocoindex.sources.LocalFile(
+                path=codebase_path,
+                included_patterns=include_patterns,
+                excluded_patterns=exclude_patterns,
+                binary=False,  # Read files as text, not binary
+            )
+        )
+
+        # Step 2: Create collector for code chunks with embeddings
+        code_embeddings = data_scope.add_collector()
+
+        # Step 3: Process each file
+        with data_scope["files"].row() as file:
+            # Extract extension for language detection
+            file["extension"] = file["filename"].transform(extract_extension)
+
+            # Chunk using Tree-sitter (SplitRecursively)
+            file["chunks"] = file["content"].transform(
+                cocoindex.functions.SplitRecursively(),
+                language=file["extension"],
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+            )
+
+            # Step 4: Process each chunk
+            with file["chunks"].row() as chunk:
+                # Generate embedding via Ollama using shared transform
+                chunk["embedding"] = chunk["text"].call(code_to_embedding)
+
+                # Collect with metadata (reference-only: no full text stored)
+                code_embeddings.collect(
+                    filename=file["filename"],
+                    location=chunk["location"],
+                    embedding=chunk["embedding"],
+                )
+
+        # Step 5: Export to PostgreSQL with vector index
+        code_embeddings.export(
+            f"{index_name}_chunks",
+            cocoindex.storages.Postgres(),
+            primary_key_fields=["filename", "location"],
+            vector_indexes=[
+                cocoindex.VectorIndexDef(
+                    field_name="embedding",
+                    metric=cocoindex.VectorSimilarityMetric.COSINE_SIMILARITY,
+                )
+            ],
+        )
+
+    return code_index_flow
+
+
+def run_index(
+    index_name: str,
+    codebase_path: str,
+    config: IndexingConfig | None = None,
+):
+    """Run indexing for a codebase.
+
+    Orchestrates the full indexing process:
+    1. Initialize CocoIndex (if not already)
+    2. Build exclude patterns from defaults + .gitignore + config
+    3. Create the indexing flow
+    4. Setup and update the flow
+
+    Args:
+        index_name: Unique name for this index.
+        codebase_path: Path to the codebase root directory.
+        config: Optional indexing configuration (uses defaults if not provided).
+
+    Returns:
+        IndexUpdateInfo with statistics about the indexing run.
+    """
+    # Use default config if not provided
+    if config is None:
+        config = IndexingConfig()
+
+    # Initialize CocoIndex (reads COCOINDEX_DATABASE_URL from environment)
+    cocoindex.init()
+
+    # Build exclude patterns: defaults + .gitignore + user config
+    exclude_patterns = build_exclude_patterns(
+        codebase_path=codebase_path,
+        user_excludes=config.exclude_patterns,
+        respect_gitignore=True,
+    )
+
+    # Create the flow
+    flow = create_code_index_flow(
+        index_name=index_name,
+        codebase_path=codebase_path,
+        include_patterns=config.include_patterns,
+        exclude_patterns=exclude_patterns,
+        chunk_size=config.chunk_size,
+        chunk_overlap=config.chunk_overlap,
+    )
+
+    # Setup flow (creates tables if needed)
+    flow.setup()
+
+    # Run indexing and return statistics
+    update_info = flow.update()
+
+    return update_info
