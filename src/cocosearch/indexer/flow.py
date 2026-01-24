@@ -99,6 +99,7 @@ def run_index(
     index_name: str,
     codebase_path: str,
     config: IndexingConfig | None = None,
+    respect_gitignore: bool = True,
 ):
     """Run indexing for a codebase.
 
@@ -112,6 +113,7 @@ def run_index(
         index_name: Unique name for this index.
         codebase_path: Path to the codebase root directory.
         config: Optional indexing configuration (uses defaults if not provided).
+        respect_gitignore: Whether to respect .gitignore patterns (default True).
 
     Returns:
         IndexUpdateInfo with statistics about the indexing run.
@@ -127,7 +129,7 @@ def run_index(
     exclude_patterns = build_exclude_patterns(
         codebase_path=codebase_path,
         user_excludes=config.exclude_patterns,
-        respect_gitignore=True,
+        respect_gitignore=respect_gitignore,
     )
 
     # Create the flow

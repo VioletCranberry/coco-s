@@ -8,15 +8,18 @@ from cocosearch.indexer.file_filter import (
     load_gitignore_patterns,
 )
 from cocosearch.indexer.flow import create_code_index_flow, run_index
+from cocosearch.indexer.progress import IndexingProgress, print_summary
 
 __all__ = [
     "DEFAULT_EXCLUDES",
     "IndexingConfig",
+    "IndexingProgress",
     "build_exclude_patterns",
     "code_to_embedding",
     "create_code_index_flow",
     "extract_extension",
     "load_config",
     "load_gitignore_patterns",
+    "print_summary",
     "run_index",
 ]
