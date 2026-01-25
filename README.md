@@ -266,3 +266,72 @@ Add to `~/.claude.json`:
 ---
 
 **Remember:** Replace `/absolute/path/to/cocosearch` in all configs with the actual path where you cloned the repository.
+
+## CLI Reference
+
+CocoSearch provides a command-line interface for indexing and searching code. Output is JSON by default (for scripting/MCP); use `--pretty` for human-readable output.
+
+### Indexing
+
+`cocosearch index <path> [options]`
+
+Index a codebase for semantic search.
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-n, --name` | Index name | Derived from directory |
+| `-i, --include` | Include file patterns (repeatable) | See defaults below |
+| `-e, --exclude` | Exclude file patterns (repeatable) | None |
+| `--no-gitignore` | Ignore .gitignore patterns | Respects .gitignore |
+
+**Example:**
+```bash
+cocosearch index ./my-project --name myproject
+```
+
+Output:
+```
+Using derived index name: myproject
+Indexing ./my-project...
+Indexed 42 files
+```
+
+### Searching
+
+`cocosearch search <query> [options]`
+`cocosearch search --interactive`
+
+Search indexed code using natural language.
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-n, --index` | Index to search | Auto-detect from cwd |
+| `-l, --limit` | Max results | 10 |
+| `--lang` | Filter by language | None |
+| `--min-score` | Minimum similarity (0-1) | 0.3 |
+| `-c, --context` | Context lines | 5 |
+| `-i, --interactive` | Enter REPL mode | Off |
+| `--pretty` | Human-readable output | JSON |
+
+**Examples:**
+```bash
+# Basic search
+cocosearch search "authentication logic" --pretty
+
+# Filter by language
+cocosearch search "error handling" --lang python
+
+# Inline language filter
+cocosearch search "database connection lang:go"
+
+# Interactive mode
+cocosearch search --interactive
+```
+
+Output (--pretty):
+```
+[1] src/auth/login.py:45-67 (score: 0.89)
+    def authenticate_user(username: str, password: str) -> User:
+        """Authenticate user credentials against database."""
+        ...
+```
