@@ -1,19 +1,23 @@
 """CLI entry point for cocosearch.
 
-Provides command-line interface for indexing codebases with progress
-feedback and completion summaries.
+Provides command-line interface for indexing codebases and searching
+indexed code with progress feedback and completion summaries.
 """
 
 import argparse
+import json
 import os
 import re
 import sys
 from pathlib import Path
 
+import cocoindex
 from rich.console import Console
 
 from cocosearch.indexer import IndexingConfig, load_config, run_index
 from cocosearch.indexer.progress import IndexingProgress
+from cocosearch.search import search
+from cocosearch.search.formatter import format_json, format_pretty
 
 
 def derive_index_name(path: str) -> str:
@@ -159,6 +163,83 @@ def index_command(args: argparse.Namespace) -> int:
         return 1
 
 
+def parse_query_filters(query: str) -> tuple[str, str | None]:
+    """Parse inline filters from query string.
+
+    Extracts lang:xxx pattern from query.
+
+    Args:
+        query: User query possibly containing filters.
+
+    Returns:
+        Tuple of (clean_query, language_filter).
+    """
+    lang_filter = None
+
+    # Extract lang:xxx pattern
+    lang_match = re.search(r"\blang:(\w+)\b", query)
+    if lang_match:
+        lang_filter = lang_match.group(1)
+        query = re.sub(r"\blang:\w+\b", "", query).strip()
+
+    return query, lang_filter
+
+
+def search_command(args: argparse.Namespace) -> int:
+    """Execute the search command.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        Exit code (0 for success, 1 for error).
+    """
+    console = Console()
+
+    # Initialize CocoIndex
+    cocoindex.init()
+
+    # Determine index name
+    if args.index:
+        index_name = args.index
+    else:
+        # Auto-detect from cwd
+        index_name = derive_index_name(os.getcwd())
+        if args.pretty:
+            # Only show in pretty mode to keep JSON clean
+            console.print(f"[dim]Using index: {index_name}[/dim]")
+
+    # Parse query for inline filters
+    query, inline_lang = parse_query_filters(args.query)
+
+    # CLI --lang overrides inline lang:
+    lang_filter = args.lang or inline_lang
+
+    # Execute search
+    try:
+        results = search(
+            query=query,
+            index_name=index_name,
+            limit=args.limit,
+            min_score=args.min_score,
+            language_filter=lang_filter,
+        )
+    except Exception as e:
+        if args.pretty:
+            console.print(f"[bold red]Error:[/bold red] {e}")
+        else:
+            print(json.dumps({"error": str(e)}))
+        return 1
+
+    # Output results
+    if args.pretty:
+        format_pretty(results, context_lines=args.context, console=console)
+    else:
+        print(format_json(results, context_lines=args.context))
+
+    return 0
+
+
 def main() -> None:
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -199,11 +280,65 @@ def main() -> None:
         help="Disable .gitignore pattern respect",
     )
 
-    # Parse and dispatch
+    # Search subcommand (also works as default action)
+    search_parser = subparsers.add_parser(
+        "search",
+        help="Search indexed code (also works as default action)",
+        description="Search for code using natural language queries.",
+    )
+    search_parser.add_argument(
+        "query",
+        help="Natural language search query",
+    )
+    search_parser.add_argument(
+        "-n", "--index",
+        help="Index name (default: auto-detect from cwd)",
+    )
+    search_parser.add_argument(
+        "-l", "--limit",
+        type=int,
+        default=10,
+        help="Maximum results (default: 10)",
+    )
+    search_parser.add_argument(
+        "--lang",
+        help="Filter by language (e.g., python, typescript)",
+    )
+    search_parser.add_argument(
+        "--min-score",
+        type=float,
+        default=0.3,
+        help="Minimum similarity score 0-1 (default: 0.3)",
+    )
+    search_parser.add_argument(
+        "-c", "--context",
+        type=int,
+        default=5,
+        help="Context lines to include (default: 5)",
+    )
+    search_parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="Human-readable output (default: JSON)",
+    )
+
+    # Handle default action (query without subcommand)
+    # Check before parsing if first argument is not a known subcommand
+    if (
+        len(sys.argv) > 1
+        and sys.argv[1] not in ("index", "search", "-h", "--help")
+        and not sys.argv[1].startswith("-")
+    ):
+        # Insert "search" before the query argument
+        sys.argv.insert(1, "search")
+
+    # Parse args
     args = parser.parse_args()
 
     if args.command == "index":
         sys.exit(index_command(args))
+    elif args.command == "search":
+        sys.exit(search_command(args))
     else:
         parser.print_help()
         sys.exit(1)
