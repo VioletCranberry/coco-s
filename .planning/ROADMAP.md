@@ -61,10 +61,12 @@ Plans:
   3. Results include relevance scores showing match quality
   4. User can limit number of results returned to avoid context overflow
   5. User can filter search results by programming language
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — Search core: database connection pool, query embedding, vector similarity search
+- [ ] 03-02-PLAN.md — CLI search command: JSON/pretty formatting, all flags, language filtering
+- [ ] 03-03-PLAN.md — Interactive REPL: --interactive mode with settings commands
 
 ### Phase 4: Index Management
 **Goal**: Users can manage multiple named indexes through MCP tools
@@ -89,9 +91,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | ✓ Complete | 2026-01-24 |
 | 2. Indexing Pipeline | 3/3 | ✓ Complete | 2026-01-25 |
-| 3. Search | 0/TBD | Ready | - |
+| 3. Search | 0/3 | Planned | - |
 | 4. Index Management | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-01-24*
-*Last updated: 2026-01-25 — Phase 2 complete*
+*Last updated: 2026-01-25 — Phase 3 planned*
