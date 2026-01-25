@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 6 of 7 (Test Coverage)
-Plan: 4 of 5 completed (01, 02, 04, 05)
-Status: In progress
-Last activity: 2026-01-25 — Completed 06-05-PLAN.md (MCP Server Tests)
+Plan: 5 of 5 completed
+Status: Phase complete
+Last activity: 2026-01-25 — Completed 06-03-PLAN.md (Management Tests)
 
-Progress: [###############-----] 76% (v1.0: 12/12 plans, v1.1: 7/11 plans)
+Progress: [################----] 80% (v1.0: 12/12 plans, v1.1: 8/11 plans)
 
 ## Performance Metrics
 
@@ -37,7 +37,7 @@ Progress: [###############-----] 76% (v1.0: 12/12 plans, v1.1: 7/11 plans)
 | Phase | Plans | Completed | Status |
 |-------|-------|-----------|--------|
 | 5. Test Infrastructure | 3 | 3 | Complete |
-| 6. Unit Tests | 5 | 4 | In progress (01, 02, 04, 05 done; 03 remaining) |
+| 6. Unit Tests | 5 | 5 | Complete |
 | 7. Documentation | TBD | 0 | Not started |
 
 ## Accumulated Context
@@ -61,8 +61,10 @@ Recent decisions affecting current work:
 - [v1.1-06-04]: Use capsys for output verification, not rich console mocking
 - [v1.1-06-02]: Patch get_connection_pool at import site (query.py) not source (db.py)
 - [v1.1-06-02]: Use substring checks for Rich output with ANSI escape codes
-- [v1.1-06-05]: Patch get_connection_pool at module level where imported (e.g., cocosearch.search.query.get_connection_pool)
+- [v1.1-06-05]: Patch get_connection_pool at module level where imported
 - [v1.1-06-05]: Use 3-tuple fixture (pool, cursor, conn) to enable commit tracking
+- [v1.1-06-03]: Use pytest-subprocess fp fixture for git command mocking
+- [v1.1-06-03]: Add commit() method to MockConnection with tracking
 
 ### Pending Todos
 
@@ -75,8 +77,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Completed 06-05-PLAN.md (MCP Server Tests)
+Stopped at: Phase 6 complete - all 5 unit test plans finished
 Resume file: None
 
 ---
-*Updated: 2026-01-25 after completing 06-05-PLAN.md*
+*Updated: 2026-01-25 after completing 06-03-PLAN.md*
