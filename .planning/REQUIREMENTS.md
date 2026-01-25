@@ -26,10 +26,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Index Management
 
-- [ ] **MGMT-01**: Support multiple named indexes simultaneously
-- [ ] **MGMT-02**: Clear specific named index
-- [ ] **MGMT-03**: List all existing indexes
-- [ ] **MGMT-04**: Show index statistics (file count, chunk count, size)
+- [x] **MGMT-01**: Support multiple named indexes simultaneously
+- [x] **MGMT-02**: Clear specific named index
+- [x] **MGMT-03**: List all existing indexes
+- [x] **MGMT-04**: Show index statistics (file count, chunk count, size)
 
 ### Infrastructure
 
@@ -39,10 +39,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### MCP Interface
 
-- [ ] **MCP-01**: `index_codebase` tool
-- [ ] **MCP-02**: `search_code` tool
-- [ ] **MCP-03**: `clear_index` tool
-- [ ] **MCP-04**: `list_indexes` tool
+- [x] **MCP-01**: `index_codebase` tool
+- [x] **MCP-02**: `search_code` tool
+- [x] **MCP-03**: `clear_index` tool
+- [x] **MCP-04**: `list_indexes` tool
 - [x] **MCP-05**: Progress feedback during indexing
 
 ## v2 Requirements
@@ -91,17 +91,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SRCH-04 | Phase 3 | Complete |
 | SRCH-05 | Phase 3 | Complete |
 | SRCH-06 | Phase 3 | Complete |
-| MGMT-01 | Phase 4 | Pending |
-| MGMT-02 | Phase 4 | Pending |
-| MGMT-03 | Phase 4 | Pending |
-| MGMT-04 | Phase 4 | Pending |
+| MGMT-01 | Phase 4 | Complete |
+| MGMT-02 | Phase 4 | Complete |
+| MGMT-03 | Phase 4 | Complete |
+| MGMT-04 | Phase 4 | Complete |
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
-| MCP-01 | Phase 4 | Pending |
-| MCP-02 | Phase 4 | Pending |
-| MCP-03 | Phase 4 | Pending |
-| MCP-04 | Phase 4 | Pending |
+| MCP-01 | Phase 4 | Complete |
+| MCP-02 | Phase 4 | Complete |
+| MCP-03 | Phase 4 | Complete |
+| MCP-04 | Phase 4 | Complete |
 | MCP-05 | Phase 2 | Complete |
 
 **Coverage:**
@@ -111,4 +111,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-24*
-*Last updated: 2026-01-25 — Phase 3 requirements complete*
+*Last updated: 2026-01-25 — All v1 requirements complete*
