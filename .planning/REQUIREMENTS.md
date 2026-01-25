@@ -9,67 +9,67 @@ Requirements for Docs & Tests milestone. Each maps to roadmap phases.
 
 ### Installation Documentation
 
-- [ ] **INST-01**: User can follow guide to install Ollama via brew and pull nomic-embed-text model
-- [ ] **INST-02**: User can follow guide to set up PostgreSQL with pgvector via Docker Compose
-- [ ] **INST-03**: User can follow guide to set up Python environment with UV and install cocosearch
+- [x] **INST-01**: User can follow guide to install Ollama via brew and pull nomic-embed-text model
+- [x] **INST-02**: User can follow guide to set up PostgreSQL with pgvector via Docker Compose
+- [x] **INST-03**: User can follow guide to set up Python environment with UV and install cocosearch
 
 ### MCP Setup Guides
 
-- [ ] **MCP-01**: User can follow guide to configure CocoSearch as MCP server in Claude Code
-- [ ] **MCP-02**: User can follow guide to configure CocoSearch in Claude Desktop (claude_desktop_config.json)
-- [ ] **MCP-03**: User can follow guide to configure CocoSearch in OpenCode
+- [x] **MCP-01**: User can follow guide to configure CocoSearch as MCP server in Claude Code
+- [x] **MCP-02**: User can follow guide to configure CocoSearch in Claude Desktop (claude_desktop_config.json)
+- [x] **MCP-03**: User can follow guide to configure CocoSearch in OpenCode
 
 ### CLI Documentation
 
-- [ ] **CLI-01**: User can reference all CLI commands with flags, options, and descriptions
-- [ ] **CLI-02**: User can see usage examples for each CLI command
+- [x] **CLI-01**: User can reference all CLI commands with flags, options, and descriptions
+- [x] **CLI-02**: User can see usage examples for each CLI command
 
 ### README
 
-- [ ] **README-01**: README has quick start showing CLI demo (index → search)
-- [ ] **README-02**: README has quick start showing MCP setup path
-- [ ] **README-03**: README links to detailed docs/ guides
+- [x] **README-01**: README has quick start showing CLI demo (index → search)
+- [x] **README-02**: README has quick start showing MCP setup path
+- [x] **README-03**: README links to detailed docs/ guides
 
 ### Test Infrastructure
 
-- [ ] **INFRA-01**: pytest configured with proper test discovery and async support
-- [ ] **INFRA-02**: Mocking infrastructure for PostgreSQL connections
-- [ ] **INFRA-03**: Mocking infrastructure for Ollama API calls
-- [ ] **INFRA-04**: pytest fixtures for common test scenarios
+- [x] **INFRA-01**: pytest configured with proper test discovery and async support
+- [x] **INFRA-02**: Mocking infrastructure for PostgreSQL connections
+- [x] **INFRA-03**: Mocking infrastructure for Ollama API calls
+- [x] **INFRA-04**: pytest fixtures for common test scenarios
 
 ### Test Coverage - Indexer
 
-- [ ] **TEST-IDX-01**: Tests for indexer/config.py (configuration loading/validation)
-- [ ] **TEST-IDX-02**: Tests for indexer/flow.py (CocoIndex flow operations)
-- [ ] **TEST-IDX-03**: Tests for indexer/file_filter.py (include/exclude patterns, gitignore)
-- [ ] **TEST-IDX-04**: Tests for indexer/embedder.py (embedding generation)
-- [ ] **TEST-IDX-05**: Tests for indexer/progress.py (progress tracking/display)
+- [x] **TEST-IDX-01**: Tests for indexer/config.py (configuration loading/validation)
+- [x] **TEST-IDX-02**: Tests for indexer/flow.py (CocoIndex flow operations)
+- [x] **TEST-IDX-03**: Tests for indexer/file_filter.py (include/exclude patterns, gitignore)
+- [x] **TEST-IDX-04**: Tests for indexer/embedder.py (embedding generation)
+- [x] **TEST-IDX-05**: Tests for indexer/progress.py (progress tracking/display)
 
 ### Test Coverage - Search
 
-- [ ] **TEST-SRC-01**: Tests for search/db.py (database operations)
-- [ ] **TEST-SRC-02**: Tests for search/query.py (query execution, vector search)
-- [ ] **TEST-SRC-03**: Tests for search/formatter.py (result formatting)
-- [ ] **TEST-SRC-04**: Tests for search/utils.py (utility functions)
+- [x] **TEST-SRC-01**: Tests for search/db.py (database operations)
+- [x] **TEST-SRC-02**: Tests for search/query.py (query execution, vector search)
+- [x] **TEST-SRC-03**: Tests for search/formatter.py (result formatting)
+- [x] **TEST-SRC-04**: Tests for search/utils.py (utility functions)
 
 ### Test Coverage - Management
 
-- [ ] **TEST-MGT-01**: Tests for management/git.py (git root detection)
-- [ ] **TEST-MGT-02**: Tests for management/clear.py (index clearing)
-- [ ] **TEST-MGT-03**: Tests for management/discovery.py (index discovery)
-- [ ] **TEST-MGT-04**: Tests for management/stats.py (statistics gathering)
+- [x] **TEST-MGT-01**: Tests for management/git.py (git root detection)
+- [x] **TEST-MGT-02**: Tests for management/clear.py (index clearing)
+- [x] **TEST-MGT-03**: Tests for management/discovery.py (index discovery)
+- [x] **TEST-MGT-04**: Tests for management/stats.py (statistics gathering)
 
 ### Test Coverage - CLI
 
-- [ ] **TEST-CLI-01**: Tests for cli.py commands (index, search, clear, list, stats)
-- [ ] **TEST-CLI-02**: Tests for CLI output formatting (JSON, pretty)
-- [ ] **TEST-CLI-03**: Tests for CLI error handling
+- [x] **TEST-CLI-01**: Tests for cli.py commands (index, search, clear, list, stats)
+- [x] **TEST-CLI-02**: Tests for CLI output formatting (JSON, pretty)
+- [x] **TEST-CLI-03**: Tests for CLI error handling
 
 ### Test Coverage - MCP
 
-- [ ] **TEST-MCP-01**: Tests for mcp/server.py tool definitions
-- [ ] **TEST-MCP-02**: Tests for MCP tool execution (index_codebase, search_code, etc.)
-- [ ] **TEST-MCP-03**: Tests for MCP error handling and response formatting
+- [x] **TEST-MCP-01**: Tests for mcp/server.py tool definitions
+- [x] **TEST-MCP-02**: Tests for MCP tool execution (index_codebase, search_code, etc.)
+- [x] **TEST-MCP-03**: Tests for MCP error handling and response formatting
 
 ## v2 Requirements
 
@@ -101,17 +101,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INST-01 | Phase 7 | Pending |
-| INST-02 | Phase 7 | Pending |
-| INST-03 | Phase 7 | Pending |
-| MCP-01 | Phase 7 | Pending |
-| MCP-02 | Phase 7 | Pending |
-| MCP-03 | Phase 7 | Pending |
-| CLI-01 | Phase 7 | Pending |
-| CLI-02 | Phase 7 | Pending |
-| README-01 | Phase 7 | Pending |
-| README-02 | Phase 7 | Pending |
-| README-03 | Phase 7 | Pending |
+| INST-01 | Phase 7 | Complete |
+| INST-02 | Phase 7 | Complete |
+| INST-03 | Phase 7 | Complete |
+| MCP-01 | Phase 7 | Complete |
+| MCP-02 | Phase 7 | Complete |
+| MCP-03 | Phase 7 | Complete |
+| CLI-01 | Phase 7 | Complete |
+| CLI-02 | Phase 7 | Complete |
+| README-01 | Phase 7 | Complete |
+| README-02 | Phase 7 | Complete |
+| README-03 | Phase 7 | Complete |
 | INFRA-01 | Phase 5 | Complete |
 | INFRA-02 | Phase 5 | Complete |
 | INFRA-03 | Phase 5 | Complete |
@@ -143,4 +143,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-25 after Phase 6 completion*
+*Last updated: 2026-01-26 after Phase 7 completion - v1.1 milestone complete*
