@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 Phase: 5 of 7 (Test Infrastructure)
 Plan: 3 of 5
 Status: In progress
-Last activity: 2026-01-25 — Completed 05-03-PLAN.md (Ollama Mocks and Data Fixtures)
+Last activity: 2026-01-25 — Completed 05-02-PLAN.md (Database Mocks)
 
-Progress: [###########---------] 60% (v1.0: 12/12 plans, v1.1: 1/9 plans)
+Progress: [############--------] 64% (v1.0: 12/12 plans, v1.1: 3/9 plans)
 
 ## Performance Metrics
 
@@ -36,7 +36,7 @@ Progress: [###########---------] 60% (v1.0: 12/12 plans, v1.1: 1/9 plans)
 
 | Phase | Plans | Completed | Status |
 |-------|-------|-----------|--------|
-| 5. Test Infrastructure | 5 | 1 | In progress |
+| 5. Test Infrastructure | 5 | 3 | In progress |
 | 6. Unit Tests | 2 | 0 | Not started |
 | 7. Documentation | 2 | 0 | Not started |
 
@@ -49,6 +49,8 @@ Recent decisions affecting current work:
 
 - [v1.0]: JSON output by default for MCP/tool integration
 - [v1.0]: Logging to stderr in MCP prevents stdout corruption
+- [v1.1-05-02]: MockCursor uses canned results (not in-memory state tracking)
+- [v1.1-05-02]: Factory fixture pattern for configurable mock pools
 - [v1.1-05-03]: Hash-based deterministic embeddings (same input = same output)
 - [v1.1-05-03]: Dual patching for code_to_embedding (embedder.py and query.py)
 - [v1.1-05-03]: Factory + ready-to-use fixture pattern (make_X and sample_X)
@@ -63,9 +65,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-25T22:15:22Z
-Stopped at: Completed 05-03-PLAN.md (Ollama Mocks and Data Fixtures)
+Last session: 2026-01-25T22:15:35Z
+Stopped at: Completed 05-02-PLAN.md (Database Mocks)
 Resume file: None
 
 ---
-*Updated: 2026-01-25 after completing 05-03-PLAN.md*
+*Updated: 2026-01-25 after completing 05-02-PLAN.md*
