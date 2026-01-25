@@ -147,14 +147,14 @@ class TestSearchCommand:
 class TestListCommand:
     """Tests for list_command."""
 
-    def test_json_output(self, capsys, mock_db_pool):
+    def test_json_output(self, capsys):
         """Returns JSON list of indexes."""
-        pool, cursor = mock_db_pool(results=[
-            ("codeindex_myproject__myproject_chunks",),
-        ])
+        mock_indexes = [
+            {"name": "myproject", "table_name": "codeindex_myproject__myproject_chunks"},
+        ]
 
         with patch("cocoindex.init"):
-            with patch("cocosearch.management.discovery.get_connection_pool", return_value=pool):
+            with patch("cocosearch.cli.list_indexes", return_value=mock_indexes):
                 args = argparse.Namespace(pretty=False)
                 result = list_command(args)
 
@@ -162,3 +162,104 @@ class TestListCommand:
         captured = capsys.readouterr()
         output = json.loads(captured.out)
         assert isinstance(output, list)
+        assert len(output) == 1
+        assert output[0]["name"] == "myproject"
+
+
+class TestStatsCommand:
+    """Tests for stats_command."""
+
+    def test_specific_index_json(self, capsys):
+        """Returns stats for specific index."""
+        mock_stats = {
+            "file_count": 10,
+            "chunk_count": 50,
+            "storage_size_bytes": 1024 * 1024,
+            "storage_size_pretty": "1.0 MB",
+        }
+
+        with patch("cocoindex.init"):
+            with patch("cocosearch.cli.get_stats", return_value=mock_stats):
+                args = argparse.Namespace(index="testindex", pretty=False)
+                result = stats_command(args)
+
+        assert result == 0
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert "file_count" in output
+        assert output["file_count"] == 10
+
+    def test_nonexistent_index_error(self, capsys):
+        """Returns error for nonexistent index."""
+        with patch("cocoindex.init"):
+            with patch("cocosearch.cli.get_stats", side_effect=ValueError("Index not found")):
+                args = argparse.Namespace(index="missing", pretty=False)
+                result = stats_command(args)
+
+        assert result == 1
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert "error" in output
+
+
+class TestClearCommand:
+    """Tests for clear_command."""
+
+    def test_force_deletes_without_prompt(self, capsys):
+        """--force skips confirmation."""
+        mock_stats = {
+            "file_count": 5,
+            "chunk_count": 25,
+            "storage_size_bytes": 512,
+            "storage_size_pretty": "512 B",
+        }
+        mock_result = {"success": True, "index": "testindex"}
+
+        with patch("cocoindex.init"):
+            with patch("cocosearch.cli.get_stats", return_value=mock_stats):
+                with patch("cocosearch.cli.clear_index", return_value=mock_result):
+                    args = argparse.Namespace(index="testindex", force=True, pretty=False)
+                    result = clear_command(args)
+
+        assert result == 0
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert output["success"] is True
+
+    def test_nonexistent_index_error(self, capsys):
+        """Returns error for nonexistent index."""
+        with patch("cocoindex.init"):
+            with patch("cocosearch.cli.get_stats", side_effect=ValueError("Index not found")):
+                args = argparse.Namespace(index="missing", force=True, pretty=False)
+                result = clear_command(args)
+
+        assert result == 1
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert "error" in output
+
+
+class TestErrorHandling:
+    """Tests for CLI error handling."""
+
+    def test_search_error_returns_json_error(self, capsys):
+        """Search errors return JSON error object."""
+        with patch("cocoindex.init"):
+            with patch("cocosearch.cli.search", side_effect=ValueError("DB error")):
+                args = argparse.Namespace(
+                    query="test",
+                    index="testindex",
+                    limit=10,
+                    lang=None,
+                    min_score=0.3,
+                    context=5,
+                    pretty=False,
+                    interactive=False,
+                )
+                result = search_command(args)
+
+        assert result == 1
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert "error" in output
+        assert "DB error" in output["error"]
