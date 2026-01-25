@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-24)
 
 **Core value:** Semantic code search that runs entirely locally — no data leaves your machine.
-**Current focus:** Phase 4 - Index Management
+**Current focus:** Phase 4 - Index Management (COMPLETE)
 
 ## Current Position
 
 Phase: 4 of 4 (Index Management)
 Plan: 3 of 3 in current phase
-Status: In progress
-Last activity: 2026-01-25 — Completed 04-03-PLAN.md
+Status: Complete
+Last activity: 2026-01-25 - Completed 04-02-PLAN.md
 
-Progress: [█████████░] 91% (10/11 plans)
+Progress: [##########] 100% (11/11 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 3.4 min
-- Total execution time: 34 min
+- Total plans completed: 11
+- Average duration: 3.6 min
+- Total execution time: 40 min
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [█████████░] 91% (10/11 plans)
 | 1. Foundation | 2/2 | 6 min | 3 min |
 | 2. Indexing Pipeline | 3/3 | 11 min | 3.7 min |
 | 3. Search | 3/3 | 10 min | 3.3 min |
-| 4. Index Management | 2/3 | 7 min | 3.5 min |
+| 4. Index Management | 3/3 | 13 min | 4.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (2 min), 03-02 (4 min), 03-03 (4 min), 04-01 (3 min), 04-03 (4 min)
+- Last 5 plans: 03-02 (4 min), 03-03 (4 min), 04-01 (3 min), 04-03 (4 min), 04-02 (6 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -62,19 +62,21 @@ Recent decisions affecting current work:
 | Import derive_index_name from cli | 04-01 | Single source of truth, no duplicate logic |
 | Logging to stderr in MCP server | 04-03 | Prevents stdout corruption of JSON-RPC protocol |
 | Lazy import of MCP run_server | 04-03 | Avoids loading MCP dependencies until needed |
+| Git root detection for auto-index | 04-02 | More reliable than cwd when in subdirectories |
+| stderr for "Using index:" in JSON mode | 04-02 | Keep stdout clean for piping/parsing |
 
 ### Pending Todos
 
-None yet.
+None - all phases complete.
 
 ### Blockers/Concerns
 
-None - Phase 4 plan 03 complete, 04-02 (CLI commands) still pending.
+None - Phase 4 complete. Project ready for use.
 
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Completed 04-03-PLAN.md
+Stopped at: Completed 04-02-PLAN.md (all plans complete)
 Resume file: None
 
 ## Phase 1 Summary
@@ -160,11 +162,9 @@ cocosearch "error handling lang:typescript" --pretty
 cocosearch --interactive --index myproject
 ```
 
-Next: Phase 4 (Index Management)
+## Phase 4 Summary (Complete)
 
-## Phase 4 Summary (In Progress)
-
-Index management module development:
+Index management module development complete:
 
 Plan 04-01:
 - Management module created at `src/cocosearch/management/`
@@ -173,16 +173,12 @@ Plan 04-01:
 - `clear_index()`: Validates existence before DROP TABLE
 - `get_git_root()` / `derive_index_from_git()`: Git-based auto-detection
 
-**Management Functions:**
-```python
-from cocosearch.management import (
-    list_indexes,      # -> list[dict] with name, table_name
-    get_stats,         # -> dict with file_count, chunk_count, storage_size
-    clear_index,       # -> dict with success, message
-    get_git_root,      # -> Path | None
-    derive_index_from_git,  # -> str | None
-)
-```
+Plan 04-02:
+- CLI management commands: `list`, `stats`, `clear`
+- All commands support JSON (default) and --pretty output
+- `clear` prompts for confirmation, --force to skip
+- Search auto-detects index from git root
+- "Using index:" hint printed before results
 
 Plan 04-03:
 - MCP server module at `src/cocosearch/mcp/`
@@ -190,6 +186,20 @@ Plan 04-03:
 - `cocosearch mcp` CLI command for server launch
 - Tools: search_code, list_indexes, index_stats, clear_index, index_codebase
 - Logging configured to stderr for stdio transport
+
+**Management CLI Usage:**
+```bash
+# List all indexes
+cocosearch list --pretty
+
+# Show statistics
+cocosearch stats --pretty
+cocosearch stats myindex
+
+# Delete an index
+cocosearch clear myindex
+cocosearch clear myindex --force
+```
 
 **MCP Server Usage:**
 ```bash
@@ -206,3 +216,12 @@ cocosearch mcp
   }
 }
 ```
+
+## Project Complete
+
+All 4 phases (11 plans) successfully completed. Cocosearch is a fully functional local-first semantic code search tool with:
+
+1. **Foundation:** PostgreSQL + pgvector + Ollama infrastructure
+2. **Indexing:** CocoIndex-based embedding pipeline with progress UI
+3. **Search:** Vector similarity search with Rich formatting and REPL
+4. **Management:** CLI commands + MCP server for LLM integration
