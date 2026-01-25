@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-24)
 ## Current Position
 
 Phase: 3 of 4 (Search)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-01-25 — Phase 2 verified complete
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-25 — Completed 03-01-PLAN.md (Search Core)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 3.4 min
-- Total execution time: 17 min
+- Total plans completed: 6
+- Average duration: 3.2 min
+- Total execution time: 19 min
 
 **By Phase:**
 
@@ -29,9 +29,10 @@ Progress: [█████░░░░░] 50%
 |-------|-------|-------|----------|
 | 1. Foundation | 2/2 | 6 min | 3 min |
 | 2. Indexing Pipeline | 3/3 | 11 min | 3.7 min |
+| 3. Search | 1/3 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (2 min), 02-01 (2 min), 02-02 (4 min), 02-03 (5 min)
+- Last 5 plans: 01-02 (2 min), 02-01 (2 min), 02-02 (4 min), 02-03 (5 min), 03-01 (2 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -52,6 +53,7 @@ Recent decisions affecting current work:
 | Flow name includes index_name | 02-02 | Multi-codebase isolation via CodeIndex_{name} pattern |
 | Reference-only storage | 02-02 | Store filename + location, not chunk text |
 | argparse over click | 02-03 | Simplicity for single subcommand |
+| Direct PostgreSQL queries | 03-01 | Simpler than CocoIndex query handlers, more control |
 
 ### Pending Todos
 
@@ -59,12 +61,12 @@ None yet.
 
 ### Blockers/Concerns
 
-None - Phase 2 verified complete.
+None - Phase 3 Plan 1 complete.
 
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Phase 2 verified complete
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
 
 ## Phase 1 Summary
@@ -105,4 +107,29 @@ export COCOINDEX_DATABASE_URL="postgresql://cocoindex:cocoindex@localhost:5432/c
 uv run cocosearch index /path/to/codebase --name myindex
 ```
 
-Next: Phase 3 (Search Interface)
+## Phase 3 Summary (In Progress)
+
+Search interface development:
+
+Plan 03-01 (Complete):
+- Search module created at `src/cocosearch/search/`
+- Connection pool singleton with pgvector type registration
+- Table name resolver: `codeindex_{name}__{name}_chunks`
+- Core search function using code_to_embedding.eval() for query embedding
+- SearchResult dataclass with filename, byte offsets, and similarity score
+- Language filtering supporting 15 programming languages
+
+**Search API:**
+```python
+from cocosearch.search import search, SearchResult
+
+results = search(
+    query="authentication handler",
+    index_name="myproject",
+    limit=10,
+    min_score=0.5,
+    language_filter="python",
+)
+```
+
+Next: Plan 03-02 (Search CLI)
