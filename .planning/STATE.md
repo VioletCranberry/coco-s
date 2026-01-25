@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** Semantic code search that runs entirely locally — no data leaves your machine.
-**Current focus:** v1.1 Docs & Tests milestone - Phase 7 (Documentation)
+**Current focus:** v1.1 Docs & Tests milestone - Complete
 
 ## Current Position
 
 Phase: 7 of 7 (Documentation)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-01-26 — Completed 07-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-01-26 — Completed 07-03-PLAN.md
 
-Progress: [##################--] 90% (v1.0: 12/12 plans, v1.1: 10/11 plans)
+Progress: [####################] 100% (v1.0: 12/12 plans, v1.1: 11/11 plans)
 
 ## Performance Metrics
 
@@ -38,7 +38,7 @@ Progress: [##################--] 90% (v1.0: 12/12 plans, v1.1: 10/11 plans)
 |-------|-------|-----------|--------|
 | 5. Test Infrastructure | 3 | 3 | Complete |
 | 6. Unit Tests | 5 | 5 | Complete |
-| 7. Documentation | 3 | 2 | In progress |
+| 7. Documentation | 3 | 3 | Complete |
 
 ## Accumulated Context
 
@@ -65,6 +65,8 @@ Recent decisions affecting current work:
 - [v1.1-06-05]: Use 3-tuple fixture (pool, cursor, conn) to enable commit tracking
 - [v1.1-06-03]: Use pytest-subprocess fp fixture for git command mocking
 - [v1.1-06-03]: Add commit() method to MockConnection with tracking
+- [v1.1-07-03]: CLI Reference organized by workflow (Indexing, Searching, Managing)
+- [v1.1-07-03]: Synopsis + flags table + example + output format per command
 
 ### Pending Todos
 
@@ -77,8 +79,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 07-02-PLAN.md
+Stopped at: Completed 07-03-PLAN.md - Milestone v1.1 complete
 Resume file: None
 
 ---
-*Updated: 2026-01-26 after 07-02 execution*
+*Updated: 2026-01-26 after 07-03 execution*

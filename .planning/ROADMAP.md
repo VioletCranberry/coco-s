@@ -3,7 +3,7 @@
 ## Milestones
 
 - [x] **v1.0 MVP** - Phases 1-4 (shipped 2026-01-25)
-- [ ] **v1.1 Docs & Tests** - Phases 5-7 (in progress)
+- [x] **v1.1 Docs & Tests** - Phases 5-7 (shipped 2026-01-26)
 
 ## Phases
 
@@ -28,7 +28,7 @@
 
 </details>
 
-## v1.1 Docs & Tests (In Progress)
+## v1.1 Docs & Tests (Complete)
 
 **Milestone Goal:** Make CocoSearch approachable for new users and maintainable with comprehensive test coverage.
 
@@ -80,8 +80,8 @@ Plans:
 
 Plans:
 - [x] 07-01-PLAN.md — README structure, introduction, Quick Start, and Installation guide
-- [ ] 07-02-PLAN.md — MCP configuration guides (Claude Code, Claude Desktop, OpenCode)
-- [ ] 07-03-PLAN.md — CLI reference and configuration documentation
+- [x] 07-02-PLAN.md — MCP configuration guides (Claude Code, Claude Desktop, OpenCode)
+- [x] 07-03-PLAN.md — CLI reference and configuration documentation
 
 ## Progress
 
@@ -95,7 +95,7 @@ Plans:
 | 4. Management | v1.0 | 3/3 | Complete | 2026-01-25 |
 | 5. Test Infrastructure | v1.1 | 3/3 | Complete | 2026-01-25 |
 | 6. Test Coverage | v1.1 | 5/5 | Complete | 2026-01-25 |
-| 7. Documentation | v1.1 | 1/3 | In progress | - |
+| 7. Documentation | v1.1 | 3/3 | Complete | 2026-01-26 |
 
 ---
 *Roadmap created: 2026-01-25 for v1.1 Docs & Tests milestone*
