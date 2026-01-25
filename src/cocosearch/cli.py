@@ -18,6 +18,7 @@ from cocosearch.indexer import IndexingConfig, load_config, run_index
 from cocosearch.indexer.progress import IndexingProgress
 from cocosearch.search import search
 from cocosearch.search.formatter import format_json, format_pretty
+from cocosearch.search.repl import run_repl
 
 
 def derive_index_name(path: str) -> str:
@@ -205,9 +206,24 @@ def search_command(args: argparse.Namespace) -> int:
     else:
         # Auto-detect from cwd
         index_name = derive_index_name(os.getcwd())
-        if args.pretty:
-            # Only show in pretty mode to keep JSON clean
+        if args.pretty or args.interactive:
+            # Only show in pretty/interactive mode to keep JSON clean
             console.print(f"[dim]Using index: {index_name}[/dim]")
+
+    # Handle interactive mode
+    if args.interactive:
+        run_repl(
+            index_name=index_name,
+            limit=args.limit,
+            context_lines=args.context,
+            min_score=args.min_score,
+        )
+        return 0
+
+    # Require query for non-interactive mode
+    if not args.query:
+        console.print("[bold red]Error:[/bold red] Query required (use --interactive for REPL mode)")
+        return 1
 
     # Parse query for inline filters
     query, inline_lang = parse_query_filters(args.query)
@@ -288,7 +304,14 @@ def main() -> None:
     )
     search_parser.add_argument(
         "query",
-        help="Natural language search query",
+        nargs="?",  # Make optional (required unless --interactive)
+        default=None,
+        help="Natural language search query (not needed with --interactive)",
+    )
+    search_parser.add_argument(
+        "-i", "--interactive",
+        action="store_true",
+        help="Enter interactive search mode",
     )
     search_parser.add_argument(
         "-n", "--index",
@@ -324,13 +347,12 @@ def main() -> None:
 
     # Handle default action (query without subcommand)
     # Check before parsing if first argument is not a known subcommand
-    if (
-        len(sys.argv) > 1
-        and sys.argv[1] not in ("index", "search", "-h", "--help")
-        and not sys.argv[1].startswith("-")
-    ):
-        # Insert "search" before the query argument
-        sys.argv.insert(1, "search")
+    # Supports: `cocosearch "query"` or `cocosearch --interactive`
+    if len(sys.argv) > 1 and sys.argv[1] not in ("index", "search", "-h", "--help"):
+        first_arg = sys.argv[1]
+        # If it's a flag (like --interactive) or a query, insert "search"
+        if first_arg.startswith("-") or not first_arg.startswith("-"):
+            sys.argv.insert(1, "search")
 
     # Parse args
     args = parser.parse_args()

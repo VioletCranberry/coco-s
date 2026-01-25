@@ -5,13 +5,35 @@ needing to restart the CLI for each query.
 """
 
 import cmd
+import re
 import readline  # noqa: F401 - Enables history/editing
 
 from rich.console import Console
 
-from cocosearch.cli import parse_query_filters
-from cocosearch.search import search
 from cocosearch.search.formatter import format_pretty
+from cocosearch.search.query import search
+
+
+def _parse_query_filters(query: str) -> tuple[str, str | None]:
+    """Parse inline filters from query string.
+
+    Extracts lang:xxx pattern from query.
+
+    Args:
+        query: User query possibly containing filters.
+
+    Returns:
+        Tuple of (clean_query, language_filter).
+    """
+    lang_filter = None
+
+    # Extract lang:xxx pattern
+    lang_match = re.search(r"\blang:(\w+)\b", query)
+    if lang_match:
+        lang_filter = lang_match.group(1)
+        query = re.sub(r"\blang:\w+\b", "", query).strip()
+
+    return query, lang_filter
 
 
 class SearchREPL(cmd.Cmd):
@@ -70,7 +92,7 @@ class SearchREPL(cmd.Cmd):
             return self.handle_setting(line)
 
         # Parse inline filters
-        query, inline_lang = parse_query_filters(line)
+        query, inline_lang = _parse_query_filters(line)
         lang = inline_lang or self.lang_filter
 
         try:
