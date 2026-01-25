@@ -1,0 +1,184 @@
+"""Tests for cocosearch.indexer.flow module."""
+
+import pytest
+from unittest.mock import patch, MagicMock
+
+from cocosearch.indexer.config import IndexingConfig
+
+
+class TestCreateCodeIndexFlow:
+    """Tests for create_code_index_flow function."""
+
+    def test_creates_flow_with_name(self):
+        """Creates a flow with the correct name."""
+        from cocosearch.indexer.flow import create_code_index_flow
+
+        flow = create_code_index_flow(
+            index_name="testindex",
+            codebase_path="/test/path",
+            include_patterns=["*.py"],
+            exclude_patterns=[],
+        )
+
+        # Flow should have a name attribute
+        assert flow is not None
+
+
+class TestRunIndex:
+    """Tests for run_index function."""
+
+    def test_returns_update_info(self, tmp_path):
+        """run_index returns object with stats attribute."""
+        from cocosearch.indexer.flow import run_index
+
+        # Create a sample file in tmp_path
+        (tmp_path / "test.py").write_text("def hello(): pass")
+
+        # Mock cocoindex.init() and Flow to avoid real DB/Ollama calls
+        mock_update_info = MagicMock()
+        mock_update_info.stats = {"files_added": 1}
+
+        mock_flow = MagicMock()
+        mock_flow.setup.return_value = None
+        mock_flow.update.return_value = mock_update_info
+
+        with patch("cocosearch.indexer.flow.cocoindex.init"):
+            with patch(
+                "cocosearch.indexer.flow.create_code_index_flow",
+                return_value=mock_flow
+            ):
+                result = run_index(
+                    index_name="testindex",
+                    codebase_path=str(tmp_path),
+                )
+
+        # Should return the update info from flow.update()
+        assert result == mock_update_info
+        mock_flow.setup.assert_called_once()
+        mock_flow.update.assert_called_once()
+
+    def test_respects_config(self, tmp_path):
+        """Passes config to flow correctly."""
+        from cocosearch.indexer.flow import run_index
+
+        (tmp_path / "test.py").write_text("def hello(): pass")
+
+        custom_config = IndexingConfig(
+            include_patterns=["*.py", "*.js"],
+            chunk_size=500,
+            chunk_overlap=100,
+        )
+
+        mock_flow = MagicMock()
+        mock_flow.update.return_value = MagicMock()
+
+        with patch("cocosearch.indexer.flow.cocoindex.init"):
+            with patch(
+                "cocosearch.indexer.flow.create_code_index_flow",
+                return_value=mock_flow
+            ) as mock_create_flow:
+                run_index(
+                    index_name="testindex",
+                    codebase_path=str(tmp_path),
+                    config=custom_config,
+                )
+
+        # Verify create_code_index_flow was called with config values
+        call_kwargs = mock_create_flow.call_args[1]
+        assert call_kwargs["include_patterns"] == ["*.py", "*.js"]
+        assert call_kwargs["chunk_size"] == 500
+        assert call_kwargs["chunk_overlap"] == 100
+
+    def test_uses_default_config_when_none(self, tmp_path):
+        """Uses default config when not provided."""
+        from cocosearch.indexer.flow import run_index
+
+        (tmp_path / "test.py").write_text("def hello(): pass")
+
+        mock_flow = MagicMock()
+        mock_flow.update.return_value = MagicMock()
+
+        with patch("cocosearch.indexer.flow.cocoindex.init"):
+            with patch(
+                "cocosearch.indexer.flow.create_code_index_flow",
+                return_value=mock_flow
+            ) as mock_create_flow:
+                run_index(
+                    index_name="testindex",
+                    codebase_path=str(tmp_path),
+                    config=None,
+                )
+
+        # Should use default include_patterns (has *.py)
+        call_kwargs = mock_create_flow.call_args[1]
+        assert "*.py" in call_kwargs["include_patterns"]
+        assert call_kwargs["chunk_size"] == 1000  # default
+
+    def test_respects_gitignore_flag_true(self, tmp_path):
+        """Includes gitignore patterns when respect_gitignore=True."""
+        from cocosearch.indexer.flow import run_index
+
+        (tmp_path / "test.py").write_text("def hello(): pass")
+        (tmp_path / ".gitignore").write_text("custom_ignore/\n")
+
+        mock_flow = MagicMock()
+        mock_flow.update.return_value = MagicMock()
+
+        with patch("cocosearch.indexer.flow.cocoindex.init"):
+            with patch(
+                "cocosearch.indexer.flow.create_code_index_flow",
+                return_value=mock_flow
+            ) as mock_create_flow:
+                run_index(
+                    index_name="testindex",
+                    codebase_path=str(tmp_path),
+                    respect_gitignore=True,
+                )
+
+        call_kwargs = mock_create_flow.call_args[1]
+        assert "custom_ignore/" in call_kwargs["exclude_patterns"]
+
+    def test_respects_gitignore_flag_false(self, tmp_path):
+        """Excludes gitignore patterns when respect_gitignore=False."""
+        from cocosearch.indexer.flow import run_index
+
+        (tmp_path / "test.py").write_text("def hello(): pass")
+        (tmp_path / ".gitignore").write_text("custom_ignore/\n")
+
+        mock_flow = MagicMock()
+        mock_flow.update.return_value = MagicMock()
+
+        with patch("cocosearch.indexer.flow.cocoindex.init"):
+            with patch(
+                "cocosearch.indexer.flow.create_code_index_flow",
+                return_value=mock_flow
+            ) as mock_create_flow:
+                run_index(
+                    index_name="testindex",
+                    codebase_path=str(tmp_path),
+                    respect_gitignore=False,
+                )
+
+        call_kwargs = mock_create_flow.call_args[1]
+        assert "custom_ignore/" not in call_kwargs["exclude_patterns"]
+
+    def test_initializes_cocoindex(self, tmp_path):
+        """Calls cocoindex.init() before creating flow."""
+        from cocosearch.indexer.flow import run_index
+
+        (tmp_path / "test.py").write_text("def hello(): pass")
+
+        mock_flow = MagicMock()
+        mock_flow.update.return_value = MagicMock()
+
+        with patch("cocosearch.indexer.flow.cocoindex.init") as mock_init:
+            with patch(
+                "cocosearch.indexer.flow.create_code_index_flow",
+                return_value=mock_flow
+            ):
+                run_index(
+                    index_name="testindex",
+                    codebase_path=str(tmp_path),
+                )
+
+        mock_init.assert_called_once()
