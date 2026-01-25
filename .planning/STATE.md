@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 6 of 7 (Test Coverage)
-Plan: 4 of 5 completed
+Plan: 3 of 5 completed (01, 02, 04)
 Status: In progress
-Last activity: 2026-01-25 — Completed 06-04-PLAN.md (CLI Tests)
+Last activity: 2026-01-25 — Completed 06-02-PLAN.md (Search Module Tests)
 
-Progress: [##############------] 70% (v1.0: 12/12 plans, v1.1: 4/8+ plans)
+Progress: [##############------] 72% (v1.0: 12/12 plans, v1.1: 6/11 plans)
 
 ## Performance Metrics
 
@@ -37,7 +37,7 @@ Progress: [##############------] 70% (v1.0: 12/12 plans, v1.1: 4/8+ plans)
 | Phase | Plans | Completed | Status |
 |-------|-------|-----------|--------|
 | 5. Test Infrastructure | 3 | 3 | Complete |
-| 6. Unit Tests | 5 | 1 | In progress (06-04 done) |
+| 6. Unit Tests | 5 | 3 | In progress (01, 02, 04 done; 03, 05 remaining) |
 | 7. Documentation | TBD | 0 | Not started |
 
 ## Accumulated Context
@@ -59,6 +59,8 @@ Recent decisions affecting current work:
 - [v1.1-06-04]: Mock at CLI level (patch cocosearch.cli.search, not internal DB functions)
 - [v1.1-06-04]: Test commands directly via command functions, not CLI parsing
 - [v1.1-06-04]: Use capsys for output verification, not rich console mocking
+- [v1.1-06-02]: Patch get_connection_pool at import site (query.py) not source (db.py)
+- [v1.1-06-02]: Use substring checks for Rich output with ANSI escape codes
 
 ### Pending Todos
 
@@ -71,8 +73,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Completed 06-04-PLAN.md (CLI Tests)
+Stopped at: Completed 06-02-PLAN.md (Search Module Tests)
 Resume file: None
 
 ---
-*Updated: 2026-01-25 after completing 06-04-PLAN.md*
+*Updated: 2026-01-25 after completing 06-02-PLAN.md*
