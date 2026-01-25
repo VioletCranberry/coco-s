@@ -198,3 +198,71 @@ Add to `~/.claude.json`:
 1. Restart Claude Code (or run `/mcp` command to refresh)
 2. Run `/mcp` - you should see `cocosearch` listed with status "connected"
 3. Ask Claude: "Search for authentication logic in my codebase"
+
+### Claude Desktop
+
+**Config file locations:**
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Linux:** `~/.config/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+**Config content:**
+
+```json
+{
+  "mcpServers": {
+    "cocosearch": {
+      "command": "uv",
+      "args": ["run", "--directory", "/absolute/path/to/cocosearch", "cocosearch", "mcp"],
+      "env": {
+        "COCOINDEX_DATABASE_URL": "postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
+      }
+    }
+  }
+}
+```
+
+**Verification:**
+1. Restart Claude Desktop completely (quit and reopen the application)
+2. Look for the hammer icon in the chat input area
+3. Click the hammer to see "cocosearch" tools listed
+4. Start a new conversation and ask Claude to search your codebase
+
+### OpenCode
+
+**Config file locations:**
+- **Global:** `~/.config/opencode/opencode.json`
+- **Project:** `opencode.json` in project root
+
+**Config content:**
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "cocosearch": {
+      "type": "local",
+      "command": ["uv", "run", "--directory", "/absolute/path/to/cocosearch", "cocosearch", "mcp"],
+      "enabled": true,
+      "environment": {
+        "COCOINDEX_DATABASE_URL": "postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
+      }
+    }
+  }
+}
+```
+
+> **Note:** OpenCode config differs from Claude configs:
+> - Uses `"type": "local"` (not implicit)
+> - `command` is an array (not separate command/args)
+> - Uses `"environment"` (not `"env"`)
+> - Has explicit `"enabled": true`
+
+**Verification:**
+1. Restart OpenCode
+2. Check MCP status in OpenCode settings/status
+3. Verify cocosearch tools are available
+
+---
+
+**Remember:** Replace `/absolute/path/to/cocosearch` in all configs with the actual path where you cloned the repository.
