@@ -374,6 +374,79 @@ def stats_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def clear_command(args: argparse.Namespace) -> int:
+    """Execute the clear command.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        Exit code (0 for success, 1 for error).
+    """
+    console = Console()
+
+    # Initialize CocoIndex
+    cocoindex.init()
+
+    index_name = args.index
+
+    # Get stats first to validate existence and show what will be deleted
+    try:
+        stats = get_stats(index_name)
+    except ValueError as e:
+        if args.pretty:
+            console.print(f"[bold red]Error:[/bold red] {e}")
+        else:
+            print(json.dumps({"error": str(e)}))
+        return 1
+
+    # Show confirmation prompt unless --force
+    if not args.force:
+        console.print(f"\nIndex '[cyan]{index_name}[/cyan]' contains:")
+        console.print(f"  Files:  {stats['file_count']}")
+        console.print(f"  Chunks: {stats['chunk_count']}")
+        console.print(f"  Size:   {stats['storage_size_pretty']}")
+        console.print()
+
+        response = input(f"Delete index '{index_name}'? [y/N] ")
+        if response.lower() != "y":
+            console.print("Cancelled.")
+            return 0
+
+    # Perform deletion
+    try:
+        result = clear_index(index_name)
+    except ValueError as e:
+        if args.pretty:
+            console.print(f"[bold red]Error:[/bold red] {e}")
+        else:
+            print(json.dumps({"error": str(e)}))
+        return 1
+
+    # Output result
+    if args.pretty:
+        console.print(f"[green]Index '{index_name}' deleted successfully[/green]")
+    else:
+        print(json.dumps(result, indent=2))
+
+    return 0
+
+
+def mcp_command(args: argparse.Namespace) -> int:
+    """Start the MCP server.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        Exit code (0 for success, never reached as server runs until killed).
+    """
+    from cocosearch.mcp import run_server
+
+    run_server()
+    return 0  # Never reached, server runs until killed
+
+
 def main() -> None:
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -493,6 +566,34 @@ def main() -> None:
         help="Human-readable output (default: JSON)",
     )
 
+    # Clear subcommand
+    clear_parser = subparsers.add_parser(
+        "clear",
+        help="Delete an index",
+        description="Delete an index and all its data. Prompts for confirmation by default.",
+    )
+    clear_parser.add_argument(
+        "index",
+        help="Index name to delete",
+    )
+    clear_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Skip confirmation prompt",
+    )
+    clear_parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="Human-readable output (default: JSON)",
+    )
+
+    # MCP subcommand
+    subparsers.add_parser(
+        "mcp",
+        help="Start MCP server for LLM integration",
+        description="Start the Model Context Protocol server for use with Claude and other LLM clients.",
+    )
+
     # Known subcommands for routing
     known_subcommands = ("index", "search", "list", "stats", "clear", "mcp", "-h", "--help")
 
@@ -516,6 +617,10 @@ def main() -> None:
         sys.exit(list_command(args))
     elif args.command == "stats":
         sys.exit(stats_command(args))
+    elif args.command == "clear":
+        sys.exit(clear_command(args))
+    elif args.command == "mcp":
+        sys.exit(mcp_command(args))
     else:
         parser.print_help()
         sys.exit(1)
