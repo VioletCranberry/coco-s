@@ -30,7 +30,12 @@ Semantic code search that runs entirely locally — no data leaves your machine.
 
 ### Active
 
-(None yet — planning v2)
+**v1.1 Docs & Tests:**
+- User documentation with installation guide and quick start
+- MCP setup guides for Claude Code, Claude Desktop, and OpenCode
+- CLI reference documentation
+- Full pytest test suite with mocked dependencies
+- README.md quick start (CLI demo → MCP setup)
 
 ### Out of Scope
 
@@ -38,6 +43,16 @@ Semantic code search that runs entirely locally — no data leaves your machine.
 - Cloud storage or external embedding APIs — this is local-first
 - Real-time file watching / auto-reindex — manual index trigger only
 - Web UI — MCP and CLI interface only
+
+## Current Milestone: v1.1 Docs & Tests
+
+**Goal:** Make CocoSearch approachable for new users and maintainable with comprehensive test coverage.
+
+**Target deliverables:**
+- Installation guide (Ollama via brew, PostgreSQL via Docker)
+- MCP setup guides for Claude Code, Claude Desktop, OpenCode
+- CLI reference documentation
+- Full pytest test suite with mocked dependencies
 
 ## Context
 
@@ -72,4 +87,4 @@ Primary use case: onboarding to unfamiliar codebases via semantic search.
 | Logging to stderr in MCP | Prevents stdout corruption of JSON-RPC protocol | Good |
 
 ---
-*Last updated: 2026-01-25 after v1.0 milestone*
+*Last updated: 2026-01-25 after starting v1.1 milestone*
