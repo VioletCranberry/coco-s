@@ -1,7 +1,7 @@
 """Indexer module for cocosearch."""
 
 from cocosearch.indexer.config import IndexingConfig, load_config
-from cocosearch.indexer.embedder import code_to_embedding, extract_extension
+from cocosearch.indexer.embedder import code_to_embedding, extract_extension, extract_language
 from cocosearch.indexer.file_filter import (
     DEFAULT_EXCLUDES,
     build_exclude_patterns,
@@ -18,6 +18,7 @@ __all__ = [
     "code_to_embedding",
     "create_code_index_flow",
     "extract_extension",
+    "extract_language",
     "load_config",
     "load_gitignore_patterns",
     "print_summary",

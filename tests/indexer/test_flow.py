@@ -182,3 +182,51 @@ class TestRunIndex:
                 )
 
         mock_init.assert_called_once()
+
+
+class TestCustomLanguageIntegration:
+    """Tests for custom language integration in flow module."""
+
+    def test_devops_custom_languages_importable(self):
+        """DEVOPS_CUSTOM_LANGUAGES is importable from languages module."""
+        from cocosearch.indexer.languages import DEVOPS_CUSTOM_LANGUAGES
+
+        assert isinstance(DEVOPS_CUSTOM_LANGUAGES, list)
+        assert len(DEVOPS_CUSTOM_LANGUAGES) == 3
+
+    def test_extract_language_importable(self):
+        """extract_language is importable from embedder module."""
+        from cocosearch.indexer.embedder import extract_language
+
+        assert callable(extract_language)
+
+    def test_extract_language_importable_from_init(self):
+        """extract_language is importable from indexer __init__.py."""
+        from cocosearch.indexer import extract_language
+
+        assert callable(extract_language)
+
+    def test_flow_module_imports_custom_languages(self):
+        """flow module successfully imports DEVOPS_CUSTOM_LANGUAGES."""
+        import cocosearch.indexer.flow as flow_module
+
+        assert hasattr(flow_module, 'DEVOPS_CUSTOM_LANGUAGES')
+
+    def test_flow_module_imports_extract_language(self):
+        """flow module successfully imports extract_language."""
+        import cocosearch.indexer.flow as flow_module
+
+        assert hasattr(flow_module, 'extract_language')
+
+    def test_create_code_index_flow_with_custom_languages(self):
+        """create_code_index_flow creates flow without errors."""
+        from cocosearch.indexer.flow import create_code_index_flow
+
+        flow = create_code_index_flow(
+            index_name="test_custom_lang",
+            codebase_path="/test/path",
+            include_patterns=["*.py", "*.tf", "Dockerfile"],
+            exclude_patterns=[],
+        )
+
+        assert flow is not None

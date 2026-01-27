@@ -10,7 +10,8 @@ Defines the main indexing flow that:
 import cocoindex
 
 from cocosearch.indexer.config import IndexingConfig
-from cocosearch.indexer.embedder import code_to_embedding, extract_extension
+from cocosearch.indexer.embedder import code_to_embedding, extract_extension, extract_language
+from cocosearch.indexer.languages import DEVOPS_CUSTOM_LANGUAGES
 from cocosearch.indexer.file_filter import build_exclude_patterns
 
 
@@ -56,12 +57,15 @@ def create_code_index_flow(
 
         # Step 3: Process each file
         with data_scope["files"].row() as file:
-            # Extract extension for language detection
-            file["extension"] = file["filename"].transform(extract_extension)
+            # Extract language identifier for routing (handles extensionless files like Dockerfile)
+            # Note: field is still called "extension" to minimize downstream changes
+            file["extension"] = file["filename"].transform(extract_language)
 
-            # Chunk using Tree-sitter (SplitRecursively)
+            # Chunk using Tree-sitter + custom DevOps languages (SplitRecursively)
             file["chunks"] = file["content"].transform(
-                cocoindex.functions.SplitRecursively(),
+                cocoindex.functions.SplitRecursively(
+                    custom_languages=DEVOPS_CUSTOM_LANGUAGES,
+                ),
                 language=file["extension"],
                 chunk_size=chunk_size,
                 chunk_overlap=chunk_overlap,
