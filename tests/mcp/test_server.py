@@ -80,6 +80,54 @@ class TestSearchCode:
         assert any("python" in str(call) or ".py" in str(call) for call in calls) or True
 
 
+class TestSearchCodeMetadata:
+    """Tests for metadata fields in search_code MCP response."""
+
+    def test_response_includes_metadata(self, mock_code_to_embedding, mock_db_pool):
+        """search_code result should include block_type, hierarchy, language_id."""
+        pool, cursor, _conn = mock_db_pool(results=[
+            ("/infra/main.tf", 0, 200, 0.92, "resource", "resource.aws_s3_bucket.data", "hcl"),
+        ])
+
+        with patch("cocoindex.init"):
+            with patch("cocosearch.search.query.get_connection_pool", return_value=pool):
+                with patch("cocosearch.mcp.server.byte_to_line", return_value=1):
+                    with patch("cocosearch.mcp.server.read_chunk_content", return_value="resource {}"):
+                        result = search_code(
+                            query="s3 bucket",
+                            index_name="testindex",
+                            limit=5,
+                        )
+
+        assert len(result) == 1
+        item = result[0]
+        assert item["block_type"] == "resource"
+        assert item["hierarchy"] == "resource.aws_s3_bucket.data"
+        assert item["language_id"] == "hcl"
+
+    def test_response_empty_metadata_for_non_devops(self, mock_code_to_embedding, mock_db_pool):
+        """Non-DevOps results should have empty string metadata fields."""
+        pool, cursor, _conn = mock_db_pool(results=[
+            ("/test/file.py", 0, 100, 0.85, "", "", ""),
+        ])
+
+        with patch("cocoindex.init"):
+            with patch("cocosearch.search.query.get_connection_pool", return_value=pool):
+                with patch("cocosearch.mcp.server.byte_to_line", return_value=1):
+                    with patch("cocosearch.mcp.server.read_chunk_content", return_value="def test(): pass"):
+                        result = search_code(
+                            query="test",
+                            index_name="testindex",
+                            limit=5,
+                        )
+
+        assert len(result) == 1
+        item = result[0]
+        assert item["block_type"] == ""
+        assert item["hierarchy"] == ""
+        assert item["language_id"] == ""
+
+
 class TestListIndexes:
     """Tests for list_indexes MCP tool."""
 
