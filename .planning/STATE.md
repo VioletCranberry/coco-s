@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** Semantic code search that runs entirely locally -- no data leaves your machine.
-**Current focus:** v1.2 DevOps Language Support -- Phase 3 VERIFIED, Phase 4 next
+**Current focus:** v1.2 DevOps Language Support -- Phase 4 in progress (plan 1 of 2 complete)
 
 ## Current Position
 
-Phase: 3 of 4 (Flow Integration and Schema) -- VERIFIED ✓
-Plan: 1 of 1 complete (10-01-PLAN.md)
-Status: Phase 3 verified, ready for Phase 4
-Last activity: 2026-01-27 -- Phase 3 verified (4/4 must-haves passed)
+Phase: 4 of 4 (Search and Output Integration)
+Plan: 1 of 2 complete (04-01-PLAN.md)
+Status: In progress
+Last activity: 2026-01-27 -- Completed 04-01-PLAN.md (search query layer)
 
-Progress: [###############-----] 75% (v1.2: 3/4 phases, 4/8 plans)
+Progress: [################----] 83% (v1.2: 3/4 phases complete, 5/8 plans)
 
 ## Milestones Shipped
 
@@ -32,7 +32,7 @@ Progress: [###############-----] 75% (v1.2: 3/4 phases, 4/8 plans)
 | 1 | Custom Language Definitions and File Routing | 6 | ✓ Verified |
 | 2 | Metadata Extraction | 7 | ✓ Verified |
 | 3 | Flow Integration and Schema | 4 | ✓ Verified |
-| 4 | Search and Output Integration | 9 | Pending |
+| 4 | Search and Output Integration | 9 | In Progress (1/2 plans) |
 
 **Research flags:**
 - Phase 1: RESOLVED & VERIFIED -- Bash confirmed NOT built-in, standard Rust regex, all 6 requirements complete
@@ -48,7 +48,7 @@ Progress: [###############-----] 75% (v1.2: 3/4 phases, 4/8 plans)
 | Research confidence | HIGH |
 | New dependencies | 0 |
 | New files | 3 (languages.py, metadata.py, test_metadata.py) |
-| Modified files | 5 (config.py, flow.py, query.py, formatter.py, server.py) |
+| Modified files | 6 (config.py, flow.py, query.py, cli.py, formatter.py, server.py) |
 
 ## Accumulated Context
 
@@ -77,10 +77,14 @@ Key decisions for v1.2:
 - Top-level Bash code gets empty block_type/hierarchy (consistent with non-DevOps convention)
 - Metadata transform runs unconditionally on all chunks (non-DevOps get empty strings)
 - Bracket notation for struct sub-field access in collect() kwargs
+- LANGUAGE_ALIASES resolves terraform->hcl, shell->bash, sh->bash before validation
+- ALL_LANGUAGES = LANGUAGE_EXTENSIONS keys + DEVOPS_LANGUAGES keys; alias keys excluded
+- Module-level _has_metadata_columns flag for one-time graceful degradation
+- DevOps languages filter via language_id column; extension-based via filename LIKE
 
 ### Pending Todos
 
-- Plan Phase 4 (Search and Output Integration)
+- Execute Phase 4 Plan 2 (Output Integration: formatters + MCP)
 
 ### Blockers/Concerns
 
@@ -88,9 +92,9 @@ Key decisions for v1.2:
 
 ## Session Continuity
 
-Last session: 2026-01-27T17:57:18Z
-Stopped at: Phase 3 verified, ready for `/gsd:discuss-phase 4` or `/gsd:plan-phase 4`
-Resume file: .planning/ROADMAP.md
+Last session: 2026-01-27T18:40:31Z
+Stopped at: Completed 04-01-PLAN.md, ready for 04-02-PLAN.md
+Resume file: .planning/phases/04-search-and-output-integration/04-02-PLAN.md
 
 ---
-*Updated: 2026-01-27 after Phase 3 verification*
+*Updated: 2026-01-27 after completing 04-01-PLAN.md*
