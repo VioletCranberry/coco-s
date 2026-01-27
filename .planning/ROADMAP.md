@@ -53,6 +53,11 @@ Plans:
 
 **Dependencies:** Phase 1 (chunk boundaries must be correct for metadata regex to match block starts).
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 09-01-PLAN.md -- DevOpsMetadata dataclass, per-language extractors (HCL, Dockerfile, Bash), dispatch function, and comprehensive tests
+
 **Requirements:**
 - REQ-07: HCL block type extraction (resource, data, module, etc.)
 - REQ-08: HCL resource hierarchy (e.g., `resource.aws_s3_bucket.data`)
@@ -176,7 +181,7 @@ Plans:
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 1 | Custom Language Definitions and File Routing | 6 | ✓ Complete (2/2 plans) |
-| 2 | Metadata Extraction | 7 | Pending |
+| 2 | Metadata Extraction | 7 | Planned (1 plan) |
 | 3 | Flow Integration and Schema | 4 | Pending |
 | 4 | Search and Output Integration | 9 | Pending |
 
