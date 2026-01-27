@@ -1,171 +1,209 @@
 # Project Research Summary
 
-**Project:** CocoSearch
-**Domain:** Local-first code indexing and semantic search with MCP interface
-**Researched:** 2026-01-24
+**Project:** CocoSearch v1.2 -- DevOps Language Support
+**Domain:** Semantic code search with DevOps-specific chunking and metadata (HCL/Terraform, Dockerfile, Bash/Shell)
+**Researched:** 2026-01-27
 **Confidence:** HIGH
 
 ## Executive Summary
 
-CocoSearch is a local-first semantic code search tool that indexes codebases using CocoIndex, stores embeddings in PostgreSQL with pgvector, and exposes search capabilities through the Model Context Protocol (MCP). Experts build this type of system with a clear separation between the indexing pipeline (source parsing, chunking, embedding generation) and the query layer (vector similarity search), ensuring that the same embedding model is used for both indexing and querying. The local-first approach using Ollama for embeddings differentiates CocoSearch from cloud-dependent alternatives like GitHub Copilot and Sourcegraph, providing full privacy without code leaving the developer's machine.
+CocoSearch v1.2 adds DevOps language support (HCL/Terraform, Dockerfile, Bash/Shell) through CocoIndex's existing `custom_languages` API with zero new runtime dependencies. The approach uses `CustomLanguageSpec` regex separators for chunking and Python stdlib `re` for metadata extraction. All three target languages lack Tree-sitter support in CocoIndex's built-in language list, making `custom_languages` the only viable chunking path. The architecture extends the existing single-flow pipeline rather than creating a parallel DevOps-specific index, keeping UX simple: users search one index for Python, Terraform, and Dockerfiles together.
 
-The recommended approach is to use CocoIndex with Tree-sitter for language-aware code chunking, `nomic-embed-text` via Ollama for 768-dimensional embeddings, and PostgreSQL 17 with pgvector 0.8.1 for vector storage and HNSW-based similarity search. The MCP server should use FastMCP from the official MCP Python SDK (v1.26.0) with stdio transport. This stack is well-documented, version-compatible, and provides incremental indexing capabilities out of the box.
+The recommended approach is a four-phase build: (1) custom language definitions with file patterns and language routing, (2) metadata extraction as a CocoIndex op function, (3) flow integration with schema extension, and (4) search and output integration. This order follows hard dependencies -- chunking must produce correct boundaries before metadata extraction works, and metadata must be in the database before search can surface it. The key differentiator over grep/ripgrep is structural metadata: search results annotated with `resource.aws_s3_bucket.main` or `stage:builder` rather than raw text matches.
 
-Key risks include embedding dimension mismatches when models change (requires storing model metadata and validating on startup), fixed-size code chunking that destroys semantic meaning (solved by Tree-sitter language-aware chunking), and Docker volume data loss (mitigated by proper named volume configuration). MCP tool output volume must be limited to avoid overwhelming the calling LLM's context window. All critical pitfalls have clear prevention strategies that should be implemented from Phase 1.
+The primary risks are regex-based chunking splitting mid-block in HCL files with heredocs or deep nesting, metadata false positives from comments and string literals, and schema migration destroying existing indexes. All three are addressable: conservative top-level-only separators with generous chunk sizes (2000+ bytes) for chunking, line-start-anchored patterns for metadata, and additive-only schema changes with stable primary keys for migration. The regex approach is explicitly chosen as "good enough" for v1.2 -- a future upgrade path to `python-hcl2` (MIT) and `dockerfile-parse` (BSD) exists if deeper parsing proves necessary.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The stack is centered on CocoIndex (v0.3.28) as the indexing engine, which provides built-in support for Tree-sitter parsing, incremental processing with data lineage tracking, and native PostgreSQL/pgvector export. All dependencies are available via UV package manager as required by project constraints.
+No new dependencies required. v1.2 is built entirely on CocoIndex's `custom_languages` parameter (already in `SplitRecursively`) and Python stdlib `re`. This is the strongest possible position for a milestone: zero dependency risk, zero supply chain additions, zero license concerns.
 
-**Core technologies:**
-- **Python 3.11+**: Runtime requirement for CocoIndex; use 3.11 as minimum
-- **CocoIndex 0.3.28**: Indexing engine with Tree-sitter support, incremental processing, pgvector export
-- **MCP Python SDK 1.26.0**: Official SDK with FastMCP for tool definition; v1.x for production stability
-- **PostgreSQL 17 + pgvector 0.8.1**: Vector storage with HNSW indexing; use `pgvector/pgvector:pg17` Docker image
-- **Ollama + nomic-embed-text**: Local embedding generation; 768 dimensions, 8192 token context window
-- **UV 0.9.26**: Package manager as specified in project requirements
-- **psycopg 3.3.2**: PostgreSQL driver with connection pooling (`[binary,pool]` extras)
+**Core technologies (unchanged from v1.1):**
+- **CocoIndex >=0.3.28:** `SplitRecursively` with `custom_languages` param -- verified locally via `help()` and official docs
+- **PostgreSQL + pgvector:** Three new TEXT columns added automatically by CocoIndex schema inference
+- **Python stdlib `re`:** All metadata extraction via regex -- no external parsers needed
+- **Rust `fancy-regex` engine:** CocoIndex's separator regex engine; supports lookaheads critical for split-before-boundary patterns
+
+**Explicitly rejected dependencies:**
+- `bashlex` -- GPLv3, incompatible with project MIT license
+- `tfparse` -- requires `terraform init`, binary wheels, heavy
+- `pyhcl` -- HCL v1 only, deprecated
+- External Tree-sitter grammars -- bypasses CocoIndex pipeline
+
+**Upgrade path if regex proves insufficient:** `python-hcl2` (MIT, v7.3.1) for HCL, `dockerfile-parse` (BSD, v2.0.1) for Dockerfile. Both license-compatible.
+
+See: [STACK.md](STACK.md)
 
 ### Expected Features
 
 **Must have (table stakes):**
-- Semantic search with natural language queries
-- File path and line numbers in results
-- Language-aware chunking via Tree-sitter (15+ languages)
-- Gitignore respect + basic file filtering
-- Named index support for multiple codebases
-- Result relevance scores (cosine similarity)
-- Clear/reindex commands
-- Local-only processing (no code leaves machine)
+- HCL block-level chunking (resource, module, variable boundaries)
+- Dockerfile instruction-level chunking with FROM as stage boundary
+- Bash function-level chunking
+- File pattern recognition (`*.tf`, `Dockerfile`, `*.sh` and variants)
+- Correct language routing (extension/filename to custom language spec)
+- Block type metadata extraction (resource, FROM, function)
+- Language filter additions (terraform, dockerfile, bash)
+- Search results and MCP responses include metadata fields
 
-**Should have (v1.x, add after validation):**
-- Incremental indexing (CocoIndex's signature feature)
-- Language-specific search filters
-- Chunk context expansion
-- Configurable embedding model selection
-- Index statistics
+**Should have (differentiators):**
+- HCL resource hierarchy (`resource.aws_s3_bucket.data`) -- transforms results from "here is some HCL" to "here is the S3 bucket resource named data"
+- Bash function name extraction (`function:deploy_app`)
+- Graceful degradation for pre-v1.2 indexes (COALESCE fallback in SQL)
+- Syntax highlighting for DevOps files in pretty output
 
-**Defer (v2+):**
-- Symbol-aware indexing (HIGH complexity, requires AST parsing)
-- Search result deduplication
-- Hybrid keyword + semantic search
+**Defer to v1.3+:**
+- Dockerfile stage tracking for non-FROM instructions (requires two-pass processing)
+- Block type and hierarchy search filters (`--block-type`, `--hierarchy`)
+- Terraform provider inference (aws_, azurerm_, google_ prefix heuristic)
+- Bash script purpose annotation (path-based heuristics)
+
+**Anti-features (deliberately NOT building):**
+- Terraform plan/state integration, module resolution, secrets detection
+- Dockerfile build graph analysis, linting integration
+- Bash execution analysis, shell dialect detection
+- Custom Tree-sitter grammar shipping
+
+See: [FEATURES.md](FEATURES.md)
 
 ### Architecture Approach
 
-The architecture follows a three-layer pattern: MCP Server (tool exposure), CocoIndex Flow Layer (indexing pipeline), and Storage Layer (PostgreSQL + Ollama). Each named index gets its own CocoIndex flow definition with unique table names for isolation. MCP tools are thin orchestrators that delegate to flows and storage modules, keeping business logic testable and the MCP layer swappable.
+Single-flow architecture with four integration points: (1) `SplitRecursively` constructor gains `custom_languages`, (2) new `extract_devops_metadata` CocoIndex op function runs after chunking, (3) PostgreSQL collector stores three new TEXT columns, and (4) search query and formatters surface metadata. Two new files (`languages.py`, `metadata.py`), five modified files (`config.py`, `flow.py`, `query.py`, `formatter.py`, `server.py`). Metadata extraction runs for ALL files (returning empty strings for non-DevOps), avoiding conditional flow branching.
 
 **Major components:**
-1. **MCP Server** — Expose index_codebase, search_code, clear_index tools via FastMCP with stdio transport
-2. **Flow Manager** — Create/retrieve CocoIndex flows per named index, manage flow lifecycle
-3. **LocalFile Source** — Read files with configurable include/exclude patterns, respect gitignore
-4. **SplitRecursively Transform** — Language-aware chunking using Tree-sitter for code, fallback for other files
-5. **Embed Transform** — Generate embeddings via Ollama (nomic-embed-text) or SentenceTransformer
-6. **PostgreSQL + pgvector** — Store vectors with HNSW index, serve similarity queries
-7. **Query Handler** — Generate query embedding, execute vector search, format results
+1. **Language definitions** (`languages.py`) -- `CustomLanguageSpec` constants for HCL, Dockerfile, Bash with hierarchical regex separators
+2. **Metadata extractors** (`metadata.py`) -- `@cocoindex.op.function()` returning a `DevOpsMetadata` dataclass (block_type, hierarchy, language_id)
+3. **Flow integration** (`flow.py`) -- passes `custom_languages` to constructor, adds metadata extraction step, extends collector fields
+4. **Search integration** (`query.py`, `formatter.py`, `server.py`) -- new SearchResult fields, SQL SELECT extensions, metadata display in output
+
+**Key patterns to follow:**
+- Static language definitions (module-level constants, not dynamic)
+- Metadata as CocoIndex op function (enables caching, incremental processing)
+- Empty strings over NULLs for optional metadata (simpler SQL, consistent pattern)
+- Graceful degradation via try/except on enriched query
+
+See: [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ### Critical Pitfalls
 
-1. **Embedding dimension mismatch** — Store model name and dimensions in index metadata; validate on every operation; require explicit clear + reindex if model changes
-2. **Fixed-size chunking destroys code semantics** — Use CocoIndex's SplitRecursively with Tree-sitter; never split on token count alone; include 10-15% chunk overlap
-3. **pgvector performance cliff at scale** — Calculate memory requirements (vectors x dimensions x 4 bytes x 3 HNSW overhead); monitor PostgreSQL memory; set appropriate Docker limits
-4. **MCP tool returns overwhelm context window** — Default to 5-10 results maximum; include limit parameter in tool schema; provide relevance scores
-5. **Docker volume data loss** — Use named volumes in docker-compose; never use anonymous volumes; test persistence after container restart
-6. **Ollama model breaks after upgrade** — Pin model versions where possible; test embedding on startup; fail fast if broken
+1. **Regex splits mid-block in HCL** -- Nested HCL blocks and heredocs confuse regex separators. Prevention: top-level-only separators, chunk_size 2000+ bytes, brace-balance validation, integration tests with real Terraform files containing heredocs and dynamic blocks.
+
+2. **HCL heredocs trigger false splits** -- The word "resource" inside a JSON IAM policy heredoc triggers a false separator match. Prevention: line-start-anchored patterns (`r"\n(?:resource|data|...)\s+"`), generous chunk sizes so heredoc-containing blocks stay intact.
+
+3. **Metadata false positives from comments/strings** -- Comments like `# This resource was replaced by aws_lambda_function` match extraction regex. Prevention: require structural context (line-start match, not mid-line), strip comments before extraction, write adversarial test cases.
+
+4. **Schema migration destroys existing indexes** -- Adding collector fields changes CocoIndex's inferred schema. If primary keys change, tables are dropped and recreated. Prevention: keep primary keys as `["filename", "location"]` (unchanged), metadata as additive-only columns, test migration path explicitly before release.
+
+5. **Dockerfile extensionless file detection** -- `Dockerfile` has no extension; current `extract_extension` returns empty string, causing plain-text fallback. Prevention: filename-to-language mapping function that checks basename before extension, prefix matching for `Dockerfile.dev` variants.
+
+See: [PITFALLS.md](PITFALLS.md)
 
 ## Implications for Roadmap
 
 Based on research, suggested phase structure:
 
-### Phase 1: Foundation
-**Rationale:** PostgreSQL and Ollama are dependencies for all other components. Schema design must include model metadata tracking from day one to prevent dimension mismatch issues. Docker volume persistence must be verified before any real indexing work.
-**Delivers:** Working development environment with PostgreSQL + pgvector, Ollama with nomic-embed-text, Docker Compose configuration with persistent volumes, project structure with configuration
-**Addresses:** Local-only processing foundation, data persistence
-**Avoids:** Docker volume data loss, embedding model version issues
+### Phase 1: Custom Language Definitions and File Routing
 
-### Phase 2: Indexing Pipeline
-**Rationale:** Indexing must work before search. CocoIndex flow definition determines chunking strategy which directly impacts search quality. Tree-sitter integration is critical for code comprehension.
-**Delivers:** CocoIndex flow that reads codebase, chunks with Tree-sitter, generates embeddings, exports to PostgreSQL
-**Uses:** CocoIndex, SentenceTransformerEmbed (or Ollama embedding), pgvector
-**Implements:** LocalFile Source, SplitRecursively Transform, Embed Transform, Collector/Export
-**Addresses:** Language-aware chunking, gitignore respect, file filtering
-**Avoids:** Code chunking destroying semantic meaning
+**Rationale:** Everything depends on correct chunking. If chunk boundaries are wrong, metadata extraction produces garbage, embeddings are poor, and search results are useless. Language detection and file patterns must work before any downstream feature.
 
-### Phase 3: Search Implementation
-**Rationale:** Search depends on indexed data. Query must use the same embedding transform as indexing. HNSW index tuning needed for performance.
-**Delivers:** Vector similarity search with relevance scores, query embedding generation, result formatting
-**Uses:** psycopg with connection pooling, pgvector cosine similarity, shared embedding transform
-**Implements:** Query Handler, PostgreSQL vector search
-**Addresses:** Semantic search, file path in results, line numbers, relevance scores
-**Avoids:** Embedding model mismatch between index and query, pgvector performance issues
+**Delivers:** Three `CustomLanguageSpec` definitions (HCL, Dockerfile, Bash), file patterns in `IndexingConfig`, filename-to-language routing for extensionless files (Dockerfile), validation that custom separators are actually used.
 
-### Phase 4: MCP Server
-**Rationale:** MCP layer is the interface; core functionality must work first. Tool design must consider context window limits.
-**Delivers:** FastMCP server with index_codebase, search_code, clear_index tools; stdio transport for Claude Code integration
-**Uses:** MCP Python SDK 1.26.0 FastMCP
-**Implements:** MCP Server, all tool definitions
-**Addresses:** Named index support, clear/reindex commands, result limiting
-**Avoids:** MCP tool returns overwhelming context window
+**Features addressed:** HCL block-level chunking, Dockerfile instruction-level chunking, Bash function-level chunking, file pattern recognition, correct language routing.
 
-### Phase 5: Integration and Polish
-**Rationale:** After core functionality works, integrate components, add named index management, handle edge cases, improve error messages.
-**Delivers:** End-to-end working system, named index lifecycle management, progress feedback, error handling
-**Addresses:** Multiple index support, progress indication, error messages
-**Avoids:** Named index collisions, cryptic error messages
+**Pitfalls to avoid:** Regex splits mid-block (use top-level-only separators, 2000+ byte chunk_size), heredoc false splits (line-start-anchored patterns), Bash heredoc/quoting edge cases (conservative separators), language detection failure for Dockerfile (filename-based routing), custom vs. built-in Bash name collision (test early, rename if needed).
+
+**Must validate:** Whether CocoIndex custom language names conflict with built-in Tree-sitter names for Bash. Whether chunk_size 2000+ produces acceptable results for typical Terraform repos. Whether `fancy-regex` lookahead patterns work as expected in separator context.
+
+### Phase 2: Metadata Extraction
+
+**Rationale:** Depends on Phase 1 producing well-bounded chunks. Metadata extraction regex matches the START of chunks -- if chunks start at block boundaries (as Phase 1 designs), regex works. If chunks start mid-block, extraction fails silently.
+
+**Delivers:** `extract_devops_metadata` CocoIndex op function, HCL block type and hierarchy extraction, Dockerfile instruction type and FROM stage extraction, Bash function name extraction, `DevOpsMetadata` dataclass.
+
+**Features addressed:** HCL block type identification, HCL resource hierarchy, Dockerfile instruction type, Bash function name, block type metadata.
+
+**Pitfalls to avoid:** False positives from comments/strings (line-start anchoring, adversarial tests), performance overhead (pre-compile regex at module load, single-pass extraction), Dockerfile stage context limitation (simple approach: FROM chunks only for v1.2).
+
+### Phase 3: Flow Integration and Schema
+
+**Rationale:** Depends on both Phase 1 (language definitions) and Phase 2 (metadata extraction). This phase wires them into the existing CocoIndex pipeline and verifies the schema migration path.
+
+**Delivers:** Modified `create_code_index_flow()` with `custom_languages` and metadata step, three new TEXT columns in chunks table, end-to-end indexing of DevOps files.
+
+**Features addressed:** Flow integration, schema extension, non-DevOps files unaffected.
+
+**Pitfalls to avoid:** Schema migration destroying existing indexes (stable primary keys, test migration before release), metadata running for all files (return empty strings for non-DevOps, no conditional branching).
+
+### Phase 4: Search and Output Integration
+
+**Rationale:** Depends on Phase 3 populating metadata in the database. This phase makes metadata visible to users and calling LLMs.
+
+**Delivers:** Extended `SearchResult` with metadata fields, SQL queries selecting new columns, graceful degradation for pre-v1.2 indexes (try/except fallback), updated formatters (JSON and pretty), updated MCP server responses, new language filter values (terraform, dockerfile, bash).
+
+**Features addressed:** Language filter for DevOps files, search results include metadata, MCP server metadata, graceful degradation, syntax highlighting for DevOps output.
+
+**Pitfalls to avoid:** pgvector post-filter returning too few results with metadata filters (increase ef_search, over-fetch strategy), Dockerfile basename-based language filter (SQL LIKE pattern on filename).
 
 ### Phase Ordering Rationale
 
-- **Foundation before Pipeline:** CocoIndex requires PostgreSQL connection; Ollama must be available for embeddings
-- **Pipeline before Search:** Search queries indexed data; chunking strategy directly impacts retrieval quality
-- **Search before MCP:** MCP tools are thin wrappers around search/index functionality
-- **Integration last:** Ensures each component works independently before combining
+- **Strict dependency chain:** Language definitions -> Metadata extraction -> Flow integration -> Search integration. Each phase produces artifacts consumed by the next.
+- **Phase 2 is unit-testable in parallel with Phase 1 validation:** Metadata extraction functions can be tested with synthetic chunk text while Phase 1 validates real chunking behavior.
+- **Schema migration (Phase 3) is the highest-risk integration point:** Testing migration preserves data before building search features on top avoids wasted work if re-indexing is forced.
+- **Phase 4 is lowest risk:** All search changes are additive and backward-compatible. COALESCE handles missing columns. Formatters show metadata only when present.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 2 (Indexing Pipeline):** CocoIndex Tree-sitter integration specifics, optimal chunk sizes for different languages, handling of large files
-- **Phase 3 (Search):** pgvector HNSW parameter tuning (ef_construction, m), query performance optimization
+- **Phase 1:** Needs `/gsd:research-phase` -- Bash custom vs. built-in name collision behavior, optimal chunk_size for DevOps files, `fancy-regex` separator pattern validation with real files. The FEATURES.md notes Bash IS in CocoIndex's built-in list, but STACK.md says it is NOT. This contradiction must be resolved by testing.
+- **Phase 3:** Needs `/gsd:research-phase` -- CocoIndex schema migration behavior when adding columns, CocoIndex op function dataclass-to-column mapping verification, `collector.collect()` with struct fields.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (Foundation):** Docker Compose, PostgreSQL setup are well-documented standard patterns
-- **Phase 4 (MCP Server):** FastMCP has clear tutorials and examples; straightforward tool definitions
+- **Phase 2:** Well-documented regex patterns for HCL/Dockerfile/Bash. Extraction logic is pure Python, fully unit-testable. No CocoIndex API uncertainties.
+- **Phase 4:** Standard SQL SELECT extension, dataclass field additions, formatter updates. All patterns exist in the current codebase.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All versions verified from PyPI, official docs; CocoIndex 0.3.28, MCP SDK 1.26.0, pgvector 0.8.1 confirmed |
-| Features | MEDIUM-HIGH | Based on competitor analysis and industry patterns; validated against Cursor, Sourcegraph, GitHub Copilot |
-| Architecture | HIGH | CocoIndex examples, MCP SDK docs, reference implementations reviewed; clear patterns established |
-| Pitfalls | MEDIUM-HIGH | Sourced from multiple production experiences; CocoIndex-specific details verified in official docs |
+| Stack | HIGH | Zero new dependencies. CocoIndex API verified locally. All alternatives evaluated with license checks. |
+| Features | HIGH | Table stakes clearly identified. Feature dependency graph mapped. MVP vs. defer boundary is well-defined. |
+| Architecture | HIGH | Integration points verified against source code. CocoIndex op function patterns confirmed via official docs and examples. |
+| Pitfalls | MEDIUM-HIGH | Critical pitfalls well-identified with prevention strategies. Regex edge cases (heredocs, nested blocks) need real-file validation. pgvector post-filter behavior needs benchmarking. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Ollama embedding integration specifics:** CocoIndex docs show EmbedText with Ollama but SentenceTransformerEmbed is better documented. May need to validate Ollama integration during Phase 2 or use SentenceTransformerEmbed as primary.
-- **Large codebase performance:** Research indicates architecture works to ~100K files but real-world validation needed for specific chunk sizes and indexing time.
-- **MCP tool concurrency:** Research doesn't cover concurrent index + search operations; may need validation during Phase 5.
+- **Bash built-in status contradiction:** FEATURES.md states Bash IS in CocoIndex's built-in Tree-sitter list; STACK.md states it is NOT. Both cite the same documentation. This must be resolved by runtime testing in Phase 1. If Bash is built-in, custom regex may be unnecessary or may conflict. If not built-in, custom regex is required.
+- **CocoIndex schema migration behavior:** The exact behavior when adding non-primary-key columns to an existing table has not been tested. PITFALLS.md documents the risk; Phase 3 must validate before committing to the approach.
+- **Chunk size optimization:** The recommended 2000+ bytes for DevOps files is based on structural analysis of typical Terraform resources. Real-world benchmarking is needed to find the right balance between semantic coherence and search granularity.
+- **Dockerfile language routing:** How CocoIndex passes the `language` parameter for extensionless files (Dockerfile) is not fully documented. The `extract_extension` function returns empty string, which would fall through to plain text. A filename-based detection function is required, but how it integrates with the CocoIndex flow needs implementation-time validation.
+- **pgvector post-filter adequacy:** When metadata filters are added in future (v1.3), filtered queries may return fewer results than requested. The mitigation strategies (increased ef_search, over-fetch) need benchmarking with realistic data volumes.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [CocoIndex PyPI](https://pypi.org/project/cocoindex/) — Version 0.3.28, Python 3.11+
-- [MCP Python SDK PyPI](https://pypi.org/project/mcp/) — Version 1.26.0
-- [pgvector GitHub](https://github.com/pgvector/pgvector) — Extension v0.8.1, HNSW indexing
-- [CocoIndex Code Indexing Example](https://cocoindex.io/docs/examples/code_index) — Reference implementation
-- [MCP Python SDK GitHub](https://github.com/modelcontextprotocol/python-sdk) — FastMCP documentation
+- [CocoIndex Functions Documentation](https://cocoindex.io/docs/ops/functions) -- SplitRecursively API, CustomLanguageSpec, supported languages list, regex syntax
+- [CocoIndex Custom Functions](https://cocoindex.io/docs/custom_ops/custom_functions) -- `@cocoindex.op.function()` decorator, return types
+- [CocoIndex Academic Papers Example](https://cocoindex.io/docs/examples/academic_papers_index) -- CustomLanguageSpec usage pattern
+- [CocoIndex Schema Inference Blog](https://cocoindex.io/blogs/handle-system-update-for-indexing-flow/) -- ALTER TABLE behavior
+- [Terraform HCL Syntax Reference](https://developer.hashicorp.com/terraform/language/syntax/configuration) -- Block types, label patterns
+- [Dockerfile Reference](https://docs.docker.com/reference/dockerfile/) -- All 19 instruction types
+- [Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html) -- Function definition syntax
+- CocoIndex Python API -- `help(SplitRecursively)`, `help(CustomLanguageSpec)` verified in local virtualenv
+- CocoSearch source code -- `flow.py`, `query.py`, `formatter.py`, `server.py`, `config.py` integration points
 
 ### Secondary (MEDIUM confidence)
-- [Continue.dev Top Ollama Models](https://resources.continue.dev/top-ollama-coding-models-q4-2025/) — nomic-embed-text recommended for code
-- [Cursor Codebase Indexing](https://docs.cursor.com/context/codebase-indexing) — Chunking and embedding patterns
-- [Pinecone Chunking Strategies](https://www.pinecone.io/learn/chunking-strategies/) — RAG chunking best practices
+- [fancy-regex crate docs](https://docs.rs/fancy-regex/) -- Regex engine capabilities for separator patterns
+- [pgvector 0.8.0 iterative scans](https://aws.amazon.com/blogs/database/supercharging-vector-search-performance-and-relevance-with-pgvector-0-8-0-on-amazon-aurora-postgresql/) -- Post-filter mitigation
+- [python-hcl2](https://pypi.org/project/python-hcl2/) / [dockerfile-parse](https://pypi.org/project/dockerfile-parse/) -- Future upgrade path libraries
+- [Tenable terrascan HCL parsing issues](https://github.com/tenable/terrascan/issues/233) -- Real-world nested block parsing failures
 
 ### Tertiary (LOW confidence)
-- Community reports on pgvector performance at scale — needs validation for specific use case
-- Ollama model versioning behavior — based on GitHub issues, may vary by version
+- Competitive landscape analysis (Sourcegraph, GitHub Code Search) -- feature positioning, not technical validation
+- Chunking strategy guides (Pinecone, Qdrant) -- general principles, not CocoIndex-specific
 
 ---
-*Research completed: 2026-01-24*
+*Research completed: 2026-01-27*
 *Ready for roadmap: yes*
