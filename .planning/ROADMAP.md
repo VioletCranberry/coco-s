@@ -17,6 +17,12 @@ CocoSearch v1.2 adds language-aware chunking and rich metadata extraction for HC
 
 **Dependencies:** None (foundation phase).
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 08-01-PLAN.md -- Language definitions (HCL, Dockerfile, Bash CustomLanguageSpecs) and DevOps file patterns
+- [ ] 08-02-PLAN.md -- Language routing (extract_language) and flow integration (custom_languages wiring)
+
 **Requirements:**
 - REQ-01: HCL block-level chunking via `CustomLanguageSpec` regex separators
 - REQ-02: Dockerfile instruction-level chunking via `CustomLanguageSpec` regex separators
@@ -169,7 +175,7 @@ CocoSearch v1.2 adds language-aware chunking and rich metadata extraction for HC
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 1 | Custom Language Definitions and File Routing | 6 | Pending |
+| 1 | Custom Language Definitions and File Routing | 6 | Planned (2 plans) |
 | 2 | Metadata Extraction | 7 | Pending |
 | 3 | Flow Integration and Schema | 4 | Pending |
 | 4 | Search and Output Integration | 9 | Pending |
