@@ -92,7 +92,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 10-01-PLAN.md -- Wire metadata extraction into flow pipeline and add metadata fields to collector
+- [x] 10-01-PLAN.md -- Wire metadata extraction into flow pipeline and add metadata fields to collector
 
 **Requirements:**
 - REQ-14: Pass `custom_languages` to `SplitRecursively` constructor in flow
@@ -187,7 +187,7 @@ Plans:
 |-------|------|--------------|--------|
 | 1 | Custom Language Definitions and File Routing | 6 | ✓ Complete (2/2 plans) |
 | 2 | Metadata Extraction | 7 | ✓ Complete (1/1 plans) |
-| 3 | Flow Integration and Schema | 4 | In Progress (0/1 plans) |
+| 3 | Flow Integration and Schema | 4 | ✓ Complete (1/1 plans) |
 | 4 | Search and Output Integration | 9 | Pending |
 
 ---
