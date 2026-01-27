@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** Semantic code search that runs entirely locally -- no data leaves your machine.
-**Current focus:** v1.2 DevOps Language Support -- Phase 1 in progress (Plan 01 complete)
+**Current focus:** v1.2 DevOps Language Support -- Phase 1 COMPLETE, Phase 2 next
 
 ## Current Position
 
-Phase: 1 of 4 (Custom Language Definitions and File Routing) -- IN PROGRESS
-Plan: 1 of 2 complete (08-01-PLAN.md)
-Status: In progress
-Last activity: 2026-01-27 -- Completed 08-01-PLAN.md
+Phase: 1 of 4 (Custom Language Definitions and File Routing) -- COMPLETE
+Plan: 2 of 2 complete (08-02-PLAN.md)
+Status: Phase complete
+Last activity: 2026-01-27 -- Completed 08-02-PLAN.md
 
-Progress: [##------------------] 12.5% (v1.2: 1/8 plans)
+Progress: [#####---------------] 25% (v1.2: 2/8 plans)
 
 ## Milestones Shipped
 
@@ -29,7 +29,7 @@ Progress: [##------------------] 12.5% (v1.2: 1/8 plans)
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 1 | Custom Language Definitions and File Routing | 6 | In progress (1/2 plans) |
+| 1 | Custom Language Definitions and File Routing | 6 | COMPLETE (2/2 plans) |
 | 2 | Metadata Extraction | 7 | Pending |
 | 3 | Flow Integration and Schema | 4 | Pending |
 | 4 | Search and Output Integration | 9 | Pending |
@@ -66,11 +66,14 @@ Key decisions for v1.2:
 - HCL: 12 block keywords in Level 1 separator; aliases tf, tfvars
 - Dockerfile: FROM at higher priority than other instructions; no aliases (routing via extract_language)
 - Bash: function keyword at Level 1; aliases sh, zsh, shell; bash NOT in CocoIndex built-in list
-- Bare filename patterns for Dockerfile/Containerfile (needs Plan 02 validation)
+- Bare filename patterns for Dockerfile/Containerfile (LOW confidence, needs integration validation)
+- extract_language uses basename.startswith("Dockerfile") for variants, exact match for Containerfile
+- Flow field kept as "extension" (not renamed to "language") to minimize changes
+- chunk_size default kept at 1000 (user can configure for DevOps via .cocosearch.yaml)
 
 ### Pending Todos
 
-- Execute Plan 02 (language routing and flow integration)
+- Begin Phase 2 (Metadata Extraction)
 
 ### Blockers/Concerns
 
@@ -80,8 +83,8 @@ Key decisions for v1.2:
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Completed 08-01-PLAN.md
-Resume file: .planning/phases/08-custom-language-definitions-and-file-routing/08-02-PLAN.md
+Stopped at: Completed 08-02-PLAN.md (Phase 1 complete)
+Resume file: None
 
 ---
-*Updated: 2026-01-27 after 08-01-PLAN.md completion*
+*Updated: 2026-01-27 after 08-02-PLAN.md completion*
