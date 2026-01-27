@@ -95,12 +95,12 @@ Add language-aware chunking and rich metadata extraction for HCL (Terraform), Do
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REQ-01 | Phase 1 | Pending |
-| REQ-02 | Phase 1 | Pending |
-| REQ-03 | Phase 1 | Pending |
-| REQ-04 | Phase 1 | Pending |
-| REQ-05 | Phase 1 | Pending |
-| REQ-06 | Phase 1 | Pending |
+| REQ-01 | Phase 1 | Complete |
+| REQ-02 | Phase 1 | Complete |
+| REQ-03 | Phase 1 | Complete |
+| REQ-04 | Phase 1 | Complete |
+| REQ-05 | Phase 1 | Complete |
+| REQ-06 | Phase 1 | Complete |
 | REQ-07 | Phase 2 | Pending |
 | REQ-08 | Phase 2 | Pending |
 | REQ-09 | Phase 2 | Pending |
