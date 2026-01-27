@@ -41,7 +41,11 @@ def search_code(
     index_name: Annotated[str, Field(description="Name of the index to search")],
     limit: Annotated[int, Field(description="Maximum results to return")] = 10,
     language: Annotated[
-        str | None, Field(description="Filter by language (e.g., python, typescript)")
+        str | None,
+        Field(
+            description="Filter by language (e.g., python, typescript, hcl, dockerfile, bash). "
+            "Aliases: terraform=hcl, shell/sh=bash. Comma-separated for multiple."
+        ),
     ] = None,
 ) -> list[dict]:
     """Search indexed code using natural language.
@@ -73,6 +77,9 @@ def search_code(
                 "end_line": end_line,
                 "score": r.score,
                 "content": content,
+                "block_type": r.block_type,
+                "hierarchy": r.hierarchy,
+                "language_id": r.language_id,
             }
         )
 
