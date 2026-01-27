@@ -32,6 +32,7 @@ flowchart LR
 ```
 
 **Components:**
+
 - **Ollama** - Runs the embedding model (`nomic-embed-text`) locally
 - **PostgreSQL + pgvector** - Stores code chunks and their vector embeddings for similarity search
 - **CocoSearch** - CLI and MCP server that coordinates indexing and search
@@ -82,16 +83,19 @@ For AI assistant integration with Claude Code, Claude Desktop, or OpenCode, see 
 Ollama runs the embedding model locally.
 
 **macOS:**
+
 ```bash
 brew install ollama
 ```
 
 **Linux:**
+
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
 ```
 
 **Start Ollama and pull the embedding model:**
+
 ```bash
 # Start Ollama (runs as service on macOS, or in separate terminal)
 ollama serve
@@ -107,6 +111,7 @@ ollama pull nomic-embed-text
 pgvector is a PostgreSQL extension for vector similarity search.
 
 **Option A - Docker (recommended):**
+
 ```bash
 # Uses docker-compose.yml from this repository
 docker compose up -d
@@ -115,6 +120,7 @@ docker compose up -d
 This creates a container `cocosearch-db` on port 5432 with pgvector pre-installed.
 
 **Option B - Native PostgreSQL:**
+
 ```bash
 # macOS with Homebrew
 brew install postgresql@17 pgvector
@@ -124,6 +130,7 @@ psql cocoindex -c "CREATE EXTENSION vector;"
 ```
 
 **Verify:**
+
 - Docker: `docker ps` shows `cocosearch-db` running
 - Native: `psql -c "SELECT 1"` succeeds
 
@@ -140,6 +147,7 @@ uv run cocosearch --help
 ```
 
 **Set database URL** (if not using default Docker setup):
+
 ```bash
 export COCOINDEX_DATABASE_URL="postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
 ```
@@ -151,6 +159,7 @@ export COCOINDEX_DATABASE_URL="postgresql://cocoindex:cocoindex@localhost:5432/c
 CocoSearch provides an MCP (Model Context Protocol) server for semantic code search integration with LLM clients. When configured, your AI assistant can search your codebase using natural language.
 
 **Available MCP tools:**
+
 - `index_codebase` - Index a directory for semantic search
 - `search_code` - Search indexed code with natural language queries
 - `list_indexes` - List all available indexes
@@ -170,6 +179,7 @@ claude mcp add --transport stdio --scope user \
 Replace `/absolute/path/to/cocosearch` with the actual path where you cloned the repository. Use `pwd` in the cocosearch directory to get the absolute path.
 
 **Verify CLI setup:**
+
 ```bash
 claude mcp list
 ```
@@ -183,7 +193,13 @@ Add to `~/.claude.json`:
   "mcpServers": {
     "cocosearch": {
       "command": "uv",
-      "args": ["run", "--directory", "/absolute/path/to/cocosearch", "cocosearch", "mcp"],
+      "args": [
+        "run",
+        "--directory",
+        "/absolute/path/to/cocosearch",
+        "cocosearch",
+        "mcp"
+      ],
       "env": {
         "COCOINDEX_DATABASE_URL": "postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
       }
@@ -195,6 +211,7 @@ Add to `~/.claude.json`:
 > **Important:** JSON does not expand `~` paths. Always use absolute paths like `/Users/yourname/cocosearch` or `/home/yourname/cocosearch`.
 
 **Verification:**
+
 1. Restart Claude Code (or run `/mcp` command to refresh)
 2. Run `/mcp` - you should see `cocosearch` listed with status "connected"
 3. Ask Claude: "Search for authentication logic in my codebase"
@@ -202,6 +219,7 @@ Add to `~/.claude.json`:
 ### Claude Desktop
 
 **Config file locations:**
+
 - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Linux:** `~/.config/Claude/claude_desktop_config.json`
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
@@ -213,7 +231,13 @@ Add to `~/.claude.json`:
   "mcpServers": {
     "cocosearch": {
       "command": "uv",
-      "args": ["run", "--directory", "/absolute/path/to/cocosearch", "cocosearch", "mcp"],
+      "args": [
+        "run",
+        "--directory",
+        "/absolute/path/to/cocosearch",
+        "cocosearch",
+        "mcp"
+      ],
       "env": {
         "COCOINDEX_DATABASE_URL": "postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
       }
@@ -223,6 +247,7 @@ Add to `~/.claude.json`:
 ```
 
 **Verification:**
+
 1. Restart Claude Desktop completely (quit and reopen the application)
 2. Look for the hammer icon in the chat input area
 3. Click the hammer to see "cocosearch" tools listed
@@ -231,6 +256,7 @@ Add to `~/.claude.json`:
 ### OpenCode
 
 **Config file locations:**
+
 - **Global:** `~/.config/opencode/opencode.json`
 - **Project:** `opencode.json` in project root
 
@@ -242,7 +268,14 @@ Add to `~/.claude.json`:
   "mcp": {
     "cocosearch": {
       "type": "local",
-      "command": ["uv", "run", "--directory", "/absolute/path/to/cocosearch", "cocosearch", "mcp"],
+      "command": [
+        "uv",
+        "run",
+        "--directory",
+        "/absolute/path/to/cocosearch",
+        "cocosearch",
+        "mcp"
+      ],
       "enabled": true,
       "environment": {
         "COCOINDEX_DATABASE_URL": "postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
@@ -253,12 +286,14 @@ Add to `~/.claude.json`:
 ```
 
 > **Note:** OpenCode config differs from Claude configs:
+>
 > - Uses `"type": "local"` (not implicit)
 > - `command` is an array (not separate command/args)
 > - Uses `"environment"` (not `"env"`)
 > - Has explicit `"enabled": true`
 
 **Verification:**
+
 1. Restart OpenCode
 2. Check MCP status in OpenCode settings/status
 3. Verify cocosearch tools are available
@@ -277,19 +312,21 @@ CocoSearch provides a command-line interface for indexing and searching code. Ou
 
 Index a codebase for semantic search.
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `-n, --name` | Index name | Derived from directory |
-| `-i, --include` | Include file patterns (repeatable) | See defaults below |
-| `-e, --exclude` | Exclude file patterns (repeatable) | None |
-| `--no-gitignore` | Ignore .gitignore patterns | Respects .gitignore |
+| Flag             | Description                        | Default                |
+| ---------------- | ---------------------------------- | ---------------------- |
+| `-n, --name`     | Index name                         | Derived from directory |
+| `-i, --include`  | Include file patterns (repeatable) | See defaults below     |
+| `-e, --exclude`  | Exclude file patterns (repeatable) | None                   |
+| `--no-gitignore` | Ignore .gitignore patterns         | Respects .gitignore    |
 
 **Example:**
+
 ```bash
 cocosearch index ./my-project --name myproject
 ```
 
 Output:
+
 ```
 Using derived index name: myproject
 Indexing ./my-project...
@@ -303,17 +340,18 @@ Indexed 42 files
 
 Search indexed code using natural language.
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `-n, --index` | Index to search | Auto-detect from cwd |
-| `-l, --limit` | Max results | 10 |
-| `--lang` | Filter by language | None |
-| `--min-score` | Minimum similarity (0-1) | 0.3 |
-| `-c, --context` | Context lines | 5 |
-| `-i, --interactive` | Enter REPL mode | Off |
-| `--pretty` | Human-readable output | JSON |
+| Flag                | Description              | Default              |
+| ------------------- | ------------------------ | -------------------- |
+| `-n, --index`       | Index to search          | Auto-detect from cwd |
+| `-l, --limit`       | Max results              | 10                   |
+| `--lang`            | Filter by language       | None                 |
+| `--min-score`       | Minimum similarity (0-1) | 0.3                  |
+| `-c, --context`     | Context lines            | 5                    |
+| `-i, --interactive` | Enter REPL mode          | Off                  |
+| `--pretty`          | Human-readable output    | JSON                 |
 
 **Examples:**
+
 ```bash
 # Basic search
 cocosearch search "authentication logic" --pretty
@@ -329,6 +367,7 @@ cocosearch search --interactive
 ```
 
 Output (--pretty):
+
 ```
 [1] src/auth/login.py:45-67 (score: 0.89)
     def authenticate_user(username: str, password: str) -> User:
@@ -347,6 +386,7 @@ cocosearch list --pretty
 ```
 
 Output:
+
 ```
        Indexes
 ┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -366,6 +406,7 @@ cocosearch stats myproject --pretty
 ```
 
 Output:
+
 ```
     Index: myproject
 ┏━━━━━━━━━┳━━━━━━━━━━━┓
@@ -386,6 +427,7 @@ cocosearch clear myproject --force
 ```
 
 Output:
+
 ```
 Index 'myproject' deleted successfully
 ```
@@ -406,6 +448,7 @@ Create `.cocosearch.yaml` in your project root to customize indexing:
 
 ```yaml
 indexing:
+  # See also https://cocoindex.io/docs/ops/functions#supported-languages
   include_patterns:
     - "*.py"
     - "*.js"
@@ -415,16 +458,13 @@ indexing:
   exclude_patterns:
     - "*_test.go"
     - "*.min.js"
-  chunk_size: 1000      # bytes
-  chunk_overlap: 300    # bytes
+  chunk_size: 1000 # bytes
+  chunk_overlap: 300 # bytes
 ```
-
-Default include patterns (when no config):
-`*.py`, `*.js`, `*.ts`, `*.tsx`, `*.jsx`, `*.rs`, `*.go`, `*.java`, `*.c`, `*.cpp`, `*.h`, `*.hpp`, `*.rb`, `*.php`, `*.swift`, `*.kt`, `*.scala`, `*.md`, `*.mdx`
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
+| Variable                 | Description               | Default                                                     |
+| ------------------------ | ------------------------- | ----------------------------------------------------------- |
 | `COCOINDEX_DATABASE_URL` | PostgreSQL connection URL | `postgresql://cocoindex:cocoindex@localhost:5432/cocoindex` |
-| `OLLAMA_HOST` | Ollama API host | `http://localhost:11434` |
+| `OLLAMA_HOST`            | Ollama API host           | `http://localhost:11434`                                    |
