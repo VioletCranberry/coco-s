@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** Semantic code search that runs entirely locally -- no data leaves your machine.
-**Current focus:** v1.2 DevOps Language Support -- Phase 1 VERIFIED, Phase 2 next
+**Current focus:** v1.2 DevOps Language Support -- Phase 2 Plan 1 complete, Phase 2 verification next
 
 ## Current Position
 
-Phase: 1 of 4 (Custom Language Definitions and File Routing) -- VERIFIED ✓
-Plan: 2 of 2 complete (08-02-PLAN.md)
-Status: Phase 1 verified, ready for Phase 2
-Last activity: 2026-01-27 -- Phase 1 verified (6/6 must-haves passed)
+Phase: 2 of 4 (Metadata Extraction)
+Plan: 1 of 1 complete (09-01-PLAN.md)
+Status: Phase 2 plan 1 complete, ready for verification
+Last activity: 2026-01-27 -- Completed 09-01-PLAN.md (metadata extraction module)
 
-Progress: [#####---------------] 25% (v1.2: 1/4 phases, 2/8 plans)
+Progress: [##########----------] 37% (v1.2: 1/4 phases complete, 3/8 plans complete)
 
 ## Milestones Shipped
 
@@ -29,13 +29,14 @@ Progress: [#####---------------] 25% (v1.2: 1/4 phases, 2/8 plans)
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 1 | Custom Language Definitions and File Routing | 6 | ✓ Verified |
-| 2 | Metadata Extraction | 7 | Pending |
+| 1 | Custom Language Definitions and File Routing | 6 | Verified |
+| 2 | Metadata Extraction | 7 | Plan 1/1 complete |
 | 3 | Flow Integration and Schema | 4 | Pending |
 | 4 | Search and Output Integration | 9 | Pending |
 
 **Research flags:**
 - Phase 1: RESOLVED & VERIFIED -- Bash confirmed NOT built-in, standard Rust regex, all 6 requirements complete
+- Phase 2: RESOLVED -- metadata.py created, 53 tests passing, all 7 requirements verified
 - Phase 3: Needs deeper research (schema migration behavior, op function dataclass mapping)
 
 ## Performance Metrics
@@ -46,7 +47,7 @@ Progress: [#####---------------] 25% (v1.2: 1/4 phases, 2/8 plans)
 | v1.2 phases | 4 |
 | Research confidence | HIGH |
 | New dependencies | 0 |
-| New files | 2 (languages.py, metadata.py) |
+| New files | 3 (languages.py, metadata.py, test_metadata.py) |
 | Modified files | 5 (config.py, flow.py, query.py, formatter.py, server.py) |
 
 ## Accumulated Context
@@ -70,10 +71,15 @@ Key decisions for v1.2:
 - extract_language uses basename.startswith("Dockerfile") for variants, exact match for Containerfile
 - Flow field kept as "extension" (not renamed to "language") to minimize changes
 - chunk_size default kept at 1000 (user can configure for DevOps via .cocosearch.yaml)
+- Match block keywords at chunk start only (after comment stripping)
+- Language identifier passed as parameter to extract_devops_metadata (not auto-detected)
+- Non-FROM Dockerfile instructions get empty hierarchy in v1.2 (no inter-chunk state)
+- Top-level Bash code gets empty block_type/hierarchy (consistent with non-DevOps convention)
 
 ### Pending Todos
 
-- Plan Phase 2 (Metadata Extraction)
+- Verify Phase 2 (Metadata Extraction)
+- Plan Phase 3 (Flow Integration and Schema)
 
 ### Blockers/Concerns
 
@@ -83,8 +89,8 @@ Key decisions for v1.2:
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Phase 1 verified, ready for `/gsd:discuss-phase 2` or `/gsd:plan-phase 2`
-Resume file: .planning/ROADMAP.md
+Stopped at: Completed 09-01-PLAN.md, ready for Phase 2 verification or Phase 3 planning
+Resume file: .planning/phases/09-metadata-extraction/09-01-SUMMARY.md
 
 ---
-*Updated: 2026-01-27 after Phase 1 verification*
+*Updated: 2026-01-27 after completing 09-01-PLAN.md*
