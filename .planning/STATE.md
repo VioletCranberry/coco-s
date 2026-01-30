@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 11 of 15 (Test Reorganization)
-Plan: 02 of ? (Unit Test Migration)
-Status: In progress
-Last activity: 2026-01-30 — Completed 11-02-PLAN.md
+Plan: 03 of 03 (Default Unit-Only Test Execution)
+Status: Phase complete
+Last activity: 2026-01-30 — Completed 11-03-PLAN.md
 
-Progress: [██████████████████████....................] 71% (31 plans complete, ~3 estimated remaining)
+Progress: [███████████████████████...................] 73% (32 plans complete, ~2 estimated remaining)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 31
+- Total plans completed: 32
 - Total execution time: ~5 days across 3 milestones
 
 **By Milestone:**
@@ -32,7 +32,7 @@ Progress: [██████████████████████...
 
 **Current Milestone (v1.3):**
 - Phases: 5 (11-15)
-- Estimated plans: ~5 TBD
+- Plans completed: 3
 - Focus: Integration test infrastructure
 
 ## Milestones Shipped
@@ -55,6 +55,8 @@ Recent decisions affecting current work:
 - v1.2: Zero-dependency DevOps pipeline using CocoIndex custom_languages and Python stdlib regex
 - v1.2: Additive schema only (no primary key changes) for safe migration
 - v1.2: Module-level graceful degradation flag prevents repeated failing SQL for pre-v1.2 indexes
+- v1.3 (Phase 11): Default pytest run executes only unit tests via -m unit marker for fast feedback
+- v1.3 (Phase 11): Integration tests require explicit -m integration flag to prevent accidental slow runs
 
 ### Pending Todos
 
@@ -62,13 +64,13 @@ None -- starting v1.3 milestone.
 
 ### Blockers/Concerns
 
-None yet -- roadmap defined, ready to plan Phase 11.
+None - Phase 11 complete, all success criteria met. Ready for Phase 12.
 
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Completed 11-02-PLAN.md
+Stopped at: Completed 11-03-PLAN.md (Phase 11 complete)
 Resume file: None
 
 ---
-*Updated: 2026-01-30 after 11-02-PLAN.md completion*
+*Updated: 2026-01-30 after 11-03-PLAN.md completion*
