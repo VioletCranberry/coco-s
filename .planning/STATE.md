@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 14 of 15 (E2E Flows) - IN PROGRESS
-Plan: 03 of 03 (DevOps File Validation)
+Plan: 02 of 03 (E2E Search Flow Tests)
 Status: Plan complete
-Last activity: 2026-01-30 -- Completed 14-03-PLAN.md
+Last activity: 2026-01-30 -- Completed 14-02-PLAN.md
 
 Progress: [████████████████████████████░...............] 90% (39 plans complete)
 
@@ -32,7 +32,7 @@ Progress: [███████████████████████
 
 **Current Milestone (v1.3):**
 - Phases: 5 (11-15)
-- Plans completed: 10
+- Plans completed: 11
 - Focus: Integration test infrastructure & E2E flows
 
 ## Milestones Shipped
@@ -70,26 +70,29 @@ Recent decisions affecting current work:
 - v1.3 (Phase 14): OLLAMA_HOST explicitly passed to EmbedText(address=...) for container support
 - v1.3 (Phase 14): Native Ollama recommended over containerized (session management issues)
 - v1.3 (Phase 14): E2E fixtures use realistic code with predictable search terms
-- v1.3 (Phase 14): Module-scoped e2e_fixtures_path for consistency with indexed fixture scope
 - v1.3 (Phase 14): CLI uses -n for index name (not --name), JSON output is default (no --json flag)
+- v1.3 (Phase 14-02): CLI outputs file_path (not filename) and content (not chunk) in JSON results
+- v1.3 (Phase 14-02): Function-scoped indexing fixtures work with autouse clean_tables cleanup
+- v1.3 (Phase 14-02): E2E search tests use --min-score 0.2 for moderate semantic queries
+- v1.3 (Phase 14-02): Native Ollama required for E2E tests (brew install ollama + ollama pull nomic-embed-text)
 
 ### Pending Todos
 
-None -- Phase 14 plans complete. Ready for Phase 15 (Polish & Documentation).
+None -- 14-02 complete. Next: 14-03 DevOps File Validation.
 
 ### Blockers/Concerns
 
 **Containerized Ollama limitation:**
-- OllamaContainer session management issues prevent reliable E2E testing
-- Native Ollama installation (`ollama serve`) works correctly
-- Status: Tests designed to skip gracefully when Ollama unavailable
-- Impact: E2E tests require manual Ollama setup for CI/CD environments
+- OllamaContainer has API endpoint compatibility issues (calls /api/embed instead of /api/embeddings)
+- Native Ollama installation works correctly (brew install ollama)
+- Status: Native Ollama installed and working for E2E tests
+- Impact: CI/CD environments need native Ollama setup, not containerized
 
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Completed 14-03-PLAN.md (DevOps File Validation)
+Stopped at: Completed 14-02-PLAN.md (E2E Search Flow Tests)
 Resume file: None
 
 ---
-*Updated: 2026-01-30 after 14-03-PLAN.md completion*
+*Updated: 2026-01-30 after 14-02-PLAN.md completion*
