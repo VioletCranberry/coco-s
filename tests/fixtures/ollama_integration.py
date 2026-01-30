@@ -46,9 +46,17 @@ def ollama_service():
         return
 
     # Fallback to Docker container
+    container = None
     try:
-        container = OllamaContainer(model="nomic-embed-text")
+        container = OllamaContainer()
         container.start()
+
+        # Check if model exists, pull only if needed
+        models = container.list_models()
+        model_names = [m.get("name", "") for m in models]
+        if "nomic-embed-text:latest" not in model_names:
+            # Pull takes ~2-3 minutes for first time
+            container.pull_model("nomic-embed-text")
 
         # Get container URL
         host = container.get_container_host_ip()
@@ -56,9 +64,6 @@ def ollama_service():
         url = f"http://{host}:{port}"
 
         yield url
-
-        # Cleanup
-        container.stop()
 
     except Exception as e:
         pytest.skip(
@@ -69,6 +74,13 @@ def ollama_service():
             f"3. Start service: ollama serve\n\n"
             f"Or ensure Docker is available for container fallback."
         )
+    finally:
+        # Cleanup: stop container if it was started
+        if container is not None:
+            try:
+                container.stop()
+            except Exception:
+                pass  # Ignore cleanup errors
 
 
 @pytest.fixture(scope="session")
@@ -95,26 +107,39 @@ def warmed_ollama(ollama_service):
         # Create warmup embedding flow
         # Note: EmbedText doesn't accept timeout parameter directly,
         # relying on environment and httpx defaults with generous buffer
-        warmup_flow = cocoindex.transform_flow()(
-            lambda text: text.transform(
+        # Use regular function instead of lambda for proper type annotations
+        def warmup_embed(text: cocoindex.DataSlice[str]) -> cocoindex.DataSlice:
+            return text.transform(
                 cocoindex.functions.EmbedText(
                     api_type=cocoindex.LlmApiType.OLLAMA,
                     model="nomic-embed-text",
                 )
             )
-        )
+
+        warmup_flow = cocoindex.transform_flow()(warmup_embed)
 
         # Execute warmup embedding (loads model into memory)
-        # First request will be slow (15-30s), subsequent requests fast
-        _ = warmup_flow(cocoindex.DataSlice(["warmup"]))
+        # First request will be slow (15-30s for native, 60-90s for container with pull)
+        # Container-based Ollama may timeout if model needs pulling - that's expected
+        try:
+            _ = warmup_flow(cocoindex.DataSlice(["warmup"]))
+        except Exception as warmup_error:
+            # If warmup fails, log but don't skip - tests can still proceed
+            # The first test request will just be slower
+            import warnings
+            warnings.warn(
+                f"Ollama warmup failed (first test request will be slower): {warmup_error}",
+                UserWarning
+            )
 
     except Exception as e:
         pytest.skip(
-            f"Ollama warmup failed: {e}\n\n"
-            f"Model loading timed out or failed. This may indicate:\n"
-            f"1. Model not pulled: run 'ollama pull nomic-embed-text'\n"
-            f"2. Ollama service not responding\n"
-            f"3. Resource constraints (low memory/CPU)"
+            f"Ollama service setup failed: {e}\n\n"
+            f"To run Ollama integration tests:\n"
+            f"1. Install Ollama: https://ollama.ai/download\n"
+            f"2. Pull model: ollama pull nomic-embed-text\n"
+            f"3. Start service: ollama serve\n\n"
+            f"Or ensure Docker is available for container fallback."
         )
     finally:
         # Restore original OLLAMA_HOST
