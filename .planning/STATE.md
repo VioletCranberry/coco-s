@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Semantic code search that runs entirely locally -- no data leaves your machine.
-**Current focus:** v1.3 Docker Integration Tests & Infrastructure (Phase 11)
+**Current focus:** v1.3 Docker Integration Tests & Infrastructure (Phase 12)
 
 ## Current Position
 
-Phase: 11 of 15 (Test Reorganization)
-Plan: 03 of 03 (Default Unit-Only Test Execution)
-Status: Phase complete
-Last activity: 2026-01-30 — Completed 11-03-PLAN.md
+Phase: 12 of 15 (Container Infrastructure PostgreSQL)
+Plan: 01 of 03 (Docker Container Infrastructure)
+Status: In progress
+Last activity: 2026-01-30 -- Completed 12-01-PLAN.md
 
-Progress: [███████████████████████...................] 73% (32 plans complete, ~2 estimated remaining)
+Progress: [████████████████████████..................] 76% (33 plans complete, ~1 estimated remaining)
 
 ## Performance Metrics
 
@@ -32,7 +32,7 @@ Progress: [███████████████████████
 
 **Current Milestone (v1.3):**
 - Phases: 5 (11-15)
-- Plans completed: 3
+- Plans completed: 4
 - Focus: Integration test infrastructure
 
 ## Milestones Shipped
@@ -57,6 +57,8 @@ Recent decisions affecting current work:
 - v1.2: Module-level graceful degradation flag prevents repeated failing SQL for pre-v1.2 indexes
 - v1.3 (Phase 11): Default pytest run executes only unit tests via -m unit marker for fast feedback
 - v1.3 (Phase 11): Integration tests require explicit -m integration flag to prevent accidental slow runs
+- v1.3 (Phase 12): Port 5433 for test PostgreSQL to avoid conflict with local 5432
+- v1.3 (Phase 12): Session-scoped container fixtures for performance (one container per test session)
 
 ### Pending Todos
 
@@ -64,13 +66,13 @@ None -- starting v1.3 milestone.
 
 ### Blockers/Concerns
 
-None - Phase 11 complete, all success criteria met. Ready for Phase 12.
+None - 12-01 complete. Container infrastructure ready. Proceeding with 12-02.
 
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Completed 11-03-PLAN.md (Phase 11 complete)
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None
 
 ---
-*Updated: 2026-01-30 after 11-03-PLAN.md completion*
+*Updated: 2026-01-30 after 12-01-PLAN.md completion*
