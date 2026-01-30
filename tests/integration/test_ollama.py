@@ -103,3 +103,101 @@ class TestEmbeddingGeneration:
         assert np.array_equal(embedding1, embedding2), (
             "Embeddings for same text should be identical"
         )
+
+
+def cosine_similarity(a, b):
+    """Calculate cosine similarity between two vectors."""
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+
+class TestEmbeddingSimilarity:
+    """Tests for semantic similarity of embeddings."""
+
+    def test_similar_texts_high_similarity(self, warmed_ollama):
+        """Verify semantically similar texts produce similar embeddings.
+
+        Requirement: OLLAMA-01 (Real embedding behavior validation)
+        """
+        # Semantically similar texts
+        text1 = "Python function for sorting a list"
+        text2 = "Python method to sort an array"
+
+        embedding_flow = cocoindex.transform_flow()(
+            lambda text: text.transform(
+                cocoindex.functions.EmbedText(
+                    api_type=cocoindex.LlmApiType.OLLAMA,
+                    model="nomic-embed-text",
+                )
+            )
+        )
+
+        result = embedding_flow(cocoindex.DataSlice([text1, text2]))
+        embedding1 = np.array(result[0])
+        embedding2 = np.array(result[1])
+
+        similarity = cosine_similarity(embedding1, embedding2)
+
+        assert similarity > 0.8, (
+            f"Similar texts should have similarity > 0.8, got {similarity:.4f}"
+        )
+
+    def test_dissimilar_texts_lower_similarity(self, warmed_ollama):
+        """Verify semantically dissimilar texts produce different embeddings.
+
+        Requirement: OLLAMA-01 (Real embedding semantic understanding)
+        """
+        # Semantically dissimilar texts
+        text1 = "Python function for sorting a list"
+        text2 = "Recipe for chocolate cake"
+
+        embedding_flow = cocoindex.transform_flow()(
+            lambda text: text.transform(
+                cocoindex.functions.EmbedText(
+                    api_type=cocoindex.LlmApiType.OLLAMA,
+                    model="nomic-embed-text",
+                )
+            )
+        )
+
+        result = embedding_flow(cocoindex.DataSlice([text1, text2]))
+        embedding1 = np.array(result[0])
+        embedding2 = np.array(result[1])
+
+        similarity = cosine_similarity(embedding1, embedding2)
+
+        assert similarity < 0.7, (
+            f"Dissimilar texts should have similarity < 0.7, got {similarity:.4f}"
+        )
+
+    def test_code_vs_natural_language(self, warmed_ollama):
+        """Verify code embeddings work for code search use case.
+
+        Requirement: OLLAMA-01 (Code embedding validation)
+        """
+        # Code and its natural language description
+        code = "def sort_list(items): return sorted(items)"
+        description = "A function that sorts a list"
+
+        embedding_flow = cocoindex.transform_flow()(
+            lambda text: text.transform(
+                cocoindex.functions.EmbedText(
+                    api_type=cocoindex.LlmApiType.OLLAMA,
+                    model="nomic-embed-text",
+                )
+            )
+        )
+
+        result = embedding_flow(cocoindex.DataSlice([code, description]))
+        code_embedding = np.array(result[0])
+        desc_embedding = np.array(result[1])
+
+        similarity = cosine_similarity(code_embedding, desc_embedding)
+
+        # Code and description should be reasonably similar (for code search)
+        # but not identical
+        assert similarity > 0.5, (
+            f"Code and description should have similarity > 0.5, got {similarity:.4f}"
+        )
+        assert similarity < 1.0, (
+            f"Code and description should not be identical, got {similarity:.4f}"
+        )
