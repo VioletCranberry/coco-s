@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 
 ## Current Position
 
-Phase: 13 of 15 (Ollama Integration) - COMPLETE
-Plan: 02 of 02 (Ollama Integration Tests)
-Status: Phase complete
-Last activity: 2026-01-30 -- Completed 13-02-PLAN.md
+Phase: 14 of 15 (E2E Flows) - IN PROGRESS
+Plan: 01 of 03 (E2E Test Infrastructure)
+Status: Plan complete
+Last activity: 2026-01-30 -- Completed 14-01-PLAN.md
 
-Progress: [████████████████████████████................] 86% (37 plans complete)
+Progress: [████████████████████████████░...............] 88% (38 plans complete)
 
 ## Performance Metrics
 
@@ -32,8 +32,8 @@ Progress: [███████████████████████
 
 **Current Milestone (v1.3):**
 - Phases: 5 (11-15)
-- Plans completed: 8
-- Focus: Integration test infrastructure
+- Plans completed: 9
+- Focus: Integration test infrastructure & E2E flows
 
 ## Milestones Shipped
 
@@ -66,20 +66,28 @@ Recent decisions affecting current work:
 - v1.3 (Phase 13): Session-scoped warmup fixture prevents 30-second first-request timeout
 - v1.3 (Phase 13): Similarity thresholds: > 0.8 for similar texts, < 0.7 for dissimilar, > 0.5 for code vs description
 - v1.3 (Phase 13): Batch embedding pattern using DataSlice([text1, text2]) for efficiency
+- v1.3 (Phase 14): E2E tests invoke CLI via subprocess with environment propagation
+- v1.3 (Phase 14): OLLAMA_HOST explicitly passed to EmbedText(address=...) for container support
+- v1.3 (Phase 14): Native Ollama recommended over containerized (session management issues)
+- v1.3 (Phase 14): E2E fixtures use realistic code with predictable search terms
 
 ### Pending Todos
 
-None -- Phase 13 complete. Ready for Phase 14 (E2E Flows).
+None -- Phase 14-01 complete. Ready for 14-02 (Search E2E Tests).
 
 ### Blockers/Concerns
 
-None - Phase 13 complete. Integration test infrastructure complete: unit tests (Phase 11), PostgreSQL (Phase 12), Ollama (Phase 13).
+**Containerized Ollama limitation:**
+- OllamaContainer session management issues prevent reliable E2E testing
+- Native Ollama installation (`ollama serve`) works correctly
+- Status: Tests designed to skip gracefully when Ollama unavailable
+- Impact: E2E tests require manual Ollama setup for CI/CD environments
 
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Completed 13-02-PLAN.md (Phase 13 complete)
+Stopped at: Completed 14-01-PLAN.md (E2E Test Infrastructure)
 Resume file: None
 
 ---
-*Updated: 2026-01-30 after 13-02-PLAN.md completion*
+*Updated: 2026-01-30 after 14-01-PLAN.md completion*
