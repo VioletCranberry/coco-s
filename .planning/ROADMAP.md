@@ -5,7 +5,7 @@
 - v1.0 MVP - Phases 1-4 (shipped 2026-01-25)
 - v1.1 Docs & Tests - Phases 5-7 (shipped 2026-01-26)
 - v1.2 DevOps Language Support - Phases 8-10, 4-soi (shipped 2026-01-27)
-- v1.3 Docker Integration Tests - Phases 11-15 (in progress)
+- v1.3 Docker Integration Tests - Phases 11-14 (in progress)
 
 ## Phases
 
@@ -190,20 +190,6 @@ Plans:
 - [x] 14-02-PLAN.md - E2E search + CLI validation (JSON output, result structure, language filtering)
 - [x] 14-03-PLAN.md - DevOps validation (Terraform, Dockerfile, Bash, language aliases)
 
-#### Phase 15: CI/CD Integration
-**Goal**: GitHub Actions workflow running integration tests with Docker services
-**Depends on**: Phase 14
-**Requirements**: CI-01, CI-02, CI-03, CI-04
-**Success Criteria** (what must be TRUE):
-  1. GitHub Actions workflow runs integration tests on every push
-  2. CI uses Docker services for PostgreSQL and Ollama containers
-  3. Environment-based hostname detection works (localhost vs container names)
-  4. Integration tests skip locally via pytest marker when Docker unavailable
-**Plans**: TBD
-
-Plans:
-- [ ] 15-01: TBD
-
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -223,4 +209,3 @@ Plans:
 | 12. Container Infrastructure & PostgreSQL | v1.3 | 3/3 | Complete | 2026-01-30 |
 | 13. Ollama Integration | v1.3 | 2/2 | Complete | 2026-01-30 |
 | 14. End-to-End Flows | v1.3 | 3/3 | Complete | 2026-01-30 |
-| 15. CI/CD Integration | v1.3 | 0/TBD | Not started | - |

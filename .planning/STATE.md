@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Semantic code search that runs entirely locally -- no data leaves your machine.
-**Current focus:** v1.3 Docker Integration Tests & Infrastructure (Phase 15 next)
+**Current focus:** v1.3 Docker Integration Tests & Infrastructure (complete)
 
 ## Current Position
 
-Phase: 14 of 15 (E2E Flows) - COMPLETE
+Phase: 14 of 14 (E2E Flows) - COMPLETE
 Plan: 03 of 03 (DevOps File Validation)
-Status: Phase complete
+Status: Milestone complete
 Last activity: 2026-01-30 -- Completed Phase 14
 
-Progress: [██████████████████████████████████████░░░░░░░] 93% (40 plans complete)
+Progress: [█████████████████████████████████████████████] 100% (40 plans complete)
 
 ## Performance Metrics
 
@@ -31,9 +31,9 @@ Progress: [███████████████████████
 | v1.2 | 8-10, 4-soi | 6 | 1 day |
 
 **Current Milestone (v1.3):**
-- Phases: 5 (11-15)
-- Plans completed: 11 (phases 11-14 done, phase 15 remaining)
-- Focus: Integration test infrastructure & CI/CD
+- Phases: 4 (11-14)
+- Plans completed: 11 (all phases complete)
+- Focus: Integration test infrastructure
 
 ## Milestones Shipped
 
@@ -78,7 +78,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None -- Phase 14 complete. Ready for Phase 15 (CI/CD Integration).
+None -- v1.3 milestone complete.
 
 ### Blockers/Concerns
 
@@ -86,7 +86,7 @@ None -- Phase 14 complete. Ready for Phase 15 (CI/CD Integration).
 - OllamaContainer has API endpoint compatibility issues (calls /api/embed instead of /api/embeddings)
 - Native Ollama installation works correctly (brew install ollama)
 - Status: Native Ollama installed and working for E2E tests
-- Impact: CI/CD environments need native Ollama setup, not containerized
+- Impact: None — CI/CD phase removed from v1.3 scope
 
 ## Session Continuity
 
