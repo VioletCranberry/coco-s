@@ -10,6 +10,7 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 import cocoindex
 from rich.console import Console
@@ -148,12 +149,16 @@ def index_command(args: argparse.Namespace) -> int:
         pass
 
     # Map project config to IndexingConfig
-    config = IndexingConfig(
-        include_patterns=project_config.indexing.includePatterns or [],
-        exclude_patterns=project_config.indexing.excludePatterns or [],
-        chunk_size=project_config.indexing.chunkSize,
-        chunk_overlap=project_config.indexing.chunkOverlap,
-    )
+    # Only override defaults if patterns are explicitly set in config
+    config_kwargs: dict[str, Any] = {
+        "chunk_size": project_config.indexing.chunkSize,
+        "chunk_overlap": project_config.indexing.chunkOverlap,
+    }
+    if project_config.indexing.includePatterns:
+        config_kwargs["include_patterns"] = project_config.indexing.includePatterns
+    if project_config.indexing.excludePatterns:
+        config_kwargs["exclude_patterns"] = project_config.indexing.excludePatterns
+    config = IndexingConfig(**config_kwargs)
 
     # Merge CLI args with config (CLI overrides config)
     if args.include:
