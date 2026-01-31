@@ -11,7 +11,8 @@ CONFIG_TEMPLATE = """\
 # Index name (optional - defaults to directory name)
 # indexName: my-project
 
-indexing:
+# Indexing settings
+indexing: {}
   # File patterns to include (glob patterns)
   # includePatterns:
   #   - "*.py"
@@ -32,14 +33,16 @@ indexing:
   # chunkSize: 1000
   # chunkOverlap: 300
 
-search:
+# Search settings
+search: {}
   # Maximum results returned
   # resultLimit: 10
 
   # Minimum similarity score (0.0 - 1.0)
   # minScore: 0.3
 
-embedding:
+# Embedding settings
+embedding: {}
   # Ollama model for embeddings
   # model: nomic-embed-text
 """
