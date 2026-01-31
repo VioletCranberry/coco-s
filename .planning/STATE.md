@@ -10,21 +10,21 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Milestone: v1.4 Dogfooding Infrastructure
-Phase: 15 - Configuration System
-Plan: Not started (roadmap created, awaiting planning)
-Status: Roadmap complete, ready for phase planning
-Last activity: 2026-01-31 — Roadmap created for v1.4
+Phase: 15 of 18 (Configuration System)
+Plan: 01 of 3 complete (15-01-PLAN.md)
+Status: In progress - Phase 15 plan 1/3 complete
+Last activity: 2026-01-31 — Completed 15-01-PLAN.md (Config Schema & Loader)
 
-Progress: [##########______________________________________] 0% (0/4 phases)
+Progress: [█████████████___________________________________] 25% (1/4 phases planned, 1/3 phase 15 plans complete)
 
 ## v1.4 Phase Overview
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 15 | Configuration System | 8 (CONF-01 to CONF-08) | Pending |
-| 16 | CLI Config Integration | 1 (CONF-09) | Pending |
-| 17 | Developer Setup Script | 8 (DEVS-01 to DEVS-08) | Pending |
-| 18 | Dogfooding Validation | 2 (DOGF-01, DOGF-02) | Pending |
+| 15 | Configuration System | 8 (CONF-01 to CONF-08) | In Progress (1/3 plans complete) |
+| 16 | CLI Config Integration | 1 (CONF-09) | Not planned |
+| 17 | Developer Setup Script | 8 (DEVS-01 to DEVS-08) | Not planned |
+| 18 | Dogfooding Validation | 2 (DOGF-01, DOGF-02) | Not planned |
 
 ## Performance Metrics
 
@@ -56,22 +56,28 @@ Progress: [##########______________________________________] 0% (0/4 phases)
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
+| ID | Phase | Decision | Impact |
+|----|-------|----------|--------|
+| CONF-SCHEMA-STRUCTURE | 15-01 | Nested sections (indexing, search, embedding) | Better organization, clear grouping |
+| CONF-NAMING-CONVENTION | 15-01 | camelCase for all config keys | Consistency across config |
+| CONF-VALIDATION-STRATEGY | 15-01 | Strict validation (extra='forbid', strict=True) | Early error detection, no silent failures |
+| CONF-DISCOVERY-ORDER | 15-01 | cwd → git-root → defaults | Local config overrides repo config |
+| CONF-ERROR-HANDLING | 15-01 | ConfigError with line/column for YAML | User-friendly error messages |
 
 ### Pending Todos
 
-None -- ready for phase planning.
+None.
 
 ### Blockers/Concerns
 
-None -- clean slate.
+None -- config foundation ready for error formatting (15-02) and init command (15-03).
 
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Created v1.4 roadmap
+Stopped at: Completed 15-01-PLAN.md (Config Schema & Loader)
 Resume file: None
-Next action: `/gsd:plan-phase 15`
+Next action: Execute 15-02 (Error Formatting) or 15-03 (Init Command)
 
 ---
-*Updated: 2026-01-31 after v1.4 roadmap created*
+*Updated: 2026-01-31 after completing 15-01*
