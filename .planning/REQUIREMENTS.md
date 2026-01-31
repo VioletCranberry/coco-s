@@ -61,31 +61,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONF-01 | TBD | Pending |
-| CONF-02 | TBD | Pending |
-| CONF-03 | TBD | Pending |
-| CONF-04 | TBD | Pending |
-| CONF-05 | TBD | Pending |
-| CONF-06 | TBD | Pending |
-| CONF-07 | TBD | Pending |
-| CONF-08 | TBD | Pending |
-| CONF-09 | TBD | Pending |
-| DEVS-01 | TBD | Pending |
-| DEVS-02 | TBD | Pending |
-| DEVS-03 | TBD | Pending |
-| DEVS-04 | TBD | Pending |
-| DEVS-05 | TBD | Pending |
-| DEVS-06 | TBD | Pending |
-| DEVS-07 | TBD | Pending |
-| DEVS-08 | TBD | Pending |
-| DOGF-01 | TBD | Pending |
-| DOGF-02 | TBD | Pending |
+| CONF-01 | Phase 15 | Pending |
+| CONF-02 | Phase 15 | Pending |
+| CONF-03 | Phase 15 | Pending |
+| CONF-04 | Phase 15 | Pending |
+| CONF-05 | Phase 15 | Pending |
+| CONF-06 | Phase 15 | Pending |
+| CONF-07 | Phase 15 | Pending |
+| CONF-08 | Phase 15 | Pending |
+| CONF-09 | Phase 16 | Pending |
+| DEVS-01 | Phase 17 | Pending |
+| DEVS-02 | Phase 17 | Pending |
+| DEVS-03 | Phase 17 | Pending |
+| DEVS-04 | Phase 17 | Pending |
+| DEVS-05 | Phase 17 | Pending |
+| DEVS-06 | Phase 17 | Pending |
+| DEVS-07 | Phase 17 | Pending |
+| DEVS-08 | Phase 17 | Pending |
+| DOGF-01 | Phase 18 | Pending |
+| DOGF-02 | Phase 18 | Pending |
 
 **Coverage:**
 - v1.4 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 ⚠️
+- Mapped to phases: 19
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-31*
-*Last updated: 2026-01-31 after initial definition*
+*Last updated: 2026-01-31 after roadmap creation*

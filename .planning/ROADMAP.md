@@ -6,6 +6,7 @@
 - v1.1 Docs & Tests - Phases 5-7 (shipped 2026-01-26)
 - v1.2 DevOps Language Support - Phases 8-10, 4-soi (shipped 2026-01-27)
 - v1.3 Docker Integration Tests - Phases 11-14 (shipped 2026-01-30)
+- v1.4 Dogfooding Infrastructure - Phases 15-18 (in progress)
 
 ## Phases
 
@@ -159,6 +160,68 @@ Plans:
 
 </details>
 
+<details open>
+<summary>v1.4 Dogfooding Infrastructure (Phases 15-18) - IN PROGRESS</summary>
+
+### Phase 15: Configuration System
+**Goal**: Users can configure CocoSearch behavior via YAML config file
+**Dependencies**: None (builds on existing CLI)
+**Requirements**: CONF-01, CONF-02, CONF-03, CONF-04, CONF-05, CONF-06, CONF-07, CONF-08
+
+**Success Criteria:**
+1. User can create `cocosearch.yaml` in project root and CLI automatically loads it
+2. User can specify index name, file patterns, languages, embedding model, and limits in config
+3. User receives clear error message when config has invalid YAML syntax or unsupported fields
+4. CLI works without config file (uses defaults) and with partial config (merges with defaults)
+
+Plans:
+- [ ] 15-01: TBD
+- [ ] 15-02: TBD
+
+### Phase 16: CLI Config Integration
+**Goal**: CLI flags take precedence over config file settings
+**Dependencies**: Phase 15
+**Requirements**: CONF-09
+
+**Success Criteria:**
+1. User can override any config setting via CLI flag (e.g., `--index-name` overrides `index_name` in YAML)
+2. CLI help shows which flags have config file equivalents
+3. Precedence is clear: CLI flag > config file > default
+
+Plans:
+- [ ] 16-01: TBD
+
+### Phase 17: Developer Setup Script
+**Goal**: One-command setup for new developers working on CocoSearch
+**Dependencies**: Phase 16
+**Requirements**: DEVS-01, DEVS-02, DEVS-03, DEVS-04, DEVS-05, DEVS-06, DEVS-07, DEVS-08
+
+**Success Criteria:**
+1. New developer runs `./dev-setup.sh` and gets fully working CocoSearch environment
+2. Script detects native Ollama and uses it; falls back to Docker if not found
+3. Script shows colored progress output so user knows what is happening
+4. Running script multiple times is safe (idempotent)
+5. Script completes with indexed codebase ready for search
+
+Plans:
+- [ ] 17-01: TBD
+- [ ] 17-02: TBD
+
+### Phase 18: Dogfooding Validation
+**Goal**: CocoSearch repository uses CocoSearch with documented example
+**Dependencies**: Phase 17
+**Requirements**: DOGF-01, DOGF-02
+
+**Success Criteria:**
+1. Repository contains `cocosearch.yaml` configured for indexing CocoSearch source code
+2. README includes dogfooding section showing how to search CocoSearch with CocoSearch
+3. New contributor can follow README to set up and search the codebase
+
+Plans:
+- [ ] 18-01: TBD
+
+</details>
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -178,3 +241,7 @@ Plans:
 | 12. Container Infrastructure & PostgreSQL | v1.3 | 3/3 | Complete | 2026-01-30 |
 | 13. Ollama Integration | v1.3 | 2/2 | Complete | 2026-01-30 |
 | 14. End-to-End Flows | v1.3 | 3/3 | Complete | 2026-01-30 |
+| 15. Configuration System | v1.4 | 0/? | Pending | - |
+| 16. CLI Config Integration | v1.4 | 0/? | Pending | - |
+| 17. Developer Setup Script | v1.4 | 0/? | Pending | - |
+| 18. Dogfooding Validation | v1.4 | 0/? | Pending | - |
