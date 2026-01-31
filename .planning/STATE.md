@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Milestone: v1.4 Dogfooding Infrastructure
-Phase: 17 of 18 (Developer Setup Script)
-Plan: 1 of 1 complete
-Status: Phase 17 verified, ready for Phase 18
-Last activity: 2026-01-31 — Phase 17 verified (human-approved)
+Phase: 18 of 18 (Dogfooding Validation)
+Plan: 1 of 2 complete
+Status: In progress - Plan 18-01 complete
+Last activity: 2026-01-31 — Completed 18-01-PLAN.md (dogfooding config and README)
 
-Progress: [███████████████████████████_________________________] 55% (3/4 phases planned, 1/1 phase 17 plans complete)
+Progress: [████████████████████████████████████████____________] 70% (4/4 phases planned, 1/2 phase 18 plans complete)
 
 ## v1.4 Phase Overview
 
@@ -24,12 +24,12 @@ Progress: [███████████████████████
 | 15 | Configuration System | 8 (CONF-01 to CONF-08) | Complete ✓ (verified) |
 | 16 | CLI Config Integration | 1 (CONF-09) | Complete ✓ (verified) |
 | 17 | Developer Setup Script | 8 (DEVS-01 to DEVS-08) | Complete ✓ (verified) |
-| 18 | Dogfooding Validation | 2 (DOGF-01, DOGF-02) | Not planned |
+| 18 | Dogfooding Validation | 2 (DOGF-01, DOGF-02) | In progress (1/2 plans complete) |
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 46
+- Total plans completed: 47
 - Total execution time: ~6 days across 4 milestones
 
 **By Milestone:**
@@ -81,6 +81,10 @@ Progress: [███████████████████████
 | DEVS-TRAP-CLEANUP | 17-01 | Trap-based cleanup prompting user on failure | Balance auto-cleanup with debuggability |
 | DEVS-PORT-CONFLICT-CHECK | 17-01 | Port conflict detection before service start | Fail fast with clear error showing which process |
 | DEVS-IDEMPOTENT-OPS | 17-01 | Idempotent operations throughout setup script | Safe to re-run script at any time |
+| DOGF-CONFIG-MINIMAL | 18-01 | Minimal cocosearch.yaml (only indexName + includePatterns) | Demonstrates defaults work well, lowers barrier to entry |
+| DOGF-EXAMPLE-MIX | 18-01 | Mix architecture and implementation queries in README | Shows CocoSearch handles both high-level and code-level searches |
+| DOGF-STANDALONE-COMMANDS | 18-01 | Use "uv run cocosearch" in README examples | Examples work from any state, no setup assumptions |
+| DOGF-ANNOTATED-OUTPUT | 18-01 | Show truncated, annotated output in examples | Balances showing value vs maintaining readable docs |
 
 ### Pending Todos
 
@@ -88,14 +92,14 @@ None.
 
 ### Blockers/Concerns
 
-None -- Phase 17 complete. Ready for Phase 18 (Dogfooding Validation).
+None -- Plan 18-01 complete. Plan 18-02 (manual dogfooding validation) ready to execute.
 
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Phase 17 verified
+Stopped at: Completed 18-01-PLAN.md
 Resume file: None
-Next action: Plan Phase 18 (Dogfooding Validation)
+Next action: Execute 18-02-PLAN.md (manual dogfooding validation checkpoint)
 
 ---
-*Updated: 2026-01-31 after Phase 17 verified*
+*Updated: 2026-01-31 after completing 18-01-PLAN.md*
