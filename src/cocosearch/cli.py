@@ -14,6 +14,7 @@ from pathlib import Path
 import cocoindex
 from rich.console import Console
 
+from cocosearch.config import ConfigError as ConfigLoadError, generate_config
 from cocosearch.indexer import IndexingConfig, load_config, run_index
 from cocosearch.indexer.progress import IndexingProgress
 from cocosearch.management import clear_index, derive_index_from_git, get_stats, list_indexes
@@ -441,6 +442,28 @@ def clear_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def init_command(args: argparse.Namespace) -> int:
+    """Execute the init command.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        Exit code (0 for success, 1 for error).
+    """
+    console = Console()
+    config_path = Path.cwd() / "cocosearch.yaml"
+
+    try:
+        generate_config(config_path)
+        console.print("[green]Created cocosearch.yaml[/green]")
+        console.print("[dim]Edit this file to customize CocoSearch behavior.[/dim]")
+        return 0
+    except ConfigLoadError as e:
+        console.print(f"[bold red]Error:[/bold red] {e}")
+        return 1
+
+
 def mcp_command(args: argparse.Namespace) -> int:
     """Start the MCP server.
 
@@ -596,6 +619,13 @@ def main() -> None:
         help="Human-readable output (default: JSON)",
     )
 
+    # Init subcommand
+    subparsers.add_parser(
+        "init",
+        help="Create a cocosearch.yaml configuration file",
+        description="Generate a starter configuration file with all options documented.",
+    )
+
     # MCP subcommand
     subparsers.add_parser(
         "mcp",
@@ -604,7 +634,7 @@ def main() -> None:
     )
 
     # Known subcommands for routing
-    known_subcommands = ("index", "search", "list", "stats", "clear", "mcp", "-h", "--help")
+    known_subcommands = ("index", "search", "list", "stats", "clear", "init", "mcp", "-h", "--help")
 
     # Handle default action (query without subcommand)
     # Check before parsing if first argument is not a known subcommand
@@ -628,6 +658,8 @@ def main() -> None:
         sys.exit(stats_command(args))
     elif args.command == "clear":
         sys.exit(clear_command(args))
+    elif args.command == "init":
+        sys.exit(init_command(args))
     elif args.command == "mcp":
         sys.exit(mcp_command(args))
     else:
