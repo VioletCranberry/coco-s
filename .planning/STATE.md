@@ -11,17 +11,17 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 
 Milestone: v1.4 Dogfooding Infrastructure
 Phase: 15 of 18 (Configuration System)
-Plan: 01 of 3 complete (15-01-PLAN.md)
-Status: In progress - Phase 15 plan 1/3 complete
-Last activity: 2026-01-31 — Completed 15-01-PLAN.md (Config Schema & Loader)
+Plan: 02 of 3 complete (15-02-PLAN.md)
+Status: In progress - Phase 15 plan 2/3 complete
+Last activity: 2026-01-31 — Completed 15-02-PLAN.md (Error Formatting)
 
-Progress: [█████████████___________________________________] 25% (1/4 phases planned, 1/3 phase 15 plans complete)
+Progress: [██████████████████__________________________________] 33% (1/4 phases planned, 2/3 phase 15 plans complete)
 
 ## v1.4 Phase Overview
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 15 | Configuration System | 8 (CONF-01 to CONF-08) | In Progress (1/3 plans complete) |
+| 15 | Configuration System | 8 (CONF-01 to CONF-08) | In Progress (2/3 plans complete) |
 | 16 | CLI Config Integration | 1 (CONF-09) | Not planned |
 | 17 | Developer Setup Script | 8 (DEVS-01 to DEVS-08) | Not planned |
 | 18 | Dogfooding Validation | 2 (DOGF-01, DOGF-02) | Not planned |
@@ -63,6 +63,9 @@ Progress: [█████████████______________________________
 | CONF-VALIDATION-STRATEGY | 15-01 | Strict validation (extra='forbid', strict=True) | Early error detection, no silent failures |
 | CONF-DISCOVERY-ORDER | 15-01 | cwd → git-root → defaults | Local config overrides repo config |
 | CONF-ERROR-HANDLING | 15-01 | ConfigError with line/column for YAML | User-friendly error messages |
+| CONF-TYPO-DETECTION | 15-02 | difflib cutoff=0.6 for fuzzy matching | Balanced typo suggestions without false positives |
+| CONF-ERROR-REPORTING | 15-02 | All errors at once, not incremental | Better UX, users see all issues in one pass |
+| CONF-SECTION-AWARE-SUGGESTIONS | 15-02 | Section-specific field suggestions | More accurate typo corrections |
 
 ### Pending Todos
 
@@ -70,14 +73,14 @@ None.
 
 ### Blockers/Concerns
 
-None -- config foundation ready for error formatting (15-02) and init command (15-03).
+None -- config schema, loader, and error formatting complete. Ready for init command (15-03).
 
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Completed 15-01-PLAN.md (Config Schema & Loader)
+Stopped at: Completed 15-02-PLAN.md (Error Formatting)
 Resume file: None
-Next action: Execute 15-02 (Error Formatting) or 15-03 (Init Command)
+Next action: Execute 15-03 (Init Command)
 
 ---
-*Updated: 2026-01-31 after completing 15-01*
+*Updated: 2026-01-31 after completing 15-02*
