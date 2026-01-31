@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Milestone: v1.4 Dogfooding Infrastructure
-Phase: 16 of 18 (CLI Config Integration)
-Plan: All 2 plans complete and verified
-Status: Phase 16 verified, ready for Phase 17
-Last activity: 2026-01-31 — Phase 16 verified (10/10 must-haves)
+Phase: 17 of 18 (Developer Setup Script)
+Plan: 1 of 1 complete
+Status: Phase 17 in progress
+Last activity: 2026-01-31 — Completed 17-01-PLAN.md
 
-Progress: [█████████████████████████___________________________] 52% (2/4 phases planned, 2/2 phase 16 plans complete)
+Progress: [███████████████████████████_________________________] 55% (3/4 phases planned, 1/1 phase 17 plans complete)
 
 ## v1.4 Phase Overview
 
@@ -23,13 +23,13 @@ Progress: [███████████████████████
 |-------|------|--------------|--------|
 | 15 | Configuration System | 8 (CONF-01 to CONF-08) | Complete ✓ (verified) |
 | 16 | CLI Config Integration | 1 (CONF-09) | Complete ✓ (verified) |
-| 17 | Developer Setup Script | 8 (DEVS-01 to DEVS-08) | Not planned |
+| 17 | Developer Setup Script | 8 (DEVS-01 to DEVS-08) | Complete ✓ |
 | 18 | Dogfooding Validation | 2 (DOGF-01, DOGF-02) | Not planned |
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 45
+- Total plans completed: 46
 - Total execution time: ~6 days across 4 milestones
 
 **By Milestone:**
@@ -76,6 +76,11 @@ Progress: [███████████████████████
 | CONF-HELP-TEXT-METADATA | 16-02 | Show [config: X] [env: Y] in CLI help for all flags | Users can discover config keys and env vars from help text |
 | CONF-CLI-OVERRIDE-DETECTION | 16-02 | Only treat CLI flags as overrides when explicitly provided | Argparse defaults don't block env vars or config values |
 | CONF-SHOW-ALL-FIELDS | 16-02 | Config show displays all fields even if default | Complete transparency about active configuration |
+| DEVS-DOCKER-OLLAMA | 17-01 | Use Docker-based Ollama (not native) for consistency | Avoids "works on my machine" with model versions |
+| DEVS-PLAIN-TEXT-OUTPUT | 17-01 | Plain text with inline prefixes (no colors/emojis) | CI-friendly, grep-able, works in all terminals |
+| DEVS-TRAP-CLEANUP | 17-01 | Trap-based cleanup prompting user on failure | Balance auto-cleanup with debuggability |
+| DEVS-PORT-CONFLICT-CHECK | 17-01 | Port conflict detection before service start | Fail fast with clear error showing which process |
+| DEVS-IDEMPOTENT-OPS | 17-01 | Idempotent operations throughout setup script | Safe to re-run script at any time |
 
 ### Pending Todos
 
@@ -83,14 +88,14 @@ None.
 
 ### Blockers/Concerns
 
-None -- Phase 16 verified. Ready for Phase 17 (Developer Setup Script).
+None -- Phase 17 complete. Ready for Phase 18 (Dogfooding Validation).
 
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Phase 16 verified (10/10 must-haves)
+Stopped at: Completed 17-01-PLAN.md
 Resume file: None
-Next action: Plan Phase 17 (Developer Setup Script)
+Next action: Plan Phase 18 (Dogfooding Validation)
 
 ---
-*Updated: 2026-01-31 after completing 16-02*
+*Updated: 2026-01-31 after completing 17-01*
