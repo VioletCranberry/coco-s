@@ -10,26 +10,26 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Milestone: v1.4 Dogfooding Infrastructure
-Phase: 15 of 18 (Configuration System)
-Plan: All 3 plans complete and verified
-Status: Phase 15 verified, ready for Phase 16
-Last activity: 2026-01-31 — Phase 15 verified (22/22 must-haves)
+Phase: 16 of 18 (CLI Config Integration)
+Plan: 1 of 1 complete
+Status: Phase 16-01 complete
+Last activity: 2026-01-31 — Completed 16-01-PLAN.md (ConfigResolver TDD)
 
-Progress: [████████████████████________________________________] 40% (1/4 phases planned, 3/3 phase 15 plans complete)
+Progress: [████████████████████████____________________________] 50% (1/4 phases planned, 1/1 phase 16 plan complete)
 
 ## v1.4 Phase Overview
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
 | 15 | Configuration System | 8 (CONF-01 to CONF-08) | Complete ✓ (verified) |
-| 16 | CLI Config Integration | 1 (CONF-09) | Not planned |
+| 16 | CLI Config Integration | 1 (CONF-09) | In Progress (1/1 plans complete) |
 | 17 | Developer Setup Script | 8 (DEVS-01 to DEVS-08) | Not planned |
 | 18 | Dogfooding Validation | 2 (DOGF-01, DOGF-02) | Not planned |
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 43
+- Total plans completed: 44
 - Total execution time: ~6 days across 4 milestones
 
 **By Milestone:**
@@ -69,6 +69,10 @@ Progress: [████████████████████_________
 | CONF-TEMPLATE-FORMAT | 15-03 | Empty dicts for sections (indexing: {}) | Valid YAML that Pydantic can validate |
 | CONF-DISCOVERY-IN-CLI | 15-03 | Use find_config_file() in all CLI commands | Consistent config discovery |
 | CONF-USER-FEEDBACK | 15-03 | Show config status messages | First-run UX guidance |
+| CONF-PRECEDENCE-ORDER | 16-01 | CLI > env > config > default | CLI flags always override everything else |
+| CONF-ENV-VAR-NAMING | 16-01 | COCOSEARCH_UPPER_SNAKE_CASE with dot notation converted | Environment variables follow predictable naming pattern |
+| CONF-ENV-VALUE-PARSING | 16-01 | Type-aware parsing with JSON fallback for lists | Users can set list values as JSON or comma-separated strings |
+| CONF-SOURCE-TRACKING | 16-01 | Return (value, source) tuple from resolve() | CLI can show users where each config value originated |
 
 ### Pending Todos
 
@@ -76,14 +80,14 @@ None.
 
 ### Blockers/Concerns
 
-None -- Phase 15 complete. Ready for Phase 16 (CLI Config Integration).
+None -- Phase 16-01 complete. Ready for integration into CLI commands.
 
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Completed 15-03-PLAN.md (Init Command) - Phase 15 complete
+Stopped at: Completed 16-01-PLAN.md (ConfigResolver TDD) - Phase 16-01 complete
 Resume file: None
-Next action: Plan Phase 16 (CLI Config Integration)
+Next action: Continue Phase 16 (integrate ConfigResolver into CLI commands)
 
 ---
-*Updated: 2026-01-31 after completing 15-03*
+*Updated: 2026-01-31 after completing 16-01*
