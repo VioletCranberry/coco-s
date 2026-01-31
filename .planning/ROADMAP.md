@@ -224,8 +224,10 @@ Plans:
 2. README includes dogfooding section showing how to search CocoSearch with CocoSearch
 3. New contributor can follow README to set up and search the codebase
 
+**Plans:** 1 plan
+
 Plans:
-- [ ] 18-01: TBD
+- [ ] 18-01-PLAN.md - Dogfooding config and README section
 
 </details>
 
@@ -251,4 +253,4 @@ Plans:
 | 15. Configuration System | v1.4 | 3/3 | Complete | 2026-01-31 |
 | 16. CLI Config Integration | v1.4 | 2/2 | Complete | 2026-01-31 |
 | 17. Developer Setup Script | v1.4 | 1/1 | Complete | 2026-01-31 |
-| 18. Dogfooding Validation | v1.4 | 0/? | Pending | - |
+| 18. Dogfooding Validation | v1.4 | 0/1 | Pending | - |
