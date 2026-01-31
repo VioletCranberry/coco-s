@@ -48,7 +48,11 @@ Semantic code search that runs entirely locally — no data leaves your machine.
 
 ### Active
 
-(None — ready for next milestone)
+**v1.4 Dogfooding Infrastructure**
+
+- Project config file (cocosearch.yaml) with index settings, patterns, and custom options
+- Developer setup script (dev-setup.sh) for Docker infrastructure and auto-indexing
+- Self-indexing CocoSearch's own codebase as dogfooding validation
 
 ### Out of Scope
 
@@ -108,4 +112,4 @@ Documentation: Comprehensive README with Quick Start, Installation, MCP config, 
 | E2E tests via subprocess CLI | Environment propagation, realistic testing | Good |
 
 ---
-*Last updated: 2026-01-30 after v1.3 milestone completion*
+*Last updated: 2026-01-31 after v1.4 milestone started*

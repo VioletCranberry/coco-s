@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 
 ## Current Position
 
-Milestone: v1.3 Docker Integration Tests - SHIPPED
-Last phase: 14 of 14 (E2E Flows)
-Status: All milestones complete
-Last activity: 2026-01-30 -- Shipped v1.3 milestone
+Milestone: v1.4 Dogfooding Infrastructure
+Phase: Not started (defining requirements)
+Status: Defining requirements
+Last activity: 2026-01-31 — Milestone v1.4 started
 
-Progress: [█████████████████████████████████████████████] 100% (40 plans across 4 milestones)
+Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -63,4 +63,4 @@ Stopped at: Shipped v1.3 milestone
 Resume file: None
 
 ---
-*Updated: 2026-01-30 after v1.3 milestone completion*
+*Updated: 2026-01-31 after v1.4 milestone started*
