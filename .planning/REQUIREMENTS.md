@@ -21,14 +21,14 @@ Requirements for Dogfooding Infrastructure milestone.
 
 ### Developer Setup Script
 
-- [ ] **DEVS-01**: Shell script `dev-setup.sh` starts PostgreSQL via docker-compose
-- [ ] **DEVS-02**: Script waits for PostgreSQL to be healthy before proceeding
-- [ ] **DEVS-03**: Script checks for native Ollama availability on localhost:11434
-- [ ] **DEVS-04**: Script launches Ollama in Docker if native Ollama not detected
-- [ ] **DEVS-05**: Script pulls required embedding model (nomic-embed-text) if not available
-- [ ] **DEVS-06**: Script runs `cocosearch index` on current project after services ready
-- [ ] **DEVS-07**: Script is idempotent (safe to run multiple times)
-- [ ] **DEVS-08**: Script uses colored output with progress indicators
+- [x] **DEVS-01**: Shell script `dev-setup.sh` starts PostgreSQL via docker-compose
+- [x] **DEVS-02**: Script waits for PostgreSQL to be healthy before proceeding
+- [x] **DEVS-03**: ~~Script checks for native Ollama availability~~ → Uses Docker-only Ollama for consistency
+- [x] **DEVS-04**: ~~Script launches Ollama in Docker if native not detected~~ → Always Docker (per CONTEXT.md)
+- [x] **DEVS-05**: Script pulls required embedding model (nomic-embed-text) if not available
+- [x] **DEVS-06**: Script runs `cocosearch index` on current project after services ready
+- [x] **DEVS-07**: Script is idempotent (safe to run multiple times)
+- [x] **DEVS-08**: ~~Colored output~~ → Plain text with inline prefixes (CI-friendly, per CONTEXT.md)
 
 ### Dogfooding
 
@@ -70,14 +70,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONF-07 | Phase 15 | Complete |
 | CONF-08 | Phase 15 | Complete |
 | CONF-09 | Phase 16 | Complete |
-| DEVS-01 | Phase 17 | Pending |
-| DEVS-02 | Phase 17 | Pending |
-| DEVS-03 | Phase 17 | Pending |
-| DEVS-04 | Phase 17 | Pending |
-| DEVS-05 | Phase 17 | Pending |
-| DEVS-06 | Phase 17 | Pending |
-| DEVS-07 | Phase 17 | Pending |
-| DEVS-08 | Phase 17 | Pending |
+| DEVS-01 | Phase 17 | Complete |
+| DEVS-02 | Phase 17 | Complete |
+| DEVS-03 | Phase 17 | Complete (Docker-only) |
+| DEVS-04 | Phase 17 | Complete (Docker-only) |
+| DEVS-05 | Phase 17 | Complete |
+| DEVS-06 | Phase 17 | Complete |
+| DEVS-07 | Phase 17 | Complete |
+| DEVS-08 | Phase 17 | Complete (plain text) |
 | DOGF-01 | Phase 18 | Pending |
 | DOGF-02 | Phase 18 | Pending |
 
