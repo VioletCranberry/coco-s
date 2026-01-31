@@ -11,25 +11,25 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 
 Milestone: v1.4 Dogfooding Infrastructure
 Phase: 16 of 18 (CLI Config Integration)
-Plan: 1 of 1 complete
-Status: Phase 16-01 complete
-Last activity: 2026-01-31 — Completed 16-01-PLAN.md (ConfigResolver TDD)
+Plan: 2 of 2 complete
+Status: Phase 16 complete ✓
+Last activity: 2026-01-31 — Completed 16-02-PLAN.md (CLI config integration)
 
-Progress: [████████████████████████____________________________] 50% (1/4 phases planned, 1/1 phase 16 plan complete)
+Progress: [█████████████████████████___________________________] 52% (2/4 phases planned, 2/2 phase 16 plans complete)
 
 ## v1.4 Phase Overview
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
 | 15 | Configuration System | 8 (CONF-01 to CONF-08) | Complete ✓ (verified) |
-| 16 | CLI Config Integration | 1 (CONF-09) | In Progress (1/1 plans complete) |
+| 16 | CLI Config Integration | 1 (CONF-09) | Complete ✓ (2/2 plans complete) |
 | 17 | Developer Setup Script | 8 (DEVS-01 to DEVS-08) | Not planned |
 | 18 | Dogfooding Validation | 2 (DOGF-01, DOGF-02) | Not planned |
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 44
+- Total plans completed: 45
 - Total execution time: ~6 days across 4 milestones
 
 **By Milestone:**
@@ -73,6 +73,9 @@ Progress: [███████████████████████
 | CONF-ENV-VAR-NAMING | 16-01 | COCOSEARCH_UPPER_SNAKE_CASE with dot notation converted | Environment variables follow predictable naming pattern |
 | CONF-ENV-VALUE-PARSING | 16-01 | Type-aware parsing with JSON fallback for lists | Users can set list values as JSON or comma-separated strings |
 | CONF-SOURCE-TRACKING | 16-01 | Return (value, source) tuple from resolve() | CLI can show users where each config value originated |
+| CONF-HELP-TEXT-METADATA | 16-02 | Show [config: X] [env: Y] in CLI help for all flags | Users can discover config keys and env vars from help text |
+| CONF-CLI-OVERRIDE-DETECTION | 16-02 | Only treat CLI flags as overrides when explicitly provided | Argparse defaults don't block env vars or config values |
+| CONF-SHOW-ALL-FIELDS | 16-02 | Config show displays all fields even if default | Complete transparency about active configuration |
 
 ### Pending Todos
 
@@ -80,14 +83,14 @@ None.
 
 ### Blockers/Concerns
 
-None -- Phase 16-01 complete. Ready for integration into CLI commands.
+None -- Phase 16 complete. Configuration system fully integrated into CLI.
 
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Completed 16-01-PLAN.md (ConfigResolver TDD) - Phase 16-01 complete
+Stopped at: Completed 16-02-PLAN.md (CLI config integration) - Phase 16 complete
 Resume file: None
-Next action: Continue Phase 16 (integrate ConfigResolver into CLI commands)
+Next action: Plan Phase 17 (Developer Setup Script) or Phase 18 (Dogfooding Validation)
 
 ---
-*Updated: 2026-01-31 after completing 16-01*
+*Updated: 2026-01-31 after completing 16-02*
