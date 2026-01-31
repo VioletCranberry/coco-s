@@ -40,7 +40,7 @@ See project history. 19 phases, 47 plans completed across 5 milestones.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 19-01-PLAN.md — TDD: Environment variable substitution function
+- [x] 19-01-PLAN.md — TDD: Environment variable substitution function
 - [ ] 19-02-PLAN.md — Integration into config loader
 
 ### Phase 20: Env Var Standardization
@@ -91,7 +91,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 19. Config Env Var Substitution | v1.5 | 0/2 | Planned | - |
+| 19. Config Env Var Substitution | v1.5 | 1/2 | In progress | - |
 | 20. Env Var Standardization | v1.5 | 0/TBD | Not started | - |
 | 21. Language Chunking Refactor | v1.5 | 0/TBD | Not started | - |
 | 22. Documentation Polish | v1.5 | 0/TBD | Not started | - |
