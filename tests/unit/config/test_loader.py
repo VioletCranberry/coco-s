@@ -260,3 +260,151 @@ indexName: custom-location
 
         error_msg = str(exc_info.value)
         assert "Failed to read config file" in error_msg
+
+
+class TestEnvVarSubstitution:
+    """Test environment variable substitution in config loading."""
+
+    def test_substitutes_env_var_in_index_name(self, tmp_path, monkeypatch):
+        """Test that ${VAR} in indexName resolves to env var value."""
+        monkeypatch.setenv("MY_INDEX", "production-index")
+        config_file = tmp_path / "cocosearch.yaml"
+        config_file.write_text("indexName: ${MY_INDEX}")
+
+        config = load_config(config_file)
+
+        assert config.indexName == "production-index"
+
+    def test_substitutes_env_var_with_default(self, tmp_path, monkeypatch):
+        """Test that ${VAR:-default} uses default when env var not set."""
+        # Ensure the env var is NOT set
+        monkeypatch.delenv("UNSET_INDEX_VAR", raising=False)
+        config_file = tmp_path / "cocosearch.yaml"
+        config_file.write_text("indexName: ${UNSET_INDEX_VAR:-fallback-index}")
+
+        config = load_config(config_file)
+
+        assert config.indexName == "fallback-index"
+
+    def test_substitutes_env_var_in_indexing_section(self, tmp_path, monkeypatch):
+        """Test substitution in indexing.includePatterns."""
+        monkeypatch.setenv("INCLUDE_PATTERN", "**/*.custom")
+        config_file = tmp_path / "cocosearch.yaml"
+        config_file.write_text("""
+indexing:
+  includePatterns:
+    - ${INCLUDE_PATTERN}
+    - "**/*.py"
+""")
+
+        config = load_config(config_file)
+
+        assert "**/*.custom" in config.indexing.includePatterns
+        assert "**/*.py" in config.indexing.includePatterns
+
+    def test_env_var_in_numeric_field_requires_pydantic_coercion(
+        self, tmp_path, monkeypatch
+    ):
+        """Document that env vars in numeric fields fail with strict=True.
+
+        This is expected behavior: YAML parses `${VAR}` as a string.
+        After env var substitution, Pydantic's strict=True mode rejects
+        string values for numeric fields. Users should use env vars for
+        string fields (indexName, model, patterns) not numeric fields.
+        """
+        monkeypatch.setenv("MIN_SCORE", "0.75")
+        config_file = tmp_path / "cocosearch.yaml"
+        config_file.write_text("""
+search:
+  minScore: ${MIN_SCORE}
+""")
+
+        # This raises ConfigError because "0.75" (string) isn't accepted
+        # for float field with strict=True
+        with pytest.raises(ConfigError) as exc_info:
+            load_config(config_file)
+
+        error_msg = str(exc_info.value)
+        assert "minScore" in error_msg
+
+    def test_substitutes_env_var_in_embedding_section(self, tmp_path, monkeypatch):
+        """Test substitution in embedding.model."""
+        monkeypatch.setenv("OLLAMA_MODEL", "mxbai-embed-large")
+        config_file = tmp_path / "cocosearch.yaml"
+        config_file.write_text("""
+embedding:
+  model: ${OLLAMA_MODEL}
+""")
+
+        config = load_config(config_file)
+
+        assert config.embedding.model == "mxbai-embed-large"
+
+    def test_raises_config_error_on_missing_required_env_var(self, tmp_path, monkeypatch):
+        """Test that missing required env var raises ConfigError with clear message."""
+        monkeypatch.delenv("MISSING_VAR", raising=False)
+        config_file = tmp_path / "cocosearch.yaml"
+        config_file.write_text("indexName: ${MISSING_VAR}")
+
+        with pytest.raises(ConfigError) as exc_info:
+            load_config(config_file)
+
+        error_msg = str(exc_info.value)
+        assert "Missing required environment variables" in error_msg
+        assert "MISSING_VAR" in error_msg
+        assert str(config_file) in error_msg
+
+    def test_error_message_lists_all_missing_vars(self, tmp_path, monkeypatch):
+        """Test that error message lists ALL missing env vars, not just first."""
+        monkeypatch.delenv("VAR_ONE", raising=False)
+        monkeypatch.delenv("VAR_TWO", raising=False)
+        monkeypatch.delenv("VAR_THREE", raising=False)
+        config_file = tmp_path / "cocosearch.yaml"
+        config_file.write_text("""
+indexName: ${VAR_ONE}
+embedding:
+  model: ${VAR_TWO}
+  baseUrl: ${VAR_THREE}
+""")
+
+        with pytest.raises(ConfigError) as exc_info:
+            load_config(config_file)
+
+        error_msg = str(exc_info.value)
+        assert "VAR_ONE" in error_msg
+        assert "VAR_TWO" in error_msg
+        assert "VAR_THREE" in error_msg
+
+    def test_env_var_overrides_default_when_set(self, tmp_path, monkeypatch):
+        """Test that env var value is used when both var and default exist."""
+        monkeypatch.setenv("MY_MODEL", "custom-model")
+        config_file = tmp_path / "cocosearch.yaml"
+        config_file.write_text("""
+embedding:
+  model: ${MY_MODEL:-default-model}
+""")
+
+        config = load_config(config_file)
+
+        assert config.embedding.model == "custom-model"
+
+    def test_substitutes_multiple_vars_in_same_config(self, tmp_path, monkeypatch):
+        """Test multiple env vars across different sections."""
+        monkeypatch.setenv("PROJECT_NAME", "my-project")
+        monkeypatch.setenv("EMBED_MODEL", "nomic-embed-text")
+        monkeypatch.delenv("OPTIONAL_PATTERN", raising=False)
+        config_file = tmp_path / "cocosearch.yaml"
+        config_file.write_text("""
+indexName: ${PROJECT_NAME}
+embedding:
+  model: ${EMBED_MODEL}
+indexing:
+  includePatterns:
+    - ${OPTIONAL_PATTERN:-**/*.py}
+""")
+
+        config = load_config(config_file)
+
+        assert config.indexName == "my-project"
+        assert config.embedding.model == "nomic-embed-text"
+        assert "**/*.py" in config.indexing.includePatterns
