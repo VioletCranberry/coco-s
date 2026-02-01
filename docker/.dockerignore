@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+
+# Planning docs
+.planning
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.eggs
+dist
+build
+*.egg
+
+# Virtual environments
+.venv
+venv
+.env
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Tests
+tests
+.pytest_cache
+.coverage
+htmlcov
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Local development
+.claude
+docker-compose.yml
+dev-setup.sh
+cocosearch.yaml
+
+# OS files
+.DS_Store
+Thumbs.db
