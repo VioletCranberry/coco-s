@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "Stopping PostgreSQL gracefully..."
+su postgres -c "pg_ctl stop -D /data/pg_data -m fast" || true
