@@ -7,7 +7,7 @@
 - ✅ **v1.2 DevOps Language Support** - Phases 8-10, 4-soi (shipped 2026-01-27)
 - ✅ **v1.3 Docker Integration Tests** - Phases 11-14 (shipped 2026-01-30)
 - ✅ **v1.4 Dogfooding Infrastructure** - Phases 15-18 (shipped 2026-01-31)
-- 🚧 **v1.5 Configuration & Architecture Polish** - Phases 19-22 (in progress)
+- ✅ **v1.5 Configuration & Architecture Polish** - Phases 19-22 (shipped 2026-02-01)
 
 ## Phases
 
@@ -18,14 +18,14 @@ See project history. 19 phases, 47 plans completed across 5 milestones.
 
 </details>
 
-### 🚧 v1.5 Configuration & Architecture Polish (In Progress)
+### ✅ v1.5 Configuration & Architecture Polish (Complete)
 
 **Milestone Goal:** Clean up configuration patterns, standardize environment variables, and refactor language chunking for extensibility.
 
 - [x] **Phase 19: Config Env Var Substitution** - Support ${VAR} syntax in config files
 - [x] **Phase 20: Env Var Standardization** - Migrate to COCOSEARCH_* prefix everywhere
 - [x] **Phase 21: Language Chunking Refactor** - Registry-based language handler architecture
-- [ ] **Phase 22: Documentation Polish** - README with clickable table of contents
+- [x] **Phase 22: Documentation Polish** - README with clickable table of contents
 
 ## Phase Details
 
@@ -89,7 +89,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 22-01-PLAN.md — Restructure README with comprehensive TOC
+- [x] 22-01-PLAN.md — Restructure README with comprehensive TOC
 
 ## Progress
 
@@ -100,7 +100,7 @@ Plans:
 | 19. Config Env Var Substitution | v1.5 | 2/2 | Complete | 2026-02-01 |
 | 20. Env Var Standardization | v1.5 | 4/4 | Complete | 2026-02-01 |
 | 21. Language Chunking Refactor | v1.5 | 4/4 | Complete | 2026-02-01 |
-| 22. Documentation Polish | v1.5 | 0/1 | Not started | - |
+| 22. Documentation Polish | v1.5 | 1/1 | Complete | 2026-02-01 |
 
 ---
 *Roadmap created: 2026-01-31*

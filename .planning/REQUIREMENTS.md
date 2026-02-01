@@ -31,8 +31,8 @@ Requirements for v1.5 Configuration & Architecture Polish. Each maps to roadmap 
 
 ### Documentation
 
-- [ ] **DOCS-01**: README.md has clickable table of contents
-- [ ] **DOCS-02**: TOC covers all major sections
+- [x] **DOCS-01**: README.md has clickable table of contents
+- [x] **DOCS-02**: TOC covers all major sections
 
 ## Future Requirements
 
@@ -72,8 +72,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LANG-03 | Phase 21 | Complete |
 | LANG-04 | Phase 21 | Complete |
 | LANG-05 | Phase 21 | Complete |
-| DOCS-01 | Phase 22 | Pending |
-| DOCS-02 | Phase 22 | Pending |
+| DOCS-01 | Phase 22 | Complete |
+| DOCS-02 | Phase 22 | Complete |
 
 **Coverage:**
 - v1.5 requirements: 15 total
@@ -82,4 +82,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-31*
-*Last updated: 2026-02-01 after Phase 21 completion*
+*Last updated: 2026-02-01 after Phase 22 completion*
