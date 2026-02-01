@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 
 Milestone: v1.5 Configuration & Architecture Polish
 Phase: 21 of 22 (Language Chunking Refactor)
-Plan: 3 of 4 in current phase
-Status: In progress
-Last activity: 2026-02-01 — Completed 21-03-PLAN.md (flow integration with handlers)
+Plan: 4 of 4 in current phase
+Status: Phase complete
+Last activity: 2026-02-01 — Completed 21-04-PLAN.md (handler tests and documentation)
 
-Progress: [██████████████████████████████░░░░░░░░░░░░░░░░░░░░░░] 57%
+Progress: [███████████████████████████████░░░░░░░░░░░░░░░░░░░░░] 58%
 
 ## Milestones Shipped
 
@@ -27,13 +27,13 @@ Progress: [███████████████████████
 | v1.3 Docker Integration Tests | 11-14 | 11 | 2026-01-30 |
 | v1.4 Dogfooding Infrastructure | 15-18 | 7 | 2026-01-31 |
 
-**Total shipped:** 19 phases, 47 plans (Phase 20: 4 of 4 plans complete, Phase 21: 3 of 4 plans complete)
+**Total shipped:** 19 phases, 47 plans (Phase 20: 4 of 4 plans complete, Phase 21: 4 of 4 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 56 of 56 (47 shipped + 2 from phase 19 + 4 from phase 20 + 3 from phase 21)
-- Total execution time: ~7 days across 5 milestones + phase 21 in progress
+- Total plans completed: 57 of 57 (47 shipped + 2 from phase 19 + 4 from phase 20 + 4 from phase 21)
+- Total execution time: ~7 days across 5 milestones + phase 21 complete
 
 **By Milestone:**
 
@@ -77,6 +77,8 @@ See PROJECT.md Key Decisions table.
 - languages.py re-exports DEVOPS_CUSTOM_LANGUAGES via get_custom_languages() call (Plan 03)
 - metadata.py re-exports extract_devops_metadata from handlers to avoid double registration (Plan 03)
 - Internal patterns (_HCL_COMMENT_LINE, etc.) re-exported for test compatibility (Plan 03)
+- Test structure mirrors existing test_languages.py and test_metadata.py patterns for consistency (Plan 04)
+- README.md documents complete extension workflow with examples from existing handlers (Plan 04)
 
 ### Pending Todos
 
@@ -89,9 +91,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Completed 21-03-PLAN.md (flow integration with handlers)
+Stopped at: Completed 21-04-PLAN.md (handler tests and documentation)
 Resume file: None
-Next action: `/gsd:execute-plan 21 04` for final cleanup
+Next action: Phase 21 complete. Ready for Phase 22.
 
 ---
-*Updated: 2026-02-01 after Plan 21-03 completion*
+*Updated: 2026-02-01 after Plan 21-04 completion*
