@@ -1,0 +1,14 @@
+#!/bin/sh
+echo "Starting Ollama..."
+
+# Ensure model directory exists and has correct permissions
+mkdir -p /data/ollama_models
+
+# Auto-pull model if not present (supports override via COCOSEARCH_EMBED_MODEL)
+MODEL="${COCOSEARCH_EMBED_MODEL:-nomic-embed-text}"
+
+# Start Ollama with readiness notification
+# -n 120: max 120 attempts, -s 2000: 2s between checks, -w 10000: 10s timeout per check
+exec s6-notifyoncheck -d -n 120 -s 2000 -w 10000 \
+    -c /etc/s6-overlay/s6-rc.d/svc-ollama/data/check \
+    ollama serve
