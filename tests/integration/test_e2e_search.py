@@ -36,8 +36,8 @@ def indexed_e2e_fixtures(initialized_db, warmed_ollama, e2e_fixtures_path):
         tuple: (index_name, env_dict) for use in search commands
     """
     env = os.environ.copy()
-    env["COCOINDEX_DATABASE_URL"] = initialized_db
-    env["OLLAMA_HOST"] = warmed_ollama
+    env["COCOSEARCH_DATABASE_URL"] = initialized_db
+    env["COCOSEARCH_OLLAMA_URL"] = warmed_ollama
 
     index_name = "e2e_search_tests"
 
@@ -289,8 +289,8 @@ def test_search_missing_index(warmed_ollama, initialized_db):
         initialized_db: PostgreSQL connection URL
     """
     env = os.environ.copy()
-    env["COCOINDEX_DATABASE_URL"] = initialized_db
-    env["OLLAMA_HOST"] = warmed_ollama
+    env["COCOSEARCH_DATABASE_URL"] = initialized_db
+    env["COCOSEARCH_OLLAMA_URL"] = warmed_ollama
 
     # Search against non-existent index
     result = subprocess.run(
