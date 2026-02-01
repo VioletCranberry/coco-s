@@ -209,10 +209,10 @@ class TestCustomLanguageIntegration:
         assert callable(extract_language)
 
     def test_flow_module_imports_custom_languages(self):
-        """flow module successfully imports DEVOPS_CUSTOM_LANGUAGES."""
+        """flow module successfully imports get_custom_languages from handlers."""
         import cocosearch.indexer.flow as flow_module
 
-        assert hasattr(flow_module, 'DEVOPS_CUSTOM_LANGUAGES')
+        assert hasattr(flow_module, 'get_custom_languages')
 
     def test_flow_module_imports_extract_language(self):
         """flow module successfully imports extract_language."""
@@ -244,20 +244,24 @@ class TestMetadataIntegration:
         assert hasattr(flow_module, 'extract_devops_metadata')
 
     def test_extract_devops_metadata_is_cocoindex_op(self):
-        """extract_devops_metadata is a callable that returns DevOpsMetadata."""
-        from cocosearch.indexer.metadata import extract_devops_metadata, DevOpsMetadata
+        """extract_devops_metadata is a callable that returns dict with metadata fields."""
+        from cocosearch.handlers import extract_devops_metadata
 
         assert callable(extract_devops_metadata)
-        # Verify the function works and returns the expected type
+        # Verify the function works and returns dict with expected keys
         result = extract_devops_metadata("some text", "py")
-        assert isinstance(result, DevOpsMetadata)
+        assert isinstance(result, dict)
+        assert "block_type" in result
+        assert "hierarchy" in result
+        assert "language_id" in result
 
     def test_flow_source_has_metadata_import(self):
-        """flow module source contains the metadata import statement."""
+        """flow module source contains the handlers import statement."""
         import cocosearch.indexer.flow as flow_module
 
         source = inspect.getsource(flow_module)
-        assert "from cocosearch.indexer.metadata import extract_devops_metadata" in source
+        assert "from cocosearch.handlers import" in source
+        assert "extract_devops_metadata" in source
 
     def test_flow_source_has_metadata_transform(self):
         """flow module source contains the metadata transform call."""
