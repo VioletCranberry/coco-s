@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Variables
 CLEANUP_NEEDED=false
-export COCOINDEX_DATABASE_URL="postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
+export COCOSEARCH_DATABASE_URL="postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
 
 # Trap handlers
 cleanup_on_exit() {
@@ -114,7 +114,7 @@ show_next_steps() {
   echo ""
   echo "Set this in your shell (add to ~/.bashrc or ~/.zshrc for persistence):"
   echo ""
-  echo "  export COCOINDEX_DATABASE_URL=\"postgresql://cocoindex:cocoindex@localhost:5432/cocoindex\""
+  echo "  export COCOSEARCH_DATABASE_URL=\"postgresql://cocoindex:cocoindex@localhost:5432/cocoindex\""
   echo ""
   echo "Quick reference commands:"
   echo ""
