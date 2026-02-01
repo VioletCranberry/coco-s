@@ -11,8 +11,7 @@ import cocoindex
 
 from cocosearch.indexer.config import IndexingConfig
 from cocosearch.indexer.embedder import code_to_embedding, extract_extension, extract_language
-from cocosearch.indexer.languages import DEVOPS_CUSTOM_LANGUAGES
-from cocosearch.indexer.metadata import extract_devops_metadata
+from cocosearch.handlers import get_custom_languages, extract_devops_metadata
 from cocosearch.indexer.file_filter import build_exclude_patterns
 
 
@@ -65,7 +64,7 @@ def create_code_index_flow(
             # Chunk using Tree-sitter + custom DevOps languages (SplitRecursively)
             file["chunks"] = file["content"].transform(
                 cocoindex.functions.SplitRecursively(
-                    custom_languages=DEVOPS_CUSTOM_LANGUAGES,
+                    custom_languages=get_custom_languages(),
                 ),
                 language=file["extension"],
                 chunk_size=chunk_size,
