@@ -1,0 +1,24 @@
+#!/bin/sh
+# Combined health check - returns 0 only when ALL services are ready
+# Used by Docker HEALTHCHECK
+
+# Check PostgreSQL
+if ! pg_isready -h localhost -U cocosearch -d cocosearch > /dev/null 2>&1; then
+    echo "PostgreSQL not ready"
+    exit 1
+fi
+
+# Check Ollama
+if ! curl -sf http://localhost:${COCOSEARCH_OLLAMA_PORT:-11434}/api/tags > /dev/null 2>&1; then
+    echo "Ollama not ready"
+    exit 1
+fi
+
+# Check MCP server health endpoint
+if ! curl -sf http://localhost:${COCOSEARCH_MCP_PORT:-3000}/health > /dev/null 2>&1; then
+    echo "MCP server not ready"
+    exit 1
+fi
+
+# All services ready
+exit 0
