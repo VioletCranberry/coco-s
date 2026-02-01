@@ -142,12 +142,21 @@ COPY docker/rootfs/ /
 EXPOSE 3000 5432 11434
 
 # =============================================================================
-# Health check with startup grace period
+# Health check - all services must be ready
+# --start-period: Ignore failures during first 90s (startup grace period)
+# --interval: Check every 30s after start period
+# --timeout: Allow 10s for each check
+# --retries: Mark unhealthy after 3 consecutive failures
 # =============================================================================
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-    CMD pg_isready -h localhost -U cocosearch -d cocosearch && \
-        curl -sf http://localhost:11434/api/tags > /dev/null && \
-        curl -sf http://localhost:${COCOSEARCH_MCP_PORT:-3000}/health > /dev/null
+    CMD /etc/s6-overlay/scripts/health-check || exit 1
+
+# =============================================================================
+# Signal handling for graceful shutdown
+# Use SIGTERM for s6-overlay, which will cascade to services
+# PostgreSQL finish script handles fast shutdown
+# =============================================================================
+STOPSIGNAL SIGTERM
 
 # =============================================================================
 # Use s6-overlay as init
