@@ -51,13 +51,13 @@ def test_full_indexing_flow(initialized_db, warmed_ollama, e2e_fixtures_path):
     """
     # Prepare environment for CLI
     env = os.environ.copy()
-    env["COCOINDEX_DATABASE_URL"] = initialized_db
-    env["OLLAMA_HOST"] = warmed_ollama
+    env["COCOSEARCH_DATABASE_URL"] = initialized_db
+    env["COCOSEARCH_OLLAMA_URL"] = warmed_ollama
 
     # Debug: print environment
     print(f"\n=== Environment ===")
-    print(f"COCOINDEX_DATABASE_URL: {env['COCOINDEX_DATABASE_URL']}")
-    print(f"OLLAMA_HOST: {env['OLLAMA_HOST']}")
+    print(f"COCOSEARCH_DATABASE_URL: {env['COCOSEARCH_DATABASE_URL']}")
+    print(f"COCOSEARCH_OLLAMA_URL: {env['COCOSEARCH_OLLAMA_URL']}")
 
     # Index the test codebase
     index_name = "test_full_indexing_flow"
@@ -140,8 +140,8 @@ def test_incremental_indexing(initialized_db, warmed_ollama, tmp_path):
 
     # Prepare environment
     env = os.environ.copy()
-    env["COCOINDEX_DATABASE_URL"] = initialized_db
-    env["OLLAMA_HOST"] = warmed_ollama
+    env["COCOSEARCH_DATABASE_URL"] = initialized_db
+    env["COCOSEARCH_OLLAMA_URL"] = warmed_ollama
 
     index_name = "test_incremental_indexing"
 
@@ -190,8 +190,8 @@ def test_index_nonexistent_path(initialized_db, warmed_ollama):
         warmed_ollama: Pre-warmed Ollama service URL
     """
     env = os.environ.copy()
-    env["COCOINDEX_DATABASE_URL"] = initialized_db
-    env["OLLAMA_HOST"] = warmed_ollama
+    env["COCOSEARCH_DATABASE_URL"] = initialized_db
+    env["COCOSEARCH_OLLAMA_URL"] = warmed_ollama
 
     # Try to index nonexistent path
     result = run_cocosearch(
