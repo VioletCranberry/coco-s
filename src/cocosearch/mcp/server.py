@@ -225,13 +225,19 @@ def run_server(
             logger.warning("--port is ignored with stdio transport")
         mcp.run(transport="stdio")
     elif transport == "sse":
+        # Configure host/port for network transport
+        mcp.settings.host = host
+        mcp.settings.port = port
         logger.info(f"Connect at http://{host}:{port}/sse")
         logger.info(f"Health check at http://{host}:{port}/health")
-        mcp.run(transport="sse", host=host, port=port)
+        mcp.run(transport="sse")
     elif transport == "http":
+        # Configure host/port for network transport
+        mcp.settings.host = host
+        mcp.settings.port = port
         logger.info(f"Connect at http://{host}:{port}/mcp")
         logger.info(f"Health check at http://{host}:{port}/health")
-        mcp.run(transport="streamable-http", host=host, port=port)
+        mcp.run(transport="streamable-http")
     else:
         # Should not reach here if CLI validates
         raise ValueError(f"Invalid transport: {transport}")

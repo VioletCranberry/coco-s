@@ -551,12 +551,38 @@ def mcp_command(args: argparse.Namespace) -> int:
         args: Parsed command-line arguments.
 
     Returns:
-        Exit code (0 for success, never reached as server runs until killed).
+        Exit code (0 for success, 1 for error).
     """
     from cocosearch.mcp import run_server
 
-    run_server()
-    return 0  # Never reached, server runs until killed
+    # Resolve transport: CLI > env > default
+    transport = args.transport or os.getenv("MCP_TRANSPORT", "stdio")
+
+    # Validate transport
+    valid_transports = ("stdio", "sse", "http")
+    if transport not in valid_transports:
+        print(f"Error: Invalid transport '{transport}'. Valid options: {', '.join(valid_transports)}", file=sys.stderr)
+        return 1
+
+    # Resolve port: CLI > env > default
+    if args.port is not None:
+        port = args.port
+    else:
+        port_env = os.getenv("COCOSEARCH_MCP_PORT", "3000")
+        try:
+            port = int(port_env)
+        except ValueError:
+            print(f"Error: Invalid port value in COCOSEARCH_MCP_PORT: '{port_env}'", file=sys.stderr)
+            return 1
+
+    try:
+        run_server(transport=transport, host="0.0.0.0", port=port)
+        return 0
+    except OSError as e:
+        if "Address already in use" in str(e):
+            print(f"Error: Port {port} is already in use", file=sys.stderr)
+            return 1
+        raise
 
 
 def config_show_command(args: argparse.Namespace) -> int:
@@ -851,10 +877,22 @@ def main() -> None:
     )
 
     # MCP subcommand
-    subparsers.add_parser(
+    mcp_parser = subparsers.add_parser(
         "mcp",
         help="Start MCP server for LLM integration",
         description="Start the Model Context Protocol server for use with Claude and other LLM clients.",
+    )
+    mcp_parser.add_argument(
+        "--transport", "-t",
+        choices=["stdio", "sse", "http"],
+        default=None,
+        help="Transport protocol (default: stdio). [env: MCP_TRANSPORT]",
+    )
+    mcp_parser.add_argument(
+        "--port", "-p",
+        type=int,
+        default=None,
+        help="Port for SSE/HTTP transports (default: 3000). [env: COCOSEARCH_MCP_PORT]",
     )
 
     # Config subcommand
