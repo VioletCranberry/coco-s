@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 
 Milestone: v1.5 Configuration & Architecture Polish
 Phase: 21 of 22 (Language Chunking Refactor)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-02-01 — Completed 21-02-PLAN.md (language handler migration)
+Last activity: 2026-02-01 — Completed 21-03-PLAN.md (flow integration with handlers)
 
-Progress: [█████████████████████████████░░░░░░░░░░░░░░░░░░░░░░░] 56%
+Progress: [██████████████████████████████░░░░░░░░░░░░░░░░░░░░░░] 57%
 
 ## Milestones Shipped
 
@@ -27,12 +27,12 @@ Progress: [███████████████████████
 | v1.3 Docker Integration Tests | 11-14 | 11 | 2026-01-30 |
 | v1.4 Dogfooding Infrastructure | 15-18 | 7 | 2026-01-31 |
 
-**Total shipped:** 19 phases, 47 plans (Phase 20: 4 of 4 plans complete, Phase 21: 2 of 4 plans complete)
+**Total shipped:** 19 phases, 47 plans (Phase 20: 4 of 4 plans complete, Phase 21: 3 of 4 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 55 of 56 (47 shipped + 2 from phase 19 + 4 from phase 20 + 2 from phase 21)
+- Total plans completed: 56 of 56 (47 shipped + 2 from phase 19 + 4 from phase 20 + 3 from phase 21)
 - Total execution time: ~7 days across 5 milestones + phase 21 in progress
 
 **By Milestone:**
@@ -67,13 +67,16 @@ See PROJECT.md Key Decisions table.
 - Document breaking changes with migration table in CHANGELOG
 
 **Phase 21 Decisions:**
-- Protocol uses SEPARATOR_SPEC and extract_metadata() instead of chunk() because CocoIndex transforms run in Rust
-- Handlers export CustomLanguageSpec for CocoIndex chunking, not Python-based chunking
-- extract_devops_metadata() decorated with @cocoindex.op.function() for flow.py integration
-- Extension registry uses fail-fast ValueError on conflicts at module import time
-- TextHandler returns empty metadata and relies on CocoIndex default text splitting
+- Protocol uses SEPARATOR_SPEC and extract_metadata() instead of chunk() because CocoIndex transforms run in Rust (Plan 01)
+- Handlers export CustomLanguageSpec for CocoIndex chunking, not Python-based chunking (Plan 01)
+- extract_devops_metadata() decorated with @cocoindex.op.function() for flow.py integration (Plan 01)
+- Extension registry uses fail-fast ValueError on conflicts at module import time (Plan 01)
+- TextHandler returns empty metadata and relies on CocoIndex default text splitting (Plan 01)
 - EXTENSIONS use dot format ['.tf', '.hcl'] to match registry lookup expectations (Plan 02)
 - Each handler includes _strip_comments() helper instead of shared utility to keep modules self-contained (Plan 02)
+- languages.py re-exports DEVOPS_CUSTOM_LANGUAGES via get_custom_languages() call (Plan 03)
+- metadata.py re-exports extract_devops_metadata from handlers to avoid double registration (Plan 03)
+- Internal patterns (_HCL_COMMENT_LINE, etc.) re-exported for test compatibility (Plan 03)
 
 ### Pending Todos
 
@@ -86,9 +89,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Completed 21-02-PLAN.md (language handler migration)
+Stopped at: Completed 21-03-PLAN.md (flow integration with handlers)
 Resume file: None
-Next action: `/gsd:execute-plan 21 03` to migrate flow.py to use handlers
+Next action: `/gsd:execute-plan 21 04` for final cleanup
 
 ---
-*Updated: 2026-02-01 after Plan 21-02 completion*
+*Updated: 2026-02-01 after Plan 21-03 completion*
