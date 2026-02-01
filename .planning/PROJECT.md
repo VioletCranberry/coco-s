@@ -58,7 +58,16 @@ Semantic code search that runs entirely locally — no data leaves your machine.
 
 ### Active
 
-None — project stable, ready for next milestone
+**v1.6 All-in-One Docker & Auto-Detect:**
+- [ ] All-in-one Docker image bundling Ollama+model, PostgreSQL+pgvector, CocoSearch MCP
+- [ ] Pre-pulled nomic-embed-text model baked into image
+- [ ] SSE transport for Claude Desktop (HTTP-based MCP)
+- [ ] stdio transport for Claude Code / OpenCode
+- [ ] Auto-detect project from cwd (infer index from working directory)
+- [ ] Detection priority: cocosearch.yaml indexName > git repo name > directory name
+- [ ] Collision detection: track source path per index, require explicit name on conflict
+- [ ] cocosearch.yaml `indexName` field for explicit naming
+- [ ] Prompt user when auto-detected index doesn't exist
 
 ### Out of Scope
 
@@ -70,6 +79,15 @@ None — project stable, ready for next milestone
 - Block type / hierarchy search filters — validate demand first
 - Config inheritance (base + override) — complexity vs value tradeoff, skip for now
 - Per-directory config overrides — skip for now, reassess if demand emerges
+
+## Current Milestone: v1.6 All-in-One Docker & Auto-Detect
+
+**Goal:** Single-command Docker deployment with automatic project detection for CLI-based AI agents
+
+**Target features:**
+- All-in-one Docker image (Ollama + PostgreSQL + CocoSearch) with both SSE and stdio transports
+- Auto-detect project from working directory for seamless CLI agent integration
+- Collision detection for same-named indexes from different paths
 
 ## Current State
 
@@ -135,4 +153,4 @@ Environment: COCOSEARCH_DATABASE_URL (required), COCOSEARCH_OLLAMA_URL (optional
 | Keep a Changelog format | Industry standard for change documentation | ✓ Good |
 
 ---
-*Last updated: 2026-02-01 after v1.5 milestone shipped*
+*Last updated: 2026-02-01 after v1.6 milestone started*

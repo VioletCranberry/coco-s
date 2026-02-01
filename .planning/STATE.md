@@ -9,13 +9,13 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 ## Current Position
 
-Milestone: None active (v1.5 shipped)
-Phase: N/A
-Plan: N/A
-Status: Ready for next milestone
-Last activity: 2026-02-01 — v1.5 Configuration & Architecture Polish shipped
+Milestone: v1.6 All-in-One Docker & Auto-Detect
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-01 — Milestone v1.6 started
 
-Progress: [████████████████████████████████████████████████████] 100% (v1.5)
+Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0% (v1.6)
 
 ## Milestones Shipped
 
@@ -70,9 +70,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: v1.5 milestone complete and shipped
+Stopped at: v1.6 milestone initialization
 Resume file: None
-Next action: `/gsd:new-milestone` to start next version
+Next action: Define requirements and create roadmap
 
 ---
-*Updated: 2026-02-01 after v1.5 shipped*
+*Updated: 2026-02-01 after v1.6 started*
