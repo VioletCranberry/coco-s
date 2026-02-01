@@ -38,10 +38,11 @@ See project history for earlier milestones:
   2. User can run MCP server with SSE transport via `--transport sse` flag
   3. User can run MCP server with Streamable HTTP transport via `--transport http` flag
   4. User can select transport via `MCP_TRANSPORT` environment variable
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 23-01: TBD
+- [ ] 23-01-PLAN.md - Multi-transport support in server and CLI
+- [ ] 23-02-PLAN.md - Unit tests for transport selection
 
 #### Phase 24: Container Foundation
 **Goal**: All-in-one Docker container with PostgreSQL, Ollama, and MCP server under process supervision
@@ -102,4 +103,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-01 after v1.6 roadmap created*
+*Last updated: 2026-02-01 after Phase 23 planning*
