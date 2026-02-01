@@ -1,9 +1,9 @@
 # Domain Pitfalls
 
-**Domain:** DevOps Language Support (HCL, Dockerfile, Bash) for Code Search
-**Researched:** 2026-01-27
-**Milestone:** v1.2 -- DevOps Language Support
-**Confidence:** MEDIUM-HIGH
+**Domain:** All-in-One Docker Deployment + MCP Transport Support
+**Researched:** 2026-02-01
+**Milestone:** v2.0 -- Docker Image + MCP SSE/Streamable HTTP
+**Confidence:** HIGH
 
 ---
 
@@ -11,378 +11,592 @@
 
 Mistakes that cause rewrites, data loss, or fundamental architecture failures.
 
-### Pitfall 1: Regex Chunking Cannot Handle Nested Blocks in HCL
+### Pitfall 1: PID 1 Signal Handling Breaks Graceful Shutdown
 
 **What goes wrong:**
-Regex-based separators in CocoIndex's `custom_languages` split HCL files at pattern boundaries, but HCL's deeply nested block structure (resource > provisioner > inline blocks, module > nested module calls) means regex patterns like `r"\nresource\s+"` split at the *start* of a block without understanding where it *ends*. Result: chunks contain the header of one resource and the body of the previous one. Worse, nested blocks like `dynamic` blocks inside resources get split mid-structure, producing chunks that are semantically meaningless.
+In a multi-service container (PostgreSQL + Ollama + Python app), the entrypoint process runs as PID 1. If that process is a shell script or the Python app itself, SIGTERM signals from `docker stop` are silently ignored. Docker waits 10 seconds, then sends SIGKILL, forcefully terminating all processes. PostgreSQL has no chance to flush WAL buffers, potentially corrupting the database.
 
 **Why it happens:**
-- Regex is fundamentally limited to regular languages; HCL's nested braces require a context-free grammar
-- CocoIndex's `custom_languages` parameter accepts `separators_regex` -- a flat list of regex patterns for split boundaries, ordered by priority (higher-level first, lower-level later)
-- These separators define *where to split*, not *what constitutes a complete block*
-- HCL blocks can nest arbitrarily: `resource` > `provisioner` > `connection` > `inline` blocks
-- A separator like `r"\nresource\s+"` matches the boundary but has no concept of the matching closing brace
+- Linux kernel treats PID 1 specially: signals are ignored unless explicitly handled
+- Shell scripts (`#!/bin/bash`) don't forward signals to child processes by default
+- Python's default signal handlers don't propagate to subprocess children
+- Docker's `docker stop` sends SIGTERM, waits `--stop-timeout` (default 10s), then SIGKILL
+- PostgreSQL needs SIGTERM to initiate "smart shutdown" (wait for clients, flush buffers)
+- Ollama may be mid-inference when killed, leaving GPU memory in bad state
 
 **Consequences:**
-- Search returns half-complete resource blocks (header of one, body of another)
-- Metadata extraction produces incorrect resource types (associates wrong body with wrong header)
-- Users searching for "aws_s3_bucket" get chunks containing the bucket header fused with the previous resource's body
-- Full re-index required after fixing patterns
+- PostgreSQL database corruption on container restart
+- "invalid record length" errors in PostgreSQL WAL recovery
+- Lost indexed data requiring full re-index
+- Ollama model files corrupted mid-download
+- Users experience data loss after routine container restarts
 
 **Warning signs:**
-- Chunks starting mid-block (e.g., starting with `}` or an attribute without a parent block)
-- Metadata extraction yields resource types that don't match the chunk content
-- Test HCL files with 3+ nested levels produce garbled chunks
+- Container takes exactly 10 seconds to stop (hitting SIGKILL timeout)
+- PostgreSQL logs showing recovery on every startup
+- Ollama re-downloading models after container restart
+- "database was not properly shut down" messages
 
 **Prevention:**
-1. Design separators to split at *top-level block boundaries only*: use `r"\n(?:resource|data|module|variable|output|locals|provider|terraform)\s+"` as the highest-priority separator
-2. Accept that inner structure will be within a single chunk, not further split by nested block type
-3. Set `chunk_size` large enough (2000-3000 bytes) that typical Terraform resources fit in a single chunk
-4. Validate chunks with a simple brace-counting check: every chunk should have balanced `{` and `}` counts (or be explicitly the start/end of a block)
-5. Use `chunk_overlap` (300-500 bytes) to ensure block boundaries are captured in adjacent chunks
-6. Write integration tests with real-world Terraform files containing nested `dynamic` blocks, heredocs, and multi-level modules
-
-**Detection strategy (automated):**
-```python
-def validate_chunk_braces(chunk_text: str) -> bool:
-    """Check if braces are roughly balanced -- warns of mid-block splits."""
-    return chunk_text.count("{") == chunk_text.count("}")
-```
-
-**Phase to address:** Phase 1 (Custom chunking patterns) -- this is foundational. Get wrong patterns here and everything downstream fails.
-
----
-
-### Pitfall 2: HCL Heredoc Strings Break Regex Separator Matching
-
-**What goes wrong:**
-Terraform uses heredoc syntax (`<<EOF ... EOF` and `<<-EOF ... EOF`) for multi-line strings, inline policies, and embedded scripts. Regex separators that split on patterns like `r"\n\n"` or `r"\nresource\s+"` will match *inside* heredoc strings, splitting chunks in the middle of a JSON IAM policy or an embedded shell script. The word "resource" appearing inside an inline JSON policy would trigger a false split.
-
-**Why it happens:**
-- HCL heredoc strings can contain any text, including patterns that look like HCL block headers
-- Example: an inline IAM policy heredoc containing `"Resource": "*"` matches a resource-looking pattern
-- Regex has no concept of "I'm currently inside a heredoc" -- it operates on flat text
-- `<<-EOF` (indented heredoc) strips leading whitespace, further confusing line-start patterns
-- CocoIndex's `separators_regex` processes patterns against the entire text without context awareness
-
-**Consequences:**
-- Chunks split mid-heredoc, producing invalid JSON fragments in search results
-- Metadata extraction tags a chunk as "resource" when it's actually inside a heredoc string
-- Users searching for IAM policies get fragmented, unusable results
-- Very common in real Terraform codebases (heredocs are used extensively for policies, scripts, templates)
-
-**Warning signs:**
-- Chunks containing `<<EOF` without matching `EOF` closer (or vice versa)
-- JSON fragments appearing as standalone chunks
-- Resource type metadata that doesn't correspond to actual HCL blocks
-
-**Prevention:**
-1. Avoid overly aggressive separator patterns -- prefer `r"\n(?:resource|data|module|variable|output|locals|provider|terraform)\s+"` which requires *line-start* block keywords (heredoc content is typically indented)
-2. Set `chunk_size` generously (2000+ bytes) so heredoc-containing blocks stay in a single chunk
-3. Accept some imperfect splits as a tradeoff -- regex chunking is *approximate*, not exact
-4. In metadata extraction (post-chunking), validate extracted resource types by checking they appear at the start of the chunk or after a closing brace, not mid-string
-5. For extremely large heredoc blocks (>2000 bytes), accept that the chunker will split them and add metadata noting "contains heredoc" for downstream filtering
-6. Test with real-world Terraform files that use heredocs for IAM policies, user-data scripts, and template files
-
-**Phase to address:** Phase 1 (Custom chunking patterns) -- pattern design must account for heredocs from the start.
-
----
-
-### Pitfall 3: Metadata Extraction Produces False Positives from Chunk Content
-
-**What goes wrong:**
-Post-chunking metadata extraction uses regex to identify resource types, block types, and hierarchy from chunk text. But chunks may contain comments mentioning resource names, string literals containing block keywords, or variable names that look like resource references. The regex extracts metadata that doesn't reflect actual infrastructure, poisoning search results with incorrect type labels.
-
-**Why it happens:**
-- HCL: Comment `# This resource was replaced by aws_lambda_function` matches "resource" + "aws_lambda_function"
-- Dockerfile: Comment `# FROM was changed to use alpine` matches "FROM"
-- Bash: String `echo "function deploy completed"` matches a function pattern
-- Metadata regex operates on chunk text without distinguishing code from comments/strings
-- No AST available to distinguish structural elements from text content
-
-**Consequences:**
-- Search for "aws_lambda_function" returns chunks from comments about deprecated resources
-- Search for Dockerfile "FROM" stages returns chunks from echo statements
-- Metadata filters become unreliable, undermining the value proposition of rich metadata
-- Users lose trust in metadata-filtered search results
-
-**Warning signs:**
-- Metadata resource_type counts don't match actual resource counts in the codebase
-- Same resource type appearing in chunks from unrelated files
-- Metadata extraction tests passing on simple examples but failing on real codebases
-
-**Prevention:**
-1. Design extraction regex to require structural context, not just keyword presence:
-   - HCL: Require `^resource\s+"([^"]+)"\s+"([^"]+)"` at line start (not mid-line)
-   - Dockerfile: Require `^FROM\s+` at line start (not after other text)
-   - Bash: Require `^function\s+\w+` or `^\w+\s*\(\)` at line start
-2. Strip comments before metadata extraction (simple for `#` comments, complex for inline `//`)
-3. Assign confidence levels to extracted metadata: HIGH if at chunk start, LOW if mid-chunk
-4. Store multiple candidate metadata entries per chunk rather than a single definitive label
-5. Write tests with adversarial inputs: comments containing keywords, strings containing block syntax
-6. Consider a lightweight pre-processing step that marks comment regions before regex extraction
-
-**Phase to address:** Phase 2 (Metadata extraction) -- this cannot be fully solved in pattern design; requires extraction logic.
-
----
-
-### Pitfall 4: Schema Migration Breaks Existing Indexes
-
-**What goes wrong:**
-v1.2 adds metadata columns (resource_type, block_type, hierarchy) to the collector export. CocoIndex's `flow.setup()` attempts an automatic schema migration (ALTER TABLE ADD COLUMN) on existing tables. If the migration changes primary keys or the new field structure is incompatible, CocoIndex drops and recreates the table, destroying all existing indexed data. Users must re-index their entire codebase.
-
-**Why it happens:**
-- CocoIndex uses automatic schema inference: the table schema is derived from the flow definition
-- Adding new fields to `code_embeddings.collect(...)` changes the inferred schema
-- CocoIndex's setup process "will try to do a non-destructive update if possible, e.g., primary keys don't change and target storage supports in-place schema update"
-- If primary keys change (e.g., adding metadata fields to the primary key), CocoIndex drops and recreates
-- Current primary key is `["filename", "location"]` -- changing this is destructive
-- The `cocoindex_internal` state tables may also get out of sync with the target
-
-**Consequences:**
-- Full re-index required for all existing indexes (potentially hours of work)
-- No warning before destructive migration
-- Mixed indexes (some with metadata, some without) if migration partially fails
-- Users upgrading from v1.1 lose all their indexed data
-
-**Warning signs:**
-- `flow.setup()` output mentions "drop" or "recreate" instead of "alter"
-- Existing table row count drops to zero after setup
-- Internal CocoIndex state becomes inconsistent (partial state for dropped tables)
-
-**Prevention:**
-1. Keep primary keys unchanged: `["filename", "location"]` -- never add metadata fields to primary key
-2. Add metadata as nullable columns: `resource_type: str | None`, `block_type: str | None`, `hierarchy: str | None`
-3. Test the migration path explicitly: create a v1.1-schema table, run v1.2 setup, verify data preserved
-4. Document the upgrade path in release notes
-5. Implement a `--dry-run` flag for setup to show what changes would be made
-6. Consider using CocoIndex's `setup_by_user` option for the target if more control is needed
-7. For v1.2 release: ensure metadata fields are purely additive (new columns with NULL defaults)
+1. Use a proper init system as PID 1: [tini](https://github.com/krallin/tini) or [dumb-init](https://github.com/Yelp/dumb-init)
+2. If using Docker 1.13+, use `--init` flag: `docker run --init ...`
+3. Embed tini in the image: `ENTRYPOINT ["/tini", "--", "/entrypoint.sh"]`
+4. Use supervisord with `stopwaitsecs` configured for each service
+5. Implement explicit signal handlers in entrypoint script using `trap`
+6. Set `stop_grace_period: 30s` in docker-compose for PostgreSQL to complete shutdown
+7. Test with `docker stop --time=1` to verify graceful handling under time pressure
 
 **Detection strategy:**
 ```bash
-# Before upgrade: record row count
-psql -c "SELECT count(*) FROM codeindex_myproject__myproject_chunks;"
-# Run setup
-# After: verify row count unchanged
-psql -c "SELECT count(*) FROM codeindex_myproject__myproject_chunks;"
+# Time how long docker stop takes - should be < 10s for graceful shutdown
+time docker stop cocosearch-all-in-one
+# Check PostgreSQL startup logs for recovery mode
+docker logs cocosearch-all-in-one 2>&1 | grep -i "recovery"
 ```
 
-**Phase to address:** Phase 1 (Schema design) -- schema decisions constrain everything. Non-destructive migration must be verified before any implementation.
+**Phase to address:** Phase 1 (Container foundation) -- must be correct before adding any services.
 
 ---
 
-### Pitfall 5: Bash Chunking Fails on Heredocs and Nested Quoting
+### Pitfall 2: MCP stdio Transport Corrupted by Logging to stdout
 
 **What goes wrong:**
-Bash scripts use heredocs (`<<EOF ... EOF`, `<<'EOF' ... EOF`, `<<-EOF ... EOF`) extensively for multi-line strings, embedded configs, and inline scripts for other languages. Regex separators split inside heredocs, producing chunks of embedded Python/JSON/YAML that have no Bash context. Additionally, nested quoting (`"$(command 'arg "inner"')"`) confuses any regex attempting to identify function or block boundaries.
+The existing CocoSearch MCP server logs to stderr (correctly configured in `server.py`), but adding SSE/HTTP transport requires additional dependencies that may log to stdout. Third-party libraries (httpx, uvicorn, starlette) default to stdout logging. Any non-JSON-RPC output to stdout corrupts the protocol stream, causing the MCP client to disconnect with cryptic parsing errors.
 
 **Why it happens:**
-- Bash heredoc delimiters are arbitrary strings (`<<MYDELIM ... MYDELIM`), making regex detection impractical
-- Quoted heredoc delimiters (`<<'EOF'`) suppress variable expansion but look different from unquoted ones
-- Indented heredocs (`<<-EOF`) allow tabs before the delimiter
-- Bash supports `$()` command substitution with independent quoting context, creating deeply nested quote structures
-- Functions can be defined as `function_name() { ... }` or `function function_name { ... }` or `function function_name() { ... }` -- three syntaxes
-- Function names in non-POSIX mode can contain unusual characters (`-`, `.`, `/`)
+- MCP stdio transport uses stdout exclusively for JSON-RPC messages
+- The [MCP specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports) states: "The server MUST NOT write anything to its stdout that is not a valid MCP message"
+- Uvicorn's default logging goes to stdout
+- Third-party libraries may use `print()` or `logging.basicConfig()` with default stdout
+- Python warnings module defaults to stderr but some libraries override this
+- CocoIndex's internal logging may write to stdout during initialization
 
 **Consequences:**
-- Chunks contain fragments of embedded scripts (e.g., half a Python script inside a heredoc)
-- Function detection regex misses functions using the `function` keyword without parentheses
-- Search for "deploy function" returns heredoc fragments instead of actual Bash functions
-- Metadata claims a chunk is a function when it's actually inside a case statement
+- MCP client reports "invalid JSON" or "unexpected token" errors
+- Connection drops silently with no clear error message
+- Intermittent failures when libraries log only on certain code paths
+- Extremely difficult to debug (logs themselves cause the problem)
 
 **Warning signs:**
-- Chunks starting with `EOF` or other heredoc terminators
-- Function count in metadata doesn't match `grep -c "function\|().*{" script.sh`
-- Chunks containing non-Bash syntax (Python, YAML, JSON embedded via heredoc)
+- MCP client shows "malformed messages" error
+- Protocol works with simple tools, fails with complex operations
+- Adding new dependencies breaks previously working stdio transport
+- Claude Code reports "MCP server disconnected" without explanation
 
 **Prevention:**
-1. Use conservative separators: split on `r"\n\n+"` (blank lines) and `r"\nfunction\s+\w+"` / `r"\n\w+\s*\(\)\s*\{"` only
-2. Set large chunk sizes (2000+ bytes) for shell scripts -- most functions are 20-50 lines
-3. Accept that Bash chunking will be less precise than Tree-sitter-supported languages
-4. In metadata extraction, validate function detection by checking for balanced braces after the function signature
-5. Document the limitation clearly: "Shell script chunking is approximate; complex scripts with large heredocs may produce imperfect chunks"
-6. Test with real-world deployment scripts, CI/CD pipelines, and infrastructure automation scripts
+1. Keep the existing stderr logging configuration at the very top of server.py (before imports)
+2. When adding HTTP transport, configure uvicorn explicitly: `log_config=None` or custom config to stderr
+3. Audit all new dependencies for stdout usage: `grep -r "print(" vendor_code/`
+4. Add CI test that captures stdout and fails if any non-JSON-RPC output appears
+5. Use `contextlib.redirect_stdout` to stderr during library initialization
+6. Test stdio transport with MCP Inspector after every dependency addition
+7. Consider using `PYTHONUNBUFFERED=1` to catch buffered stdout issues early
 
-**Phase to address:** Phase 1 (Custom chunking patterns) -- pattern design for Bash must be intentionally conservative.
+**Detection strategy (automated test):**
+```python
+def test_stdio_purity():
+    """Verify no stdout pollution during MCP operations."""
+    import subprocess
+    result = subprocess.run(
+        ["python", "-m", "cocosearch.mcp"],
+        input='{"jsonrpc":"2.0","method":"initialize","id":1}',
+        capture_output=True, text=True, timeout=5
+    )
+    # Every line of stdout must be valid JSON
+    for line in result.stdout.strip().split('\n'):
+        if line:
+            json.loads(line)  # Raises if not JSON
+```
+
+**Phase to address:** Throughout -- every phase adding code must maintain stdout purity.
+
+---
+
+### Pitfall 3: PostgreSQL Initialization Scripts Silently Skipped
+
+**What goes wrong:**
+PostgreSQL Docker images run scripts in `/docker-entrypoint-initdb.d/` only when the data directory is empty. In an all-in-one container with a persistent volume, the volume survives container recreation. On container update/restart, the init scripts don't run, and users don't get the pgvector extension or schema updates. The application fails with "extension pgvector does not exist."
+
+**Why it happens:**
+- PostgreSQL official image design: init scripts run once, on first start with empty data dir
+- [Docker PostgreSQL docs](https://hub.docker.com/_/postgres/): "Scripts in /docker-entrypoint-initdb.d are only run if you start the container with a data directory that is empty"
+- Persistent volumes for data durability mean data dir is never empty after first run
+- Schema migrations require running SQL, but init scripts won't re-run
+- PostgreSQL 18+ changed volume structure (data is now a symlink), breaking some bind mounts
+
+**Consequences:**
+- pgvector extension not created after container update
+- Schema migrations not applied
+- Application crashes with missing extension/table errors
+- Users must manually run SQL or wipe their data volume
+- "It worked before the update" -- classic regression
+
+**Warning signs:**
+- Init scripts have correct content but weren't executed
+- Extension exists in dev (fresh volume) but not in prod (existing volume)
+- Application errors about missing tables/extensions after container update
+- Init script timestamps show old dates despite recent container builds
+
+**Prevention:**
+1. Don't rely solely on init scripts for required schema -- implement application-level migrations
+2. Check extension existence at startup and create if missing: `CREATE EXTENSION IF NOT EXISTS vector;`
+3. Use CocoIndex's `flow.setup()` for table creation (it already handles schema evolution)
+4. For critical init (pgvector extension), add a startup check in the entrypoint script
+5. Document that users must wipe volumes when upgrading major PostgreSQL versions
+6. Test upgrade path: create container with v1, update to v2, verify everything works
+
+**Startup check pattern:**
+```bash
+# entrypoint.sh
+wait_for_postgres() {
+    until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
+        sleep 1
+    done
+}
+
+ensure_extensions() {
+    psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE EXTENSION IF NOT EXISTS vector;"
+}
+
+start_postgres &
+wait_for_postgres
+ensure_extensions
+```
+
+**Phase to address:** Phase 1 (Container foundation) -- PostgreSQL setup must be robust from the start.
+
+---
+
+### Pitfall 4: Ollama Cold Start Blocks Application Startup
+
+**What goes wrong:**
+Ollama in Docker must download models before serving embeddings. For the nomic-embed-text model (~274MB), this takes 30-120 seconds depending on network speed. The all-in-one container's healthcheck passes when Ollama responds to `ollama list`, but the model isn't loaded. CocoSearch tries to generate embeddings, times out, and fails with cryptic errors. Users see "connection refused" or timeout errors on first use.
+
+**Why it happens:**
+- Ollama starts its HTTP server before downloading any models
+- `ollama list` healthcheck returns success even with no models
+- Model download happens on first API call, not at startup
+- First embedding request triggers download, which times out the request
+- [GitHub issue #6006](https://github.com/ollama/ollama/issues/6006): "Docker version of Ollama model loads slowly"
+- On HDD-backed volumes, model loading takes 3x longer due to I/O contention
+
+**Consequences:**
+- First search/index operation fails with timeout
+- Users must wait silently for model download with no progress indication
+- Retry logic may hammer Ollama, further slowing download
+- Container appears healthy but is unusable
+- Terrible first-run experience
+
+**Warning signs:**
+- Container healthcheck passes but operations fail
+- First operation takes 1-2 minutes, subsequent operations are fast
+- `ollama list` shows no models immediately after container start
+- High CPU/network usage with no apparent progress feedback
+
+**Prevention:**
+1. Pull model in entrypoint script before marking container ready:
+   ```bash
+   ollama serve &
+   until curl -s http://localhost:11434 > /dev/null; do sleep 1; done
+   ollama pull nomic-embed-text
+   ```
+2. Use healthcheck that verifies model availability, not just Ollama server:
+   ```yaml
+   healthcheck:
+     test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+     # AND parse response to verify nomic-embed-text is present
+   ```
+3. Pre-bake model into Docker image (see Pitfall 5 for tradeoffs)
+4. Display download progress in container logs
+5. Add startup banner showing "Downloading embedding model... X%"
+6. Configure longer timeouts for first embedding operation
+7. Implement warm-up call at container start: send empty embedding request to load model into memory
+
+**Phase to address:** Phase 1 (Container foundation) -- startup sequence must handle model readiness.
+
+---
+
+### Pitfall 5: Baking Ollama Model into Image Creates 4GB+ Images
+
+**What goes wrong:**
+To avoid cold-start download, developers bake the embedding model into the Docker image. The nomic-embed-text model is ~274MB, but Ollama stores model layers inefficiently. Combined with the Ollama binary (~800MB), Python dependencies, and PostgreSQL, the image balloons to 4-5GB. Image pulls take 10+ minutes, CI/CD pipelines time out, and registry storage costs explode.
+
+**Why it happens:**
+- Ollama official image is ~800MB (includes CUDA support)
+- Model files stored in `/root/.ollama/models/` as multiple blob layers
+- Docker layer caching doesn't help -- model blobs are large single files
+- Each image update re-pushes the entire model layer
+- No way to share model layers between image versions
+- [Medium article](https://towardsdatascience.com/reducing-the-size-of-docker-images-serving-llm-models-b70ee66e5a76/): "A 1GB model increases to 8GB when deployed using Docker"
+
+**Consequences:**
+- 10+ minute image pull times
+- CI/CD pipeline failures due to timeout
+- Expensive registry storage
+- Slow deployment rollbacks
+- Users abandon the tool due to download times
+
+**Warning signs:**
+- Docker build takes 20+ minutes
+- `docker images` shows 4GB+ image size
+- Pull progress shows single large layer downloading slowly
+- Registry storage costs increasing rapidly
+
+**Prevention:**
+1. **Don't bake models** -- use volume mount for `/root/.ollama` with lazy download
+2. If baking, use alpine/ollama base (~70MB) instead of official (~800MB)
+3. Use multi-stage build to minimize Python dependencies
+4. Compress model files in image, decompress at runtime (trades startup time for image size)
+5. Consider separate "model sidecar" container that shares volume with main container
+6. Use image layer optimization: `--squash` flag or BuildKit optimizations
+7. Document expected image size in README so users know what to expect
+8. Provide both "full" (with model) and "lite" (download at runtime) image variants
+
+**Size budget recommendation:**
+| Component | Target Size |
+|-----------|-------------|
+| Base OS (Alpine) | ~50MB |
+| Python + deps | ~200MB |
+| PostgreSQL | ~100MB |
+| Ollama (alpine) | ~70MB |
+| Application code | ~10MB |
+| **Total (no model)** | **~450MB** |
+| With baked model | +300MB = ~750MB |
+
+**Phase to address:** Phase 2 (Image optimization) -- after basic functionality works.
+
+---
+
+### Pitfall 6: SSE Transport Deprecated, Users on Legacy Clients Can't Connect
+
+**What goes wrong:**
+MCP SSE transport was deprecated in spec version 2025-03-26 in favor of Streamable HTTP. CocoSearch implements only the new Streamable HTTP transport. Users with older MCP clients (pre-2025 Claude Desktop, older integrations) can't connect at all. They get HTTP 404 or 405 errors with no helpful message about upgrading.
+
+**Why it happens:**
+- [MCP specification](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports): "SSE Transport has been deprecated"
+- MCP ecosystem fragmented: different clients upgraded at different times
+- SSE used two endpoints (GET for SSE stream, POST for messages); Streamable HTTP uses one
+- Transport negotiation is not automatic -- client must know which transport to use
+- Claude Code updated quickly, but third-party MCP clients lag behind
+
+**Consequences:**
+- "It works in Claude Code but not in my custom client"
+- Users file bugs about connection failures
+- Support burden explaining SSE deprecation
+- Users abandon CocoSearch for tools that still support SSE
+
+**Warning signs:**
+- Users reporting "connection refused" with specific MCP clients
+- HTTP 404/405 errors in server logs from SSE endpoint paths
+- Feature requests asking for "SSE support"
+- GitHub issues from users of older Claude Desktop versions
+
+**Prevention:**
+1. Implement both transports during transition period:
+   - Streamable HTTP on `/mcp` (primary)
+   - Legacy SSE on `/sse` (deprecated, with warning headers)
+2. Use [Supergateway](https://github.com/supercorp-ai/supergateway) as SSE-to-stdio proxy for legacy clients
+3. Add clear error message when SSE endpoint hit: "SSE transport deprecated, use Streamable HTTP"
+4. Document supported transports and minimum client versions
+5. Log warnings when SSE endpoint accessed to track adoption
+6. Plan SSE removal timeline: warn now, remove in 6 months
+
+**Transport implementation strategy:**
+```python
+# Support both during transition
+@app.route('/mcp', methods=['POST', 'GET'])
+async def streamable_http():
+    """Modern Streamable HTTP transport."""
+    ...
+
+@app.route('/sse')
+async def legacy_sse():
+    """Deprecated SSE transport - warn and serve."""
+    response.headers['X-Deprecation'] = 'SSE transport deprecated, use /mcp'
+    ...
+```
+
+**Phase to address:** Phase 3 (Transport implementation) -- design must account for both transports.
 
 ---
 
 ## Moderate Pitfalls
 
-Mistakes that cause delays, technical debt, or degraded search quality.
+Mistakes that cause delays, technical debt, or degraded user experience.
 
-### Pitfall 6: Dockerfile Chunking Ignores Multi-Stage Build Boundaries
+### Pitfall 7: MCP Working Directory Not Propagated to Container
 
 **What goes wrong:**
-Dockerfiles use `FROM` to start build stages. A regex separator like `r"\nFROM\s+"` correctly splits at stage boundaries, but doesn't capture the stage name (`AS builder`) as metadata. Without stage awareness, a chunk containing a `COPY --from=builder` instruction loses its cross-stage reference context. Search results show isolated instructions without build stage hierarchy.
+When CocoSearch MCP server runs in Docker, it has no knowledge of the host's working directory. The `index_codebase(path="/code")` tool receives paths relative to the container, not the user's actual project. Users must manually figure out volume mappings and translate paths. Auto-detection of "current project" is impossible.
 
 **Why it happens:**
-- Dockerfile multi-stage builds use `FROM image AS stage_name` syntax
-- `COPY --from=stage_name` references previous stages but doesn't include the stage definition
-- `ARG` before `FROM` applies globally but `ARG` after `FROM` is stage-scoped
-- `ONBUILD` instructions trigger in downstream images, adding deferred execution context
-- The `# syntax=docker/dockerfile:...` directive at file start affects parser behavior
+- Docker containers have isolated filesystems
+- No standard MCP mechanism for passing client CWD to server
+- [GitHub Issue #1520](https://github.com/modelcontextprotocol/python-sdk/issues/1520): "How to access the current working directory when an MCP server is launched"
+- Volume mounts map host paths to container paths, but mapping is configurable
+- Users may mount at `/code`, `/app`, `/workspace`, or any arbitrary path
+- `os.getcwd()` in container returns container's cwd, not host's
 
 **Consequences:**
-- Search for "build stage" returns chunks without stage name context
-- Metadata hierarchy shows flat structure instead of stage-based hierarchy
-- Users cannot filter search results by build stage
-- Cross-stage references (`COPY --from=`) appear without context about what they copy from
+- Path confusion: "index /Users/me/project" fails because container sees "/code"
+- Users must remember their volume mapping
+- Can't implement "index current directory" convenience feature
+- Error messages show container paths, confusing users
+- Multi-project users must manually specify index names
 
 **Warning signs:**
-- Dockerfile metadata missing stage names
-- Search results showing COPY instructions without context about the source stage
-- Multi-stage Dockerfiles being treated as flat sequences of instructions
+- User confusion about which path to provide
+- "File not found" errors with paths that exist on host
+- Users asking "what path do I use?"
+- Index names defaulting to "code" for every project (from mount point)
 
 **Prevention:**
-1. Use `r"\nFROM\s+"` as the primary separator for Dockerfiles
-2. In metadata extraction, parse the FROM line to extract: base image, stage name (if `AS` present), and stage index
-3. Include stage context in hierarchy metadata: `"stage: builder (golang:1.21)"` or `"stage: 0 (ubuntu:22.04)"`
-4. For `COPY --from=`, attempt to resolve the stage reference and include it in metadata
-5. Test with multi-stage builds using named stages, numbered stages, and `ARG`-parameterized base images
-6. Consider storing stage index as a metadata field for stage-based filtering
+1. Require `PROJECT_ROOT` environment variable in docker run:
+   ```bash
+   docker run -v /Users/me/project:/code -e PROJECT_ROOT=/Users/me/project ...
+   ```
+2. Store both container path and original host path in index metadata
+3. Auto-detect common mount patterns: if cwd is `/code`, check `PROJECT_ROOT` env
+4. Add helper tool `detect_project()` that reads `.git/config` or `package.json` for project name
+5. Derive index name from git remote URL or directory name, not mount point
+6. Document required environment variables prominently
 
-**Phase to address:** Phase 2 (Metadata extraction) -- separator patterns are straightforward; metadata extraction needs stage awareness.
+**Index name derivation logic:**
+```python
+def derive_index_name(container_path: str) -> str:
+    """Derive index name from project, not mount point."""
+    # Check for git remote
+    git_config = Path(container_path) / ".git" / "config"
+    if git_config.exists():
+        # Parse remote URL for repo name
+        ...
+    # Fall back to PROJECT_ROOT env var
+    if host_path := os.environ.get("PROJECT_ROOT"):
+        return Path(host_path).name
+    # Last resort: use mount point name (not ideal)
+    return Path(container_path).name
+```
+
+**Phase to address:** Phase 2 (Docker integration) -- path mapping must be designed before tools work correctly.
 
 ---
 
-### Pitfall 7: Chunk Size Too Small for DevOps Files
+### Pitfall 8: Service Startup Order Race Conditions
 
 **What goes wrong:**
-Current default `chunk_size=1000` bytes (set in `IndexingConfig`) works for programming languages where functions are typically 20-50 lines. DevOps files have different structural units: a Terraform resource is often 50-200 lines, a Dockerfile stage can be 30-100 lines, and Bash functions can include large heredocs. At 1000 bytes, most DevOps structural units get split across multiple chunks, destroying the semantic coherence that makes search useful.
+In an all-in-one container, PostgreSQL, Ollama, and the Python app start concurrently (or via supervisord in rapid succession). The Python app tries to connect to PostgreSQL before it's ready, or calls Ollama before model is loaded. Retry logic helps but adds startup latency and complexity. Users see intermittent "connection refused" errors.
 
 **Why it happens:**
-- Terraform resources include multiple nested blocks, attributes, and sometimes heredoc strings
-- A typical AWS resource (e.g., `aws_ecs_task_definition`) can easily be 100+ lines / 3000+ bytes
-- Dockerfile stages include RUN commands with long package install lists
-- Bash functions embedding configuration via heredocs can be very large
-- The 1000-byte default was optimized for Python/JS functions, not infrastructure code
+- Supervisord starts all services simultaneously by default
+- PostgreSQL takes 5-10 seconds to initialize on first run
+- Ollama model download/load takes 30+ seconds
+- Python app starts in ~1 second and immediately tries connections
+- [Docker docs](https://docs.docker.com/compose/how-tos/startup-order/): "Compose does not wait until a container is 'ready'"
+- Health checks help in Compose but don't exist inside a single container
 
 **Consequences:**
-- Terraform resources split across 2-3 chunks, losing structural coherence
-- Search for "ECS task definition" returns 3 partial chunks instead of one complete resource
-- Metadata extraction on partial chunks produces incomplete or incorrect resource types
-- Embedding quality degrades (partial blocks produce poor semantic embeddings)
+- Intermittent startup failures
+- App crashes on first connection attempt
+- Confusing error messages about connection refused
+- Users restart container multiple times before it works
+- Retry loops waste startup time
 
 **Warning signs:**
-- Average chunk count per file is much higher for `.tf` files than `.py` files
-- Search results frequently return adjacent chunks from the same resource
-- Resource type metadata found in first chunk but not subsequent chunks of same resource
+- Container logs show "connection refused" then later success
+- Startup time varies widely (5s to 60s)
+- `docker logs` shows PostgreSQL still initializing when app tries to connect
+- supervisord shows app process restarting during startup
 
 **Prevention:**
-1. Use language-specific chunk sizes: 2000-3000 bytes for HCL, 1500-2000 for Dockerfile, 2000 for Bash
-2. Implement per-language `chunk_size` in `IndexingConfig` or in the custom language spec
-3. Increase `chunk_overlap` proportionally (500+ bytes) to ensure block boundaries are in adjacent chunks
-4. The `min_chunk_size` parameter (defaults to `chunk_size / 2`) prevents tiny fragments -- verify this works for DevOps files
-5. Benchmark: index a real Terraform repo with different chunk sizes, measure chunk completeness
-6. Consider a two-pass approach: first pass identifies structural units, second pass applies size limits only to oversized units
+1. Implement explicit startup sequencing in entrypoint script:
+   ```bash
+   # 1. Start PostgreSQL, wait for ready
+   pg_ctl start && until pg_isready; do sleep 1; done
+   # 2. Start Ollama, wait for ready + model loaded
+   ollama serve & until ollama list | grep nomic; do sleep 1; done
+   # 3. Start Python app
+   exec python -m cocosearch.mcp
+   ```
+2. Use supervisord with `priority` settings (lower = start earlier)
+3. Implement connection retry with exponential backoff in Python app
+4. Add explicit dependency checks at app startup (before serving requests)
+5. Use health check that verifies all services are ready
+6. Log startup phase clearly: "Waiting for PostgreSQL... Waiting for Ollama... Ready"
 
-**Phase to address:** Phase 1 (Custom chunking patterns) -- chunk size configuration is part of initial pattern design.
+**Supervisord priority example:**
+```ini
+[program:postgres]
+priority=100  ; Start first
+command=/usr/lib/postgresql/17/bin/postgres
+
+[program:ollama]
+priority=200  ; Start after postgres
+command=/usr/bin/ollama serve
+startsecs=30  ; Wait for model load
+
+[program:cocosearch]
+priority=300  ; Start last
+command=python -m cocosearch.mcp
+```
+
+**Phase to address:** Phase 1 (Container foundation) -- startup sequence is foundational.
 
 ---
 
-### Pitfall 8: Metadata Extraction Adds Significant Indexing Latency
+### Pitfall 9: Supervisord Doesn't Exit on Service Failure
 
 **What goes wrong:**
-Adding regex-based metadata extraction for every chunk introduces per-chunk processing overhead. With 10+ regex patterns per language (resource types, block types, hierarchy parsing, function names), extraction adds 1-5ms per chunk. For a large infrastructure repo with 10,000+ chunks, this adds 10-50 seconds to indexing time. Combined with Ollama embedding latency, total indexing time becomes painfully slow.
+Supervisord keeps running even when critical services (PostgreSQL) crash. The container stays "running" but is non-functional. Docker healthcheck may pass (supervisord responds) even though PostgreSQL is down. Orchestrators like Kubernetes don't restart the container because it appears healthy.
 
 **Why it happens:**
-- Each chunk requires multiple regex matches for different metadata fields
-- Regex compilation should happen once but is sometimes repeated per-chunk in naive implementations
-- Complex regex patterns (especially with backtracking) can be slow on large chunks
-- Metadata extraction runs sequentially between chunking and embedding in the CocoIndex flow
-- No caching or batching for metadata operations
+- Supervisord is designed to be a long-running process manager, not a one-shot init
+- By default, supervisord restarts failed processes rather than exiting
+- Even with `autorestart=false`, supervisord itself doesn't exit
+- Container health is based on PID 1 (supervisord), not application health
+- Zombie processes from crashed services accumulate
 
 **Consequences:**
-- Indexing time increases 20-50% for metadata-rich languages
-- User perception: "v1.2 is much slower than v1.1"
-- Incremental re-indexing of changed files still pays the full extraction cost
+- Container appears healthy but doesn't work
+- Kubernetes doesn't trigger restart
+- Users manually restart containers repeatedly
+- Resource leaks from zombie processes
+- Monitoring shows green even during outages
 
 **Warning signs:**
-- Profiling shows metadata extraction as a significant portion of per-file processing time
-- Indexing time regression after v1.2 upgrade
-- Large `.tf` files taking disproportionately longer than small ones
+- Supervisord running but `supervisorctl status` shows services STOPPED
+- Container uptime increasing but service unavailable
+- `docker top` shows zombie processes
+- Memory usage growing over time (zombie accumulation)
 
 **Prevention:**
-1. Pre-compile all regex patterns at module load time, not per-chunk
-2. Use a single-pass extraction function that applies all patterns in one iteration over the text
-3. Keep extraction logic lightweight: simple line-start patterns, no backtracking-heavy regex
-4. Profile metadata extraction separately: measure ms/chunk with and without extraction
-5. Consider making metadata extraction optional (configurable per index)
-6. If extraction is slow, consider running it as a post-processing step rather than inline in the flow
+1. Use supervisord's `eventlistener` to exit on critical service failure:
+   ```ini
+   [eventlistener:exit_on_fatal]
+   command=kill -SIGTERM 1
+   events=PROCESS_STATE_FATAL
+   ```
+2. Configure health check to verify actual service, not just supervisord
+3. Consider alternatives: s6-overlay handles this better by design
+4. Use `supervisorctl shutdown` in eventlistener instead of kill
+5. Set `startsecs=10` to avoid flapping detection during startup
+6. Monitor for FATAL state in logs and alert
 
-**Phase to address:** Phase 2 (Metadata extraction implementation) -- design extraction for performance from the start.
+**s6-overlay alternative:**
+```dockerfile
+# s6-overlay automatically exits if service marked as "essential" dies
+FROM base
+ADD https://github.com/just-containers/s6-overlay/releases/.../s6-overlay.tar.gz /
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2  # Exit container on service failure
+```
+
+**Phase to address:** Phase 1 (Container foundation) -- process supervision design affects everything.
 
 ---
 
-### Pitfall 9: Metadata Column Filtering Interacts Poorly with pgvector Post-Filter
+### Pitfall 10: Dual Transport Mode Creates Maintenance Burden
 
 **What goes wrong:**
-Adding metadata columns (resource_type, block_type, language_type) enables filtered search like "find all aws_s3_bucket resources." But pgvector applies WHERE clauses as post-filters after the vector similarity search. With HNSW index default `ef_search=40`, only ~40 candidates are evaluated. If only 5% are aws_s3_bucket, the query returns ~2 results instead of the requested 10, with no guarantee they're the best matches.
+Supporting both stdio transport (for local Claude Code) and HTTP/SSE transport (for remote access) requires different code paths: stdio uses stdin/stdout, HTTP uses request/response. Bugs in one transport don't appear in the other. Test coverage must cover both. Features added to one transport are forgotten in the other.
 
 **Why it happens:**
-- pgvector HNSW indexes don't natively support pre-filtering (before v0.8.0)
-- pgvector 0.8.0+ added iterative index scans, but CocoSearch uses direct SQL queries against CocoIndex-managed tables
-- Post-filtering discards candidates that don't match the WHERE clause
-- With highly selective filters (specific resource types), most candidates are discarded
-- The current CocoSearch query pattern already has this issue with language filters, and metadata filters compound it
+- stdio transport: synchronous, line-delimited JSON-RPC on stdin/stdout
+- HTTP transport: async, request/response or SSE streaming
+- Different error handling (stdio crashes silently, HTTP returns error responses)
+- Different authentication (stdio is implicitly trusted, HTTP needs auth)
+- Different deployment (stdio via CLI, HTTP via server)
+- MCP Python SDK abstracts some but not all transport differences
 
 **Consequences:**
-- Filtered searches return fewer results than requested
-- Users get incomplete search results when filtering by resource type
-- Performance degrades as filter selectivity increases
-- Users may conclude the tool doesn't work for infrastructure code
+- Bug fixes applied to one transport, not the other
+- Test matrix explosion (each feature x each transport)
+- User confusion about which transport to use
+- "Works locally but not remotely" support tickets
+- Codebase complexity grows with transport-specific branches
 
 **Warning signs:**
-- Filtered queries returning significantly fewer results than `limit`
-- Query `EXPLAIN ANALYZE` showing index scan followed by filter removing 90%+ of rows
-- Users reporting "search for aws_lambda_function returns only 1 result even though I have 20"
+- Tests pass on stdio, fail on HTTP (or vice versa)
+- Feature works in Claude Code but not in web client
+- `if transport == "stdio"` conditionals spreading through codebase
+- HTTP transport missing features that stdio has
 
 **Prevention:**
-1. Increase `hnsw.ef_search` when metadata filters are present: `SET LOCAL hnsw.ef_search = 200;`
-2. For pgvector 0.8.0+: enable iterative index scans with `SET hnsw.iterative_scan = relaxed_order;`
-3. Over-fetch and post-filter in application code: request `limit * 5` from DB, filter in Python, return top `limit`
-4. Consider partial indexes for common metadata values: `CREATE INDEX ON chunks USING hnsw (embedding vector_cosine_ops) WHERE resource_type = 'aws_s3_bucket';`
-5. Document that metadata filtering works best for broad categories (block_type = "resource") not narrow ones (resource_type = "aws_specific_thing")
-6. Verify with `EXPLAIN ANALYZE` that filtered queries use the HNSW index and return adequate results
+1. Implement tool logic once, transport layer wraps it:
+   ```python
+   # tools.py - pure business logic, no transport awareness
+   def search_code(query: str, index_name: str) -> list[dict]:
+       ...
 
-**Phase to address:** Phase 3 (Search integration) -- metadata filtering requires query-level tuning.
+   # stdio_transport.py - wraps tools for stdio
+   # http_transport.py - wraps tools for HTTP
+   ```
+2. Use MCP SDK's transport abstraction consistently
+3. Write transport-agnostic integration tests that run against both
+4. Document which transport supports which features
+5. Feature parity checklist in PR template
+6. Consider transport as configuration, not code branches
+
+**Test strategy:**
+```python
+@pytest.mark.parametrize("transport", ["stdio", "http"])
+def test_search_returns_results(transport, transport_client):
+    """Same test runs against both transports."""
+    client = transport_client(transport)
+    result = client.call("search_code", {"query": "test", "index_name": "demo"})
+    assert len(result) > 0
+```
+
+**Phase to address:** Phase 3 (Transport implementation) -- architecture must separate transport from logic.
 
 ---
 
-### Pitfall 10: Custom Language Patterns Conflict with Built-in Language Detection
+### Pitfall 11: Volume Permissions Mismatch Between Host and Container
 
 **What goes wrong:**
-CocoIndex's `SplitRecursively` matches the `language` parameter against custom languages first, then built-in languages. If a custom language name or alias conflicts with a built-in language name, unexpected behavior occurs. Conversely, if extensions like `.sh` happen to match a built-in language name that produces plain-text fallback, custom separators are bypassed entirely.
+PostgreSQL runs as user `postgres` (UID 999), Ollama as `ollama` (UID 1000), Python as `root` or custom user. When host directories are mounted as volumes, file ownership doesn't match. PostgreSQL can't write to its data directory, Ollama can't save models, or indexed files aren't readable.
 
 **Why it happens:**
-- CocoIndex documentation states: "It's an error if any language name or alias is duplicated"
-- The built-in language list includes 29+ languages with many file extensions
-- The `language` parameter in CocoSearch's flow is set to `file["extension"]`, which yields the raw extension (e.g., "sh", "tf")
-- If "sh" is not in the built-in list AND not registered as a custom language alias, it falls back to plain text
-- If "sh" IS somehow in the built-in list (future CocoIndex version), it would conflict with a custom "sh" alias
-- Currently confirmed NOT in built-in list: HCL, Terraform, Dockerfile, Bash, Shell
+- Linux file permissions based on UID/GID, not usernames
+- Host UID 1000 (typical user) != container UID 999 (postgres)
+- Docker doesn't translate UIDs between host and container
+- macOS Docker Desktop uses VM, adding another layer of permission complexity
+- SELinux/AppArmor may block access even with correct UIDs
 
 **Consequences:**
-- DevOps files silently chunked as plain text instead of using custom separators
-- Duplicate language name error at flow definition time (if names conflict)
-- Subtle: files chunked correctly on one version, broken on next CocoIndex upgrade that adds built-in support
+- "Permission denied" errors on startup
+- PostgreSQL refuses to start (data dir not owned by postgres)
+- Ollama can't save downloaded models
+- Works on one machine, fails on another
+- Confusing errors about ownership
 
 **Warning signs:**
-- DevOps file chunks look like plain text splits (at blank lines/punctuation) not structural splits
-- No error messages, just subtly worse chunk quality
-- CocoIndex upgrade changes chunking behavior for previously-working files
+- `ls -la` in container shows wrong ownership
+- Startup errors mentioning permissions
+- Works with `docker run --privileged` but not without
+- macOS and Linux behave differently
 
 **Prevention:**
-1. Use explicit, unambiguous custom language names: "hcl_terraform", "dockerfile_custom", "bash_shell"
-2. Register file extension aliases that match actual file extensions: `aliases=["tf", "hcl", "tfvars"]`
-3. Test that custom separators are actually used: verify a known pattern produces the expected chunks
-4. Pin CocoIndex version and test upgrades explicitly
-5. Add a validation step that logs which language/chunking strategy was selected for each file
-6. Write unit tests that verify custom language matching for each target extension
+1. Use named volumes (Docker manages permissions) instead of bind mounts for data:
+   ```yaml
+   volumes:
+     postgres_data:  # Named volume - Docker handles permissions
+   ```
+2. For code directories (bind mounts), ensure consistent UID:
+   ```dockerfile
+   RUN useradd -u 1000 appuser  # Match typical host UID
+   ```
+3. Use `user` directive in compose to match host user
+4. Initialize data directories with correct ownership in entrypoint
+5. Document required host directory permissions
+6. Add startup check that verifies write permissions to data directories
 
-**Phase to address:** Phase 1 (Custom chunking configuration) -- language registration must be correct from the start.
+**Permission fix in entrypoint:**
+```bash
+# Fix permissions on mounted volumes
+chown -R postgres:postgres /var/lib/postgresql/data
+chown -R ollama:ollama /root/.ollama
+```
+
+**Phase to address:** Phase 1 (Container foundation) -- permissions must be correct before services start.
 
 ---
 
@@ -390,58 +604,51 @@ CocoIndex's `SplitRecursively` matches the `language` parameter against custom l
 
 Mistakes that cause annoyance but are fixable without major rework.
 
-### Pitfall 11: Inconsistent File Pattern Registration
+### Pitfall 12: Container Logs Interleave Service Output Chaotically
 
 **What goes wrong:**
-DevOps files have inconsistent naming: `Dockerfile` (no extension), `Dockerfile.dev`, `docker-compose.yml`, `*.tf`, `*.tfvars`, `*.hcl`, `*.sh`, `*.bash`, `.bashrc`, `.bash_profile`. Missing any variant means those files are silently excluded from indexing. Users with `Dockerfile.prod` won't find their production Dockerfile in search.
+PostgreSQL, Ollama, and Python all write to container stdout/stderr. Logs interleave randomly, making debugging difficult. No way to filter by service. Log aggregation tools can't parse the mixed output.
 
 **Prevention:**
-1. Register comprehensive include patterns:
-   - HCL: `["*.tf", "*.tfvars", "*.hcl", "*.tf.json"]`
-   - Dockerfile: `["Dockerfile", "Dockerfile.*", "*.dockerfile", "docker-compose.yml", "docker-compose.*.yml", "compose.yml", "compose.*.yml"]`
-   - Bash: `["*.sh", "*.bash", "*.zsh", ".bashrc", ".bash_profile", ".bash_aliases", ".profile", ".zshrc"]`
-2. Test with repos that use non-standard naming conventions
-3. Document which file patterns are supported in the CLI help
+1. Use supervisord's per-service log files: `stdout_logfile=/var/log/%(program_name)s.log`
+2. Prefix each service's output with service name: `[postgres]`, `[ollama]`, `[app]`
+3. For stdio transport, keep app logs on stderr only (stdout is protocol)
+4. Provide `docker exec` commands to tail individual service logs
+5. Consider structured logging (JSON) with service field
 
-**Phase to address:** Phase 1 (File patterns) -- straightforward but easy to miss variants.
+**Phase to address:** Phase 2 (Polish) -- nice to have, not blocking.
 
 ---
 
-### Pitfall 12: Hierarchy Metadata Becomes Stale After Terraform Refactoring
+### Pitfall 13: HTTPS/TLS Not Configured for HTTP Transport
 
 **What goes wrong:**
-Metadata stores hierarchy like `"module.vpc > resource.aws_subnet.public"`. When a user refactors Terraform (moves resources between modules, renames resources), the indexed hierarchy metadata becomes stale. Search results show old hierarchy paths that no longer exist. This is confusing but not critical since CocoSearch already handles this for file paths via incremental re-indexing.
+HTTP transport exposes an endpoint without TLS. In production, this means credentials (if any) transmitted in clear text. Reverse proxies or load balancers may require HTTPS upstream. Users deploy to cloud without realizing traffic is unencrypted.
 
 **Prevention:**
-1. Hierarchy metadata is recalculated on re-index (CocoIndex incremental processing handles this)
-2. Hierarchy is best-effort: extracted from the chunk's content, not from cross-file module resolution
-3. Document that hierarchy reflects the indexed state, not necessarily the current state
-4. The same limitation exists for all metadata -- it's accurate only after re-indexing
+1. Document that TLS termination should happen at reverse proxy (nginx, Cloudflare)
+2. Optionally support `--tls-cert` and `--tls-key` flags for direct TLS
+3. Add warning log if HTTP transport runs without TLS in non-localhost mode
+4. Provide example nginx/Caddy config for TLS termination
+5. Consider using Let's Encrypt integration for easy TLS
 
-**Phase to address:** Already handled by existing incremental indexing design. No special action needed.
+**Phase to address:** Phase 4 (Production hardening) -- not required for MVP.
 
 ---
 
-### Pitfall 13: Language Detection Fails for Extensionless DevOps Files
+### Pitfall 14: No Resource Limits Leads to OOM Kills
 
 **What goes wrong:**
-`Dockerfile` has no file extension. The current `extract_extension` function returns empty string for extensionless files. Without an extension, the custom language matching falls through to plain-text chunking. The Dockerfile never gets its custom separators applied.
+Ollama loads models into memory (~500MB for nomic-embed-text). PostgreSQL allocates shared buffers. Without memory limits, the container consumes available host memory and gets OOM-killed by the kernel. On systems with limited RAM (CI runners, small VMs), this happens frequently.
 
 **Prevention:**
-1. Enhance `extract_extension` or add a filename-to-language mapping function:
-   ```python
-   FILENAME_LANGUAGES = {
-       "Dockerfile": "dockerfile",
-       "Makefile": "makefile",
-       "Vagrantfile": "ruby",
-       "Jenkinsfile": "groovy",
-   }
-   ```
-2. Check full filename first, then fall back to extension-based detection
-3. Also handle `Dockerfile.dev`, `Dockerfile.prod` patterns (prefix matching)
-4. Register "dockerfile" as a custom language with alias matching the detected name
+1. Document minimum memory requirements: 2GB recommended, 4GB for large indexes
+2. Set default memory limits in docker-compose: `mem_limit: 2g`
+3. Configure PostgreSQL `shared_buffers` appropriately (128MB for small setups)
+4. Use Ollama's CPU-only mode for memory-constrained environments
+5. Add startup check that warns if available memory is below threshold
 
-**Phase to address:** Phase 1 (Language detection) -- needed before custom chunking can work for Dockerfiles.
+**Phase to address:** Phase 2 (Docker optimization) -- important for CI and constrained environments.
 
 ---
 
@@ -449,79 +656,83 @@ Metadata stores hierarchy like `"module.vpc > resource.aws_subnet.public"`. When
 
 | Phase Topic | Likely Pitfall | Severity | Mitigation |
 |-------------|---------------|----------|------------|
-| Custom chunking patterns | Regex splits mid-block (Pitfall 1, 2, 5) | CRITICAL | Conservative separators, large chunk sizes, integration tests with real files |
-| Custom chunking patterns | Chunk size too small (Pitfall 7) | MODERATE | Language-specific chunk sizes (2000+ bytes for DevOps) |
-| Custom chunking patterns | Language detection fails (Pitfall 10, 13) | MODERATE | Explicit language names, filename-based detection, validation logging |
-| File pattern registration | Missing file variants (Pitfall 11) | MINOR | Comprehensive glob patterns, documented coverage |
-| Metadata extraction | False positives from comments/strings (Pitfall 3) | CRITICAL | Line-start patterns, confidence levels, comment stripping |
-| Metadata extraction | Dockerfile stage context (Pitfall 6) | MODERATE | FROM-line parsing, stage name extraction |
-| Metadata extraction | Performance overhead (Pitfall 8) | MODERATE | Pre-compiled regex, single-pass extraction, profiling |
-| Schema migration | Destructive migration (Pitfall 4) | CRITICAL | Additive-only columns, stable primary keys, migration testing |
-| Search integration | Post-filter returns too few results (Pitfall 9) | MODERATE | Increased ef_search, over-fetch strategy, iterative scans |
+| Container foundation | PID 1 signal handling (Pitfall 1) | CRITICAL | Use tini/dumb-init as init |
+| Container foundation | PostgreSQL init scripts skipped (Pitfall 3) | CRITICAL | App-level schema management |
+| Container foundation | Service startup race (Pitfall 8) | MODERATE | Explicit startup sequencing |
+| Container foundation | Supervisord no-exit (Pitfall 9) | MODERATE | Use s6-overlay or exit listener |
+| Container foundation | Volume permissions (Pitfall 11) | MODERATE | Named volumes, UID alignment |
+| Model/image optimization | Cold start blocks app (Pitfall 4) | CRITICAL | Entrypoint model pull |
+| Model/image optimization | 4GB+ image size (Pitfall 5) | MODERATE | Volume mount, alpine base |
+| Transport implementation | stdout corruption (Pitfall 2) | CRITICAL | stderr-only logging |
+| Transport implementation | SSE deprecation (Pitfall 6) | MODERATE | Support both transports |
+| Transport implementation | Dual transport burden (Pitfall 10) | MODERATE | Separate transport from logic |
+| Docker integration | CWD not propagated (Pitfall 7) | MODERATE | PROJECT_ROOT env var |
 
 ---
 
-## Technical Debt Patterns (v1.2 Specific)
+## Technical Debt Patterns (v2.0 Specific)
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Single chunk_size for all languages | Simpler config | DevOps files chunked poorly | Never for v1.2 |
-| Skip metadata extraction, chunk only | Faster delivery | No value over plain-text chunking | Only if timeline critical |
-| Hardcode metadata regex in flow | Quick implementation | Hard to test, maintain, extend | MVP only; extract to module |
-| Store metadata as JSON blob column | Flexible schema | Cannot index/filter individual fields | Never; use typed columns |
-| Skip Dockerfile extensionless handling | Saves time | Dockerfiles never get custom chunking | Never |
-| Skip heredoc test cases | Faster test writing | Regex bugs discovered in production | Never |
+| Skip tini, use bash PID 1 | Simpler Dockerfile | Data corruption on restart | Never |
+| Bake model into image | No cold start | 4GB+ images, slow pulls | Only for airgapped deployments |
+| stdio transport only | Simpler code | No remote access | MVP only |
+| No TLS support | Faster development | Security concerns | Local-only deployments |
+| Hardcode volume paths | Quick setup | Inflexible for users | Never; use env vars |
+| Skip startup sequencing | Faster container start | Intermittent failures | Never |
 
 ---
 
-## Recovery Strategies (v1.2 Specific)
+## Recovery Strategies (v2.0 Specific)
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Regex splits mid-block | MEDIUM | Fix separator patterns, re-index affected indexes |
-| Metadata false positives | LOW | Fix extraction regex, re-index to regenerate metadata |
-| Schema migration destroys data | HIGH | Re-index all codebases from scratch |
-| Language detection miss | LOW | Fix detection, re-index affected files (incremental) |
-| Chunk size too small | MEDIUM | Update config, re-index (CocoIndex incremental may require full re-process) |
-| Post-filter returns too few | LOW | Adjust query parameters, no re-index needed |
+| PID 1 signal handling | LOW | Add tini to Dockerfile, rebuild |
+| stdout logging corruption | LOW | Fix logging config, redeploy |
+| PostgreSQL init skipped | MEDIUM | Run init SQL manually or wipe volume |
+| Cold start timeout | LOW | Add model pull to entrypoint, rebuild |
+| Image too large | MEDIUM | Refactor to volume-based model loading |
+| SSE clients can't connect | LOW | Add legacy SSE endpoint |
+| Service race conditions | LOW | Fix entrypoint sequencing, redeploy |
+| Permission denied | LOW | Fix volume permissions, restart |
 
 ---
 
-## "Looks Done But Isn't" Checklist (v1.2)
+## "Looks Done But Isn't" Checklist (v2.0)
 
-- [ ] **HCL nested blocks:** Verify a Terraform file with 3+ nesting levels produces coherent chunks -- not just simple resource blocks
-- [ ] **Heredoc handling:** Verify a Terraform file with IAM policy heredoc containing "resource" keyword doesn't split inside the heredoc
-- [ ] **Dockerfile extensionless:** Verify `Dockerfile` (no extension) is detected and uses custom chunking, not plain text
-- [ ] **Multi-stage Dockerfile:** Verify chunks align with stage boundaries and metadata includes stage names
-- [ ] **Bash function variants:** Verify both `function_name() { }` and `function function_name { }` syntaxes are detected
-- [ ] **Bash heredoc:** Verify a script with `<<EOF` heredoc containing a function definition doesn't extract the heredoc function as metadata
-- [ ] **Schema migration:** Verify upgrading from v1.1 to v1.2 preserves existing index data (row count unchanged)
-- [ ] **Metadata accuracy:** Spot-check 20 random chunks from a real Terraform repo -- metadata should match actual content >90% of the time
-- [ ] **Search with metadata filter:** Verify `resource_type="aws_s3_bucket"` returns at least `limit/2` results when the codebase has that many
-- [ ] **Performance regression:** Verify indexing time for a mixed codebase (Python + Terraform) is within 20% of v1.1
+- [ ] **Graceful shutdown:** `docker stop` completes in <10 seconds without SIGKILL
+- [ ] **PostgreSQL data persists:** Stop container, restart, verify data still present
+- [ ] **Ollama model ready:** Container healthcheck passes only after model is loaded
+- [ ] **stdio purity:** Run MCP stdio transport, capture stdout, verify only JSON-RPC
+- [ ] **HTTP transport works:** Connect via HTTP from external client
+- [ ] **Volume permissions:** Works on both macOS and Linux hosts
+- [ ] **Startup sequence:** Fresh container starts reliably 10/10 times
+- [ ] **Service failure handling:** Kill PostgreSQL process, verify container restarts or logs error
+- [ ] **Image size:** `docker images` shows <1GB (or <500MB without baked model)
+- [ ] **Multi-project:** Index two different projects, verify both searchable
 
 ---
 
 ## Sources
 
-- [CocoIndex Functions Documentation -- SplitRecursively, custom_languages, CustomLanguageSpec](https://cocoindex.io/docs/ops/functions) (HIGH confidence -- official docs, verified against installed v0.3.28 source)
-- [CocoIndex Academic Papers Example -- custom_languages usage pattern](https://cocoindex.io/examples/academic_papers_index) (HIGH confidence -- official example)
-- [CocoIndex Schema Inference Blog](https://cocoindex.io/blogs/handle-system-update-for-indexing-flow/) (HIGH confidence -- official blog on ALTER TABLE behavior)
-- [Terraform HCL Syntax Reference](https://developer.hashicorp.com/terraform/language/syntax/configuration) (HIGH confidence -- official HashiCorp docs)
-- [tree-sitter-grammars/tree-sitter-hcl](https://github.com/tree-sitter-grammars/tree-sitter-hcl) (MEDIUM confidence -- tree-sitter grammar exists but NOT used by CocoIndex's built-in SplitRecursively)
-- [tree-sitter/tree-sitter-bash](https://github.com/tree-sitter/tree-sitter-bash) (MEDIUM confidence -- grammar exists but NOT used by CocoIndex)
-- [camdencheek/tree-sitter-dockerfile](https://github.com/camdencheek/tree-sitter-dockerfile) (MEDIUM confidence -- grammar exists but NOT used by CocoIndex)
-- [Docker Heredocs Blog](https://www.docker.com/blog/introduction-to-heredocs-in-dockerfiles/) (HIGH confidence -- official Docker blog)
-- [BuildKit Dockerfile Parser Source](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/parser/parser.go) (HIGH confidence -- reference parser implementation)
-- [python-hcl2 Library](https://pypi.org/project/python-hcl2/) (MEDIUM confidence -- potential alternative for full HCL parsing)
-- [pgvector 0.8.0 Iterative Index Scans](https://aws.amazon.com/blogs/database/supercharging-vector-search-performance-and-relevance-with-pgvector-0-8-0-on-amazon-aurora-postgresql/) (MEDIUM confidence -- AWS blog, applies to pgvector generally)
-- [Bash Reference Manual -- Function Definition](https://www.gnu.org/software/bash/manual/bash.html) (HIGH confidence -- GNU official manual)
-- [AST vs Regex Chunking for Code RAG](https://medium.com/@jouryjc0409/ast-enables-code-rag-models-to-overcome-traditional-chunking-limitations-b0bc1e61bdab) (MEDIUM confidence -- research overview)
-- [Tenable terrascan -- HCL Nested Block Parsing Issues](https://github.com/tenable/terrascan/issues/233) (MEDIUM confidence -- real-world parsing failure case)
-- [PlanetScale: Backward Compatible Database Changes](https://planetscale.com/blog/backward-compatible-databases-changes) (MEDIUM confidence -- general migration pattern)
-- [Docker Multi-Stage Build ARG/ENV Scoping](https://github.com/moby/moby/issues/37345) (HIGH confidence -- official Docker issue documenting behavior)
+- [PID 1 Signal Handling in Docker](https://petermalmgren.com/signal-handling-docker/) - Peter Malmgren (HIGH confidence)
+- [krallin/tini](https://github.com/krallin/tini) - Official tini GitHub (HIGH confidence)
+- [Yelp/dumb-init](https://github.com/Yelp/dumb-init) - Official dumb-init GitHub (HIGH confidence)
+- [MCP Transports Specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports) - Official MCP docs (HIGH confidence)
+- [MCP stdio Transport Corruption Issue](https://github.com/ruvnet/claude-flow/issues/835) - Real-world bug report (HIGH confidence)
+- [PostgreSQL Docker Hub](https://hub.docker.com/_/postgres/) - Official PostgreSQL Docker docs (HIGH confidence)
+- [Docker Compose Startup Order](https://docs.docker.com/compose/how-tos/startup-order/) - Official Docker docs (HIGH confidence)
+- [Ollama Docker Hub](https://hub.docker.com/r/ollama/ollama) - Official Ollama Docker docs (HIGH confidence)
+- [Ollama Cold Start Issues](https://github.com/ollama/ollama/issues/6006) - GitHub issue (HIGH confidence)
+- [A Pull-first Ollama Docker Image](https://www.dolthub.com/blog/2025-03-19-a-pull-first-ollama-docker-image/) - DoltHub blog (MEDIUM confidence)
+- [Reducing Docker Images for LLMs](https://towardsdatascience.com/reducing-the-size-of-docker-images-serving-llm-models-b70ee66e5a76/) - Towards Data Science (MEDIUM confidence)
+- [MCP SSE to Streamable HTTP Migration](https://brightdata.com/blog/ai/sse-vs-streamable-http) - Bright Data blog (MEDIUM confidence)
+- [MCP Working Directory Issue](https://github.com/modelcontextprotocol/python-sdk/issues/1520) - GitHub issue (HIGH confidence)
+- [Supergateway SSE-to-stdio Proxy](https://github.com/supercorp-ai/supergateway) - GitHub project (HIGH confidence)
+- [Supervisord Documentation](https://supervisord.org/) - Official supervisord docs (HIGH confidence)
+- [s6-overlay for Containers](https://www.sliceofexperiments.com/p/s6-run-multiple-processes-in-your) - Slice of Experiments (MEDIUM confidence)
 
 ---
 
-*Pitfalls research for: CocoSearch v1.2 (DevOps Language Support)*
-*Researched: 2026-01-27*
+*Pitfalls research for: CocoSearch v2.0 (All-in-One Docker + MCP Transports)*
+*Researched: 2026-02-01*
