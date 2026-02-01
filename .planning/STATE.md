@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 Milestone: v1.6 All-in-One Docker & Auto-Detect
 Phase: 23 of 26 (MCP Transport Integration)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-02-01 -- Roadmap created for v1.6
+Plan: 1 of 1 complete
+Status: Phase complete
+Last activity: 2026-02-01 -- Completed 23-01-PLAN.md (Multi-Transport MCP Server)
 
-Progress: [####################################--------------------] 58/? (v1.6 plans TBD)
+Progress: [######################################------------------] 59/? (v1.6 plans TBD)
 
 ## Milestones Shipped
 
@@ -53,6 +53,11 @@ Progress: [####################################--------------------] 58/? (v1.6 
 
 See PROJECT.md Key Decisions table for full list (33 decisions).
 
+**Phase 23 decisions:**
+- Configure FastMCP via mcp.settings instead of constructor params for dynamic host/port
+- Use 0.0.0.0 as default host for container deployments
+- Default port 3000 for network transports
+
 ### Pending Todos
 
 None.
@@ -73,9 +78,9 @@ Key findings from research phase:
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: v1.6 roadmap created
+Stopped at: Completed 23-01-PLAN.md
 Resume file: None
-Next action: Plan Phase 23 (MCP Transport Integration)
+Next action: Plan Phase 24 (Docker Compose All-in-One)
 
 ---
-*Updated: 2026-02-01 after v1.6 roadmap created*
+*Updated: 2026-02-01 after Phase 23 Plan 01 completed*
