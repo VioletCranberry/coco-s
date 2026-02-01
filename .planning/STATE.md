@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 Milestone: v1.6 All-in-One Docker & Auto-Detect
 Phase: 24 of 26 (Container Foundation)
-Plan: 01 of 03 complete
+Plan: 02 of 03 complete
 Status: In progress
-Last activity: 2026-02-01 -- Completed 24-01-PLAN.md (Dockerfile with s6-overlay)
+Last activity: 2026-02-01 -- Completed 24-02-PLAN.md (s6-rc service definitions)
 
-Progress: [#########################################---------------] 61/? (v1.6 plans TBD)
+Progress: [##########################################--------------] 62/? (v1.6 plans TBD)
 
 ## Milestones Shipped
 
@@ -29,12 +29,12 @@ Progress: [#########################################---------------] 61/? (v1.6 
 | v1.5 Configuration & Architecture Polish | 19-22 | 11 | 2026-02-01 |
 
 **Total shipped:** 22 phases, 58 plans across 6 milestones
-**v1.6 in progress:** Phase 23 complete (2 plans), Phase 24 plan 01 complete
+**v1.6 in progress:** Phase 23 complete (2 plans), Phase 24 plans 01-02 complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 58
+- Total plans completed: 60
 - Total execution time: ~8 days across 6 milestones
 
 **By Milestone:**
@@ -66,6 +66,13 @@ See PROJECT.md Key Decisions table for full list (33 decisions).
 - Map TARGETARCH to s6-overlay naming (arm64->aarch64, amd64->x86_64)
 - Use official ollama/ollama image for multi-arch model baking (gerke74 is amd64-only)
 
+**Phase 24-02 decisions:**
+- PostgreSQL uses pg_isready for readiness checks (actual connection acceptance)
+- Ollama uses /api/tags endpoint for readiness (API available)
+- MCP depends on PostgreSQL, Ollama, AND warmup (model loaded before requests)
+- Warmup is non-blocking failure (model loads on first request if warmup fails)
+- PostgreSQL shutdown uses -m fast via finish script for clean shutdown
+
 ### Pending Todos
 
 None.
@@ -85,10 +92,10 @@ Key findings from research phase:
 
 ## Session Continuity
 
-Last session: 2026-02-01T19:34:37Z
-Stopped at: Completed 24-01-PLAN.md
+Last session: 2026-02-01T19:43:30Z
+Stopped at: Completed 24-02-PLAN.md
 Resume file: None
-Next action: Execute 24-02-PLAN.md (s6 service definitions)
+Next action: Execute 24-03-PLAN.md (container testing)
 
 ---
-*Updated: 2026-02-01 after 24-01 complete*
+*Updated: 2026-02-01 after 24-02 complete*
