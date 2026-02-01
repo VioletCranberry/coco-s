@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Milestone: v1.5 Configuration & Architecture Polish
-Phase: 20 of 22 (Env Var Standardization)
-Plan: 4 of 4 in current phase (Phase Complete)
-Status: Phase complete and verified
-Last activity: 2026-02-01 — Phase 20 verified (5/5 must-haves passed)
+Phase: 21 of 22 (Language Chunking Refactor)
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-02-01 — Completed 21-01-PLAN.md (handlers package foundation)
 
-Progress: [██████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░] 50%
+Progress: [████████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░] 54%
 
 ## Milestones Shipped
 
@@ -27,13 +27,13 @@ Progress: [███████████████████████
 | v1.3 Docker Integration Tests | 11-14 | 11 | 2026-01-30 |
 | v1.4 Dogfooding Infrastructure | 15-18 | 7 | 2026-01-31 |
 
-**Total shipped:** 19 phases, 47 plans (Phase 20: 4 of 4 plans complete)
+**Total shipped:** 19 phases, 47 plans (Phase 20: 4 of 4 plans complete, Phase 21: 1 of 4 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 53 (47 shipped + 2 from phase 19 + 4 from phase 20)
-- Total execution time: ~7 days across 5 milestones
+- Total plans completed: 54 of 56 (47 shipped + 2 from phase 19 + 4 from phase 20 + 1 from phase 21)
+- Total execution time: ~7 days across 5 milestones + phase 21 in progress
 
 **By Milestone:**
 
@@ -66,6 +66,13 @@ See PROJECT.md Key Decisions table.
 - Use Keep a Changelog format for CHANGELOG.md
 - Document breaking changes with migration table in CHANGELOG
 
+**Phase 21 Decisions (Plan 01):**
+- Protocol uses SEPARATOR_SPEC and extract_metadata() instead of chunk() because CocoIndex transforms run in Rust
+- Handlers export CustomLanguageSpec for CocoIndex chunking, not Python-based chunking
+- extract_devops_metadata() decorated with @cocoindex.op.function() for flow.py integration
+- Extension registry uses fail-fast ValueError on conflicts at module import time
+- TextHandler returns empty metadata and relies on CocoIndex default text splitting
+
 ### Pending Todos
 
 None.
@@ -77,9 +84,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Phase 20 complete and verified (5/5 must-haves passed)
+Stopped at: Completed 21-01-PLAN.md (handlers package foundation)
 Resume file: None
-Next action: `/gsd:discuss-phase 21` or `/gsd:plan-phase 21`
+Next action: `/gsd:execute-plan 21 02` to migrate language handlers
 
 ---
-*Updated: 2026-02-01 after Phase 20 verification*
+*Updated: 2026-02-01 after Plan 21-01 completion*
