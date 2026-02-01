@@ -263,3 +263,118 @@ class TestErrorHandling:
         output = json.loads(captured.out)
         assert "error" in output
         assert "DB error" in output["error"]
+
+
+class TestMCPCommand:
+    """Tests for mcp_command transport handling."""
+
+    def test_default_transport_is_stdio(self, monkeypatch):
+        """Default transport is stdio when no flag or env."""
+        monkeypatch.delenv("MCP_TRANSPORT", raising=False)
+        monkeypatch.delenv("COCOSEARCH_MCP_PORT", raising=False)
+        with patch("cocosearch.mcp.run_server") as mock_run:
+            from cocosearch.cli import mcp_command
+            args = argparse.Namespace(transport=None, port=None)
+            mcp_command(args)
+            mock_run.assert_called_once()
+            call_kwargs = mock_run.call_args[1]
+            assert call_kwargs["transport"] == "stdio"
+
+    def test_transport_flag_overrides_env(self, monkeypatch):
+        """CLI --transport overrides MCP_TRANSPORT env var."""
+        monkeypatch.setenv("MCP_TRANSPORT", "stdio")
+        monkeypatch.delenv("COCOSEARCH_MCP_PORT", raising=False)
+        with patch("cocosearch.mcp.run_server") as mock_run:
+            from cocosearch.cli import mcp_command
+            args = argparse.Namespace(transport="sse", port=None)
+            mcp_command(args)
+            call_kwargs = mock_run.call_args[1]
+            assert call_kwargs["transport"] == "sse"
+
+    def test_env_transport_used_when_no_flag(self, monkeypatch):
+        """MCP_TRANSPORT env var used when no --transport flag."""
+        monkeypatch.setenv("MCP_TRANSPORT", "http")
+        monkeypatch.delenv("COCOSEARCH_MCP_PORT", raising=False)
+        with patch("cocosearch.mcp.run_server") as mock_run:
+            from cocosearch.cli import mcp_command
+            args = argparse.Namespace(transport=None, port=None)
+            mcp_command(args)
+            call_kwargs = mock_run.call_args[1]
+            assert call_kwargs["transport"] == "http"
+
+    def test_invalid_transport_returns_error(self, monkeypatch, capsys):
+        """Invalid transport value returns exit code 1."""
+        monkeypatch.setenv("MCP_TRANSPORT", "invalid")
+        monkeypatch.delenv("COCOSEARCH_MCP_PORT", raising=False)
+        from cocosearch.cli import mcp_command
+        args = argparse.Namespace(transport=None, port=None)
+        result = mcp_command(args)
+        assert result == 1
+        captured = capsys.readouterr()
+        assert "Invalid transport" in captured.err
+
+    def test_invalid_transport_cli_returns_error(self, monkeypatch, capsys):
+        """Invalid transport via CLI flag returns exit code 1."""
+        monkeypatch.delenv("MCP_TRANSPORT", raising=False)
+        monkeypatch.delenv("COCOSEARCH_MCP_PORT", raising=False)
+        from cocosearch.cli import mcp_command
+        args = argparse.Namespace(transport="websocket", port=None)
+        result = mcp_command(args)
+        assert result == 1
+        captured = capsys.readouterr()
+        assert "Invalid transport" in captured.err
+
+    def test_port_flag_sets_port(self, monkeypatch):
+        """--port flag sets server port."""
+        monkeypatch.delenv("MCP_TRANSPORT", raising=False)
+        monkeypatch.delenv("COCOSEARCH_MCP_PORT", raising=False)
+        with patch("cocosearch.mcp.run_server") as mock_run:
+            from cocosearch.cli import mcp_command
+            args = argparse.Namespace(transport="sse", port=8080)
+            mcp_command(args)
+            call_kwargs = mock_run.call_args[1]
+            assert call_kwargs["port"] == 8080
+
+    def test_port_env_used_when_no_flag(self, monkeypatch):
+        """COCOSEARCH_MCP_PORT env var used when no --port flag."""
+        monkeypatch.delenv("MCP_TRANSPORT", raising=False)
+        monkeypatch.setenv("COCOSEARCH_MCP_PORT", "9000")
+        with patch("cocosearch.mcp.run_server") as mock_run:
+            from cocosearch.cli import mcp_command
+            args = argparse.Namespace(transport="sse", port=None)
+            mcp_command(args)
+            call_kwargs = mock_run.call_args[1]
+            assert call_kwargs["port"] == 9000
+
+    def test_port_flag_overrides_env(self, monkeypatch):
+        """CLI --port overrides COCOSEARCH_MCP_PORT env var."""
+        monkeypatch.delenv("MCP_TRANSPORT", raising=False)
+        monkeypatch.setenv("COCOSEARCH_MCP_PORT", "9000")
+        with patch("cocosearch.mcp.run_server") as mock_run:
+            from cocosearch.cli import mcp_command
+            args = argparse.Namespace(transport="sse", port=8080)
+            mcp_command(args)
+            call_kwargs = mock_run.call_args[1]
+            assert call_kwargs["port"] == 8080
+
+    def test_invalid_port_env_returns_error(self, monkeypatch, capsys):
+        """Invalid COCOSEARCH_MCP_PORT returns exit code 1."""
+        monkeypatch.delenv("MCP_TRANSPORT", raising=False)
+        monkeypatch.setenv("COCOSEARCH_MCP_PORT", "not-a-number")
+        from cocosearch.cli import mcp_command
+        args = argparse.Namespace(transport="sse", port=None)
+        result = mcp_command(args)
+        assert result == 1
+        captured = capsys.readouterr()
+        assert "Invalid port" in captured.err
+
+    def test_default_port_is_3000(self, monkeypatch):
+        """Default port is 3000 when no CLI flag or env var."""
+        monkeypatch.delenv("MCP_TRANSPORT", raising=False)
+        monkeypatch.delenv("COCOSEARCH_MCP_PORT", raising=False)
+        with patch("cocosearch.mcp.run_server") as mock_run:
+            from cocosearch.cli import mcp_command
+            args = argparse.Namespace(transport="sse", port=None)
+            mcp_command(args)
+            call_kwargs = mock_run.call_args[1]
+            assert call_kwargs["port"] == 3000
