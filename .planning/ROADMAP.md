@@ -86,10 +86,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User can click TOC entry in README and jump to that section
   2. TOC covers all major README sections (installation, usage, configuration, etc.)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 22-01: TBD
+- [ ] 22-01-PLAN.md — Restructure README with comprehensive TOC
 
 ## Progress
 
@@ -100,7 +100,7 @@ Plans:
 | 19. Config Env Var Substitution | v1.5 | 2/2 | Complete | 2026-02-01 |
 | 20. Env Var Standardization | v1.5 | 4/4 | Complete | 2026-02-01 |
 | 21. Language Chunking Refactor | v1.5 | 4/4 | Complete | 2026-02-01 |
-| 22. Documentation Polish | v1.5 | 0/TBD | Not started | - |
+| 22. Documentation Polish | v1.5 | 0/1 | Not started | - |
 
 ---
 *Roadmap created: 2026-01-31*
