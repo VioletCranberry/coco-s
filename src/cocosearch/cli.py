@@ -27,6 +27,7 @@ from cocosearch.config import (
 from cocosearch.indexer import IndexingConfig, load_config, run_index
 from cocosearch.indexer.progress import IndexingProgress
 from cocosearch.management import clear_index, derive_index_from_git, get_stats, list_indexes
+from cocosearch.management import register_index_path
 from cocosearch.search import search
 from cocosearch.search.formatter import format_json, format_pretty
 from cocosearch.search.repl import run_repl
@@ -210,6 +211,14 @@ def index_command(args: argparse.Namespace) -> int:
                 stats["files_updated"] = file_stats.get("num_updates", 0)
 
             progress.complete(stats)
+
+        # Register path-to-index mapping for collision detection
+        try:
+            register_index_path(index_name, codebase_path)
+        except ValueError as collision_error:
+            # Collision detected - show warning but indexing already succeeded
+            console.print(f"[bold yellow]Warning:[/bold yellow] {collision_error}")
+            console.print("[dim]Index was created but path mapping was not updated.[/dim]")
 
         return 0
 
