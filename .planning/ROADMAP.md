@@ -40,23 +40,18 @@ Plans:
 - [x] 23-01-PLAN.md - Multi-transport support in server and CLI
 - [x] 23-02-PLAN.md - Unit tests for transport selection
 
-#### Phase 24: Container Foundation
+#### Phase 24: Container Foundation ✓
 **Goal**: All-in-one Docker container with PostgreSQL, Ollama, and MCP server under process supervision
 **Depends on**: Phase 23
 **Requirements**: DOCK-01, DOCK-02, DOCK-03, DOCK-04, DOCK-05, DOCK-06, ORCH-01, ORCH-02, ORCH-03, ORCH-04
-**Success Criteria** (what must be TRUE):
-  1. User can start entire stack with single `docker run cocosearch` command
-  2. Container starts services in correct order (PostgreSQL ready before MCP attempts connection)
-  3. User can mount local codebase via `-v /path/to/code:/mnt/repos:ro` and index it
-  4. User can persist data across container restarts via `-v cocosearch-data:/data`
-  5. Container shuts down cleanly on `docker stop` without data corruption
+**Status**: Complete (2026-02-02)
 **Plans**: 4 plans
 
 Plans:
-- [ ] 24-01-PLAN.md - Multi-stage Dockerfile with s6-overlay, PostgreSQL, Ollama, Python app
-- [ ] 24-02-PLAN.md - s6-overlay service definitions with dependency ordering
-- [ ] 24-03-PLAN.md - Health check and ready signal infrastructure
-- [ ] 24-04-PLAN.md - End-to-end verification and .dockerignore
+- [x] 24-01-PLAN.md - Multi-stage Dockerfile with s6-overlay, PostgreSQL, Ollama, Python app
+- [x] 24-02-PLAN.md - s6-overlay service definitions with dependency ordering
+- [x] 24-03-PLAN.md - Health check and ready signal infrastructure
+- [x] 24-04-PLAN.md - End-to-end verification and .dockerignore
 
 #### Phase 25: Auto-Detect Feature
 **Goal**: MCP automatically detects project context from working directory
@@ -102,4 +97,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-01 after Phase 24 planned*
+*Last updated: 2026-02-02 after Phase 24 complete*
