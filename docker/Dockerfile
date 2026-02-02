@@ -105,8 +105,10 @@ ENV HOME="/root"
 
 # =============================================================================
 # Copy pre-baked Ollama model from downloader stage
+# Note: Ollama stores models in ~/.ollama/models/, we need to copy just the
+# models directory contents, not the parent .ollama directory
 # =============================================================================
-COPY --from=model-downloader /root/.ollama /data/ollama_models
+COPY --from=model-downloader /root/.ollama/models /data/ollama_models
 
 # =============================================================================
 # Create directory structure
