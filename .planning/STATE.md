@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 Milestone: v1.6 All-in-One Docker & Auto-Detect
 Phase: 25 of 26 (Auto-Detect Feature)
-Plan: 03 of ? in progress
+Plan: 02,03 complete
 Status: In progress
-Last activity: 2026-02-02 -- Completed 25-03-PLAN.md (CLI integration)
+Last activity: 2026-02-02 -- Completed 25-02-PLAN.md (MCP auto-detect integration)
 
 Progress: [#############################################-----------] 65/? (v1.6 plans TBD)
 
@@ -29,7 +29,7 @@ Progress: [#############################################-----------] 65/? (v1.6 
 | v1.5 Configuration & Architecture Polish | 19-22 | 11 | 2026-02-01 |
 
 **Total shipped:** 22 phases, 58 plans across 6 milestones
-**v1.6 in progress:** Phase 23 complete (2 plans), Phase 24 complete (4 plans), Phase 25-01,25-03 complete
+**v1.6 in progress:** Phase 23 complete (2 plans), Phase 24 complete (4 plans), Phase 25-01,25-02,25-03 complete
 
 ## Performance Metrics
 
@@ -90,6 +90,12 @@ See PROJECT.md Key Decisions table for full list (33 decisions).
 - Use lru_cache(maxsize=128) for path-to-index lookups
 - Cache invalidation: call cache_clear() after any database write
 
+**Phase 25-02 decisions:**
+- Return structured error dicts (not exceptions) from MCP tools for LLM interpretation
+- Check index existence in list_indexes before attempting search
+- Collision check uses metadata canonical_path comparison
+- Management layer handles metadata cleanup (not MCP layer) for DRY
+
 **Phase 25-03 decisions:**
 - Path registration happens after indexing succeeds, not before
 - Collision errors shown as yellow warnings, not blocking errors
@@ -115,10 +121,10 @@ Key findings from research phase:
 
 ## Session Continuity
 
-Last session: 2026-02-02T18:02:00Z
-Stopped at: Completed 25-03-PLAN.md (CLI integration)
+Last session: 2026-02-02T21:49:00Z
+Stopped at: Completed 25-02-PLAN.md (MCP auto-detect integration)
 Resume file: None
-Next action: Continue Phase 25 (remaining plans)
+Next action: Continue Phase 25 (end-to-end testing or additional plans)
 
 ---
-*Updated: 2026-02-02 after 25-03 complete*
+*Updated: 2026-02-02 after 25-02 complete*
