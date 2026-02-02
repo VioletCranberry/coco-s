@@ -1,5 +1,33 @@
 # Project Milestones: CocoSearch
 
+## v1.6 All-in-One Docker & Auto-Detect (Shipped: 2026-02-02)
+
+**Delivered:** All-in-one Docker container bundling PostgreSQL+pgvector, Ollama with pre-baked model, and MCP server under s6-overlay supervision — single `docker run` deployment with multi-transport support (stdio/SSE/HTTP) and auto-detect project from working directory.
+
+**Phases completed:** 23-26 (11 plans total)
+
+**Key accomplishments:**
+
+- Multi-transport MCP server with stdio, SSE, and Streamable HTTP protocols selectable at runtime
+- All-in-one Docker container with s6-overlay process supervision and service dependency chain
+- Pre-baked nomic-embed-text model in image (274MB, no runtime download)
+- Auto-detect project from working directory with path-to-index metadata storage
+- Collision detection preventing different codebases from overwriting same index name
+- Docker Quick Start documentation with Claude Code and Claude Desktop configuration examples
+
+**Stats:**
+
+- 77 files created/modified
+- +8,616 lines (5,042 Python LOC in src/)
+- 4 phases, 11 plans
+- 2 days (2026-02-01 → 2026-02-02)
+
+**Git range:** `feat(23-01)` → `docs(26)`
+
+**What's next:** Multi-arch image publishing, init-time auto-indexing, or next feature milestone
+
+---
+
 ## v1.5 Configuration & Architecture Polish (Shipped: 2026-02-01)
 
 **Delivered:** Environment variable substitution in config files, standardized COCOSEARCH_* env var naming, registry-based language handler architecture, and professional README with comprehensive navigation — clean configuration patterns and extensible architecture.

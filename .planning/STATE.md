@@ -2,20 +2,20 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-01)
+See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Semantic code search that runs entirely locally -- no data leaves your machine.
-**Current focus:** Phase 26 - Documentation & Polish (Plan 01 complete)
+**Current focus:** Project stable at v1.6, ready for next milestone
 
 ## Current Position
 
-Milestone: v1.6 All-in-One Docker & Auto-Detect
-Phase: 26 of 26 (Documentation & Polish)
-Plan: 1 of 1 complete
-Status: Phase complete / Milestone complete
-Last activity: 2026-02-02 -- Completed 26-01-PLAN.md (Docker documentation)
+Milestone: v1.6 complete
+Phase: All 26 phases complete
+Plan: All 69 plans complete
+Status: Ready for next milestone
+Last activity: 2026-02-02 -- v1.6 milestone archived
 
-Progress: [##########################################################] 69/69 (v1.6 complete)
+Progress: [##########################################################] 69/69 (all complete)
 
 ## Milestones Shipped
 
@@ -27,7 +27,7 @@ Progress: [##########################################################] 69/69 (v1
 | v1.3 Docker Integration Tests | 11-14 | 11 | 2026-01-30 |
 | v1.4 Dogfooding Infrastructure | 15-18 | 7 | 2026-01-31 |
 | v1.5 Configuration & Architecture Polish | 19-22 | 11 | 2026-02-01 |
-| v1.6 All-in-One Docker & Auto-Detect | 23-26 | 12 | 2026-02-02 |
+| v1.6 All-in-One Docker & Auto-Detect | 23-26 | 11 | 2026-02-02 |
 
 **Total shipped:** 26 phases, 69 plans across 7 milestones
 
@@ -47,71 +47,13 @@ Progress: [##########################################################] 69/69 (v1
 | v1.3 | 11-14 | 11 | 1 day |
 | v1.4 | 15-18 | 7 | 2 days |
 | v1.5 | 19-22 | 11 | 1 day |
-| v1.6 | 23-26 | 12 | 2 days |
+| v1.6 | 23-26 | 11 | 2 days |
 
 ## Accumulated Context
 
 ### Decisions
 
-See PROJECT.md Key Decisions table for full list (33 decisions).
-
-**Phase 23 decisions:**
-- Configure FastMCP via mcp.settings instead of constructor params for dynamic host/port
-- Use 0.0.0.0 as default host for container deployments
-- Default port 3000 for network transports
-- Patch cocosearch.mcp.run_server not cocosearch.cli.run_server (import inside function)
-- Mock mcp.settings for transport configuration tests
-
-**Phase 24-01 decisions:**
-- Copy Ollama binary from model-downloader stage instead of downloading separately
-- Map TARGETARCH to s6-overlay naming (arm64->aarch64, amd64->x86_64)
-- Use official ollama/ollama image for multi-arch model baking (gerke74 is amd64-only)
-
-**Phase 24-02 decisions:**
-- PostgreSQL uses pg_isready for readiness checks (actual connection acceptance)
-- Ollama uses /api/tags endpoint for readiness (API available)
-- MCP depends on PostgreSQL, Ollama, AND warmup (model loaded before requests)
-- Warmup is non-blocking failure (model loads on first request if warmup fails)
-- PostgreSQL shutdown uses -m fast via finish script for clean shutdown
-
-**Phase 24-03 decisions:**
-- Use script-based HEALTHCHECK instead of inline commands for maintainability
-- STOPSIGNAL SIGTERM cascades through s6-overlay to services
-- init-ready depends on svc-mcp to ensure all services are ready
-
-**Phase 24-04 decisions:**
-- Exclude tests directory from build context (not needed in container)
-- Fix Ollama model path from root to home directory in COPY instruction
-- Install git in container for cocosearch CLI to detect repository metadata
-
-**Phase 25-01 decisions:**
-- Use Path.resolve(strict=False) for symlink resolution before walking tree
-- Check .git first, then cocosearch.yaml for project root detection
-- Store canonical paths as TEXT in PostgreSQL (not VARCHAR)
-- Use lru_cache(maxsize=128) for path-to-index lookups
-- Cache invalidation: call cache_clear() after any database write
-
-**Phase 25-02 decisions:**
-- Return structured error dicts (not exceptions) from MCP tools for LLM interpretation
-- Check index existence in list_indexes before attempting search
-- Collision check uses metadata canonical_path comparison
-- Management layer handles metadata cleanup (not MCP layer) for DRY
-
-**Phase 25-03 decisions:**
-- Path registration happens after indexing succeeds, not before
-- Collision errors shown as yellow warnings, not blocking errors
-- Metadata cleanup is non-critical - log warning but don't fail delete
-- Import clear_index_path inside function to avoid circular imports
-
-**Phase 25-04 decisions:**
-- Use mock_db_pool fixture for database-dependent tests to avoid real PostgreSQL requirement
-- Use tmp_path and monkeypatch for file system isolation in context tests
-- Test error response structure to ensure LLM-friendly messages
-
-**Phase 26-01 decisions:**
-- Use mcp-remote as bridge between Claude Desktop (stdio only) and container HTTP endpoint
-- Document both named volume and repo-local storage patterns for data persistence
-- Organize troubleshooting by component (PostgreSQL, Ollama, MCP) for easier diagnosis
+See PROJECT.md Key Decisions table for full list.
 
 ### Pending Todos
 
@@ -121,21 +63,12 @@ None.
 
 None.
 
-### Research Notes (v1.6)
-
-Key findings from research phase:
-- Use s6-overlay (not supervisord) for process supervision
-- SSE deprecated but needed for Claude Desktop compatibility
-- Streamable HTTP is MCP's future standard
-- PID 1 signal handling critical for PostgreSQL data integrity
-- Ollama cold start 30-120s, need warmup in entrypoint
-
 ## Session Continuity
 
-Last session: 2026-02-02T18:49:00Z
-Stopped at: Completed 26-01-PLAN.md (Docker documentation)
+Last session: 2026-02-02
+Stopped at: v1.6 milestone complete
 Resume file: None
-Next action: v1.6 milestone complete
+Next action: `/gsd:new-milestone` for v1.7 or future work
 
 ---
-*Updated: 2026-02-02 after 26-01 complete*
+*Updated: 2026-02-02 after v1.6 milestone complete*

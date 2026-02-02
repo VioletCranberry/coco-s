@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A local-first semantic code search tool exposed via MCP and CLI. Point it at a codebase, it indexes using CocoIndex with Ollama embeddings and PostgreSQL storage, then search semantically through natural language queries. Built for understanding unfamiliar codebases without sending code to external services. Supports DevOps files (Terraform, Dockerfile, Bash) with language-aware chunking and rich metadata extraction. Configurable via YAML config file with developer setup automation.
+A local-first semantic code search tool exposed via MCP and CLI. Point it at a codebase, it indexes using CocoIndex with Ollama embeddings and PostgreSQL storage, then search semantically through natural language queries. Built for understanding unfamiliar codebases without sending code to external services. Supports DevOps files (Terraform, Dockerfile, Bash) with language-aware chunking and rich metadata extraction. Configurable via YAML config file with developer setup automation. Available as all-in-one Docker container or native installation.
 
 ## Core Value
 
@@ -55,19 +55,22 @@ Semantic code search that runs entirely locally — no data leaves your machine.
 - ✓ Registry-based language handlers with autodiscovery (HCL, Dockerfile, Bash) — v1.5
 - ✓ README table of contents with emoji prefixes and back-to-top navigation — v1.5
 - ✓ CHANGELOG.md with migration guide for breaking env var changes — v1.5
+- ✓ All-in-one Docker image bundling Ollama+model, PostgreSQL+pgvector, CocoSearch MCP — v1.6
+- ✓ Pre-pulled nomic-embed-text model baked into image — v1.6
+- ✓ SSE transport for Claude Desktop (HTTP-based MCP) — v1.6
+- ✓ Streamable HTTP transport for future MCP standard — v1.6
+- ✓ stdio transport for Claude Code / OpenCode — v1.6
+- ✓ Auto-detect project from cwd (infer index from working directory) — v1.6
+- ✓ Detection priority: cocosearch.yaml indexName > directory name — v1.6
+- ✓ Collision detection: track source path per index, require explicit name on conflict — v1.6
+- ✓ cocosearch.yaml `indexName` field for explicit naming — v1.6
+- ✓ Prompt user when auto-detected index doesn't exist — v1.6
+- ✓ Docker Quick Start documentation with MCP client configuration — v1.6
+- ✓ Troubleshooting guide for Docker deployments — v1.6
 
 ### Active
 
-**v1.6 All-in-One Docker & Auto-Detect:**
-- [ ] All-in-one Docker image bundling Ollama+model, PostgreSQL+pgvector, CocoSearch MCP
-- [ ] Pre-pulled nomic-embed-text model baked into image
-- [ ] SSE transport for Claude Desktop (HTTP-based MCP)
-- [ ] stdio transport for Claude Code / OpenCode
-- [ ] Auto-detect project from cwd (infer index from working directory)
-- [ ] Detection priority: cocosearch.yaml indexName > git repo name > directory name
-- [ ] Collision detection: track source path per index, require explicit name on conflict
-- [ ] cocosearch.yaml `indexName` field for explicit naming
-- [ ] Prompt user when auto-detected index doesn't exist
+No active requirements. Project stable at v1.6.
 
 ### Out of Scope
 
@@ -80,25 +83,18 @@ Semantic code search that runs entirely locally — no data leaves your machine.
 - Config inheritance (base + override) — complexity vs value tradeoff, skip for now
 - Per-directory config overrides — skip for now, reassess if demand emerges
 
-## Current Milestone: v1.6 All-in-One Docker & Auto-Detect
-
-**Goal:** Single-command Docker deployment with automatic project detection for CLI-based AI agents
-
-**Target features:**
-- All-in-one Docker image (Ollama + PostgreSQL + CocoSearch) with both SSE and stdio transports
-- Auto-detect project from working directory for seamless CLI agent integration
-- Collision detection for same-named indexes from different paths
-
 ## Current State
 
-Shipped v1.5 with 4,574 LOC Python (src/).
+Shipped v1.6 with 5,042 LOC Python (src/).
 Tech stack: CocoIndex, PostgreSQL + pgvector, Ollama, FastMCP.
 Primary use case: onboarding to unfamiliar codebases via semantic search.
 DevOps support: HCL (Terraform), Dockerfile, Bash with registry-based language handlers.
 Test coverage: 550+ unit tests + integration tests with real PostgreSQL and Ollama.
-Documentation: Comprehensive README with TOC navigation, CHANGELOG with migration guide.
+Documentation: Comprehensive README with Docker Quick Start, MCP client configuration, and troubleshooting.
 Configuration: YAML config with env var substitution, 4-level precedence, config check command.
 Developer setup: One-command bootstrap via dev-setup.sh with Docker Compose.
+Docker deployment: All-in-one container with s6-overlay, multi-transport support (stdio/SSE/HTTP).
+Auto-detect: Project detection from working directory with collision handling.
 Environment: COCOSEARCH_DATABASE_URL (required), COCOSEARCH_OLLAMA_URL (optional).
 
 ## Constraints
@@ -153,4 +149,4 @@ Environment: COCOSEARCH_DATABASE_URL (required), COCOSEARCH_OLLAMA_URL (optional
 | Keep a Changelog format | Industry standard for change documentation | ✓ Good |
 
 ---
-*Last updated: 2026-02-01 after v1.6 milestone started*
+*Last updated: 2026-02-02 after v1.6 milestone complete*
