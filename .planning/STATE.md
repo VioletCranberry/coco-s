@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 Milestone: v1.6 All-in-One Docker & Auto-Detect
 Phase: 24 of 26 (Container Foundation)
-Plan: 03 of 03 complete
+Plan: 04 of 04 complete
 Status: Phase complete
-Last activity: 2026-02-01 -- Completed 24-03-PLAN.md (health check infrastructure)
+Last activity: 2026-02-02 -- Completed 24-04-PLAN.md (end-to-end verification)
 
-Progress: [##########################################--------------] 63/? (v1.6 plans TBD)
+Progress: [############################################------------] 64/? (v1.6 plans TBD)
 
 ## Milestones Shipped
 
@@ -29,12 +29,12 @@ Progress: [##########################################--------------] 63/? (v1.6 
 | v1.5 Configuration & Architecture Polish | 19-22 | 11 | 2026-02-01 |
 
 **Total shipped:** 22 phases, 58 plans across 6 milestones
-**v1.6 in progress:** Phase 23 complete (2 plans), Phase 24 complete (3 plans)
+**v1.6 in progress:** Phase 23 complete (2 plans), Phase 24 complete (4 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 63
+- Total plans completed: 64
 - Total execution time: ~8 days across 6 milestones
 
 **By Milestone:**
@@ -78,6 +78,11 @@ See PROJECT.md Key Decisions table for full list (33 decisions).
 - STOPSIGNAL SIGTERM cascades through s6-overlay to services
 - init-ready depends on svc-mcp to ensure all services are ready
 
+**Phase 24-04 decisions:**
+- Exclude tests directory from build context (not needed in container)
+- Fix Ollama model path from root to home directory in COPY instruction
+- Install git in container for cocosearch CLI to detect repository metadata
+
 ### Pending Todos
 
 None.
@@ -97,10 +102,10 @@ Key findings from research phase:
 
 ## Session Continuity
 
-Last session: 2026-02-01T19:41:03Z
-Stopped at: Completed 24-03-PLAN.md (Phase 24 complete)
+Last session: 2026-02-02T16:48:27Z
+Stopped at: Completed 24-04-PLAN.md (Phase 24 fully complete with E2E verification)
 Resume file: None
 Next action: Begin Phase 25 (Auto-detect project)
 
 ---
-*Updated: 2026-02-01 after 24-03 complete*
+*Updated: 2026-02-02 after 24-04 complete*
