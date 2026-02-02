@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Semantic code search that runs entirely locally -- no data leaves your machine.
-**Current focus:** Phase 24 - Container Foundation (COMPLETE)
+**Current focus:** Phase 25 - Auto-Detect Feature (IN PROGRESS)
 
 ## Current Position
 
 Milestone: v1.6 All-in-One Docker & Auto-Detect
-Phase: 24 of 26 (Container Foundation)
-Plan: 04 of 04 complete
-Status: Phase complete
-Last activity: 2026-02-02 -- Completed 24-04-PLAN.md (end-to-end verification)
+Phase: 25 of 26 (Auto-Detect Feature)
+Plan: 01 of ? in progress
+Status: In progress
+Last activity: 2026-02-02 -- Completed 25-01-PLAN.md (auto-detect foundation)
 
-Progress: [############################################------------] 64/? (v1.6 plans TBD)
+Progress: [#############################################-----------] 65/? (v1.6 plans TBD)
 
 ## Milestones Shipped
 
@@ -29,7 +29,7 @@ Progress: [############################################------------] 64/? (v1.6 
 | v1.5 Configuration & Architecture Polish | 19-22 | 11 | 2026-02-01 |
 
 **Total shipped:** 22 phases, 58 plans across 6 milestones
-**v1.6 in progress:** Phase 23 complete (2 plans), Phase 24 complete (4 plans)
+**v1.6 in progress:** Phase 23 complete (2 plans), Phase 24 complete (4 plans), Phase 25-01 complete
 
 ## Performance Metrics
 
@@ -83,6 +83,13 @@ See PROJECT.md Key Decisions table for full list (33 decisions).
 - Fix Ollama model path from root to home directory in COPY instruction
 - Install git in container for cocosearch CLI to detect repository metadata
 
+**Phase 25-01 decisions:**
+- Use Path.resolve(strict=False) for symlink resolution before walking tree
+- Check .git first, then cocosearch.yaml for project root detection
+- Store canonical paths as TEXT in PostgreSQL (not VARCHAR)
+- Use lru_cache(maxsize=128) for path-to-index lookups
+- Cache invalidation: call cache_clear() after any database write
+
 ### Pending Todos
 
 None.
@@ -102,10 +109,10 @@ Key findings from research phase:
 
 ## Session Continuity
 
-Last session: 2026-02-02T16:48:27Z
-Stopped at: Completed 24-04-PLAN.md (Phase 24 fully complete with E2E verification)
+Last session: 2026-02-02T17:42:36Z
+Stopped at: Completed 25-01-PLAN.md (auto-detect foundation)
 Resume file: None
-Next action: Begin Phase 25 (Auto-detect project)
+Next action: Continue Phase 25 (25-02 MCP tool integration)
 
 ---
-*Updated: 2026-02-02 after 24-04 complete*
+*Updated: 2026-02-02 after 25-01 complete*
