@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Semantic code search that runs entirely locally -- no data leaves your machine.
-**Current focus:** Phase 25 - Auto-Detect Feature (COMPLETE)
+**Current focus:** Phase 26 - Documentation & Polish (Plan 01 complete)
 
 ## Current Position
 
 Milestone: v1.6 All-in-One Docker & Auto-Detect
-Phase: 25 of 26 (Auto-Detect Feature)
-Plan: 4 of 4 complete
-Status: Phase complete
-Last activity: 2026-02-02 -- Completed 25-04-PLAN.md (Unit tests)
+Phase: 26 of 26 (Documentation & Polish)
+Plan: 1 of 1 complete
+Status: Phase complete / Milestone complete
+Last activity: 2026-02-02 -- Completed 26-01-PLAN.md (Docker documentation)
 
-Progress: [##################################################------] 68/? (v1.6 plans TBD)
+Progress: [##########################################################] 69/69 (v1.6 complete)
 
 ## Milestones Shipped
 
@@ -27,15 +27,15 @@ Progress: [##################################################------] 68/? (v1.6 
 | v1.3 Docker Integration Tests | 11-14 | 11 | 2026-01-30 |
 | v1.4 Dogfooding Infrastructure | 15-18 | 7 | 2026-01-31 |
 | v1.5 Configuration & Architecture Polish | 19-22 | 11 | 2026-02-01 |
+| v1.6 All-in-One Docker & Auto-Detect | 23-26 | 12 | 2026-02-02 |
 
-**Total shipped:** 22 phases, 58 plans across 6 milestones
-**v1.6 in progress:** Phase 23 complete (2 plans), Phase 24 complete (4 plans), Phase 25 complete (4 plans)
+**Total shipped:** 26 phases, 69 plans across 7 milestones
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 68
-- Total execution time: ~9 days across 6 milestones
+- Total plans completed: 69
+- Total execution time: ~9 days across 7 milestones
 
 **By Milestone:**
 
@@ -47,6 +47,7 @@ Progress: [##################################################------] 68/? (v1.6 
 | v1.3 | 11-14 | 11 | 1 day |
 | v1.4 | 15-18 | 7 | 2 days |
 | v1.5 | 19-22 | 11 | 1 day |
+| v1.6 | 23-26 | 12 | 2 days |
 
 ## Accumulated Context
 
@@ -107,6 +108,11 @@ See PROJECT.md Key Decisions table for full list (33 decisions).
 - Use tmp_path and monkeypatch for file system isolation in context tests
 - Test error response structure to ensure LLM-friendly messages
 
+**Phase 26-01 decisions:**
+- Use mcp-remote as bridge between Claude Desktop (stdio only) and container HTTP endpoint
+- Document both named volume and repo-local storage patterns for data persistence
+- Organize troubleshooting by component (PostgreSQL, Ollama, MCP) for easier diagnosis
+
 ### Pending Todos
 
 None.
@@ -126,10 +132,10 @@ Key findings from research phase:
 
 ## Session Continuity
 
-Last session: 2026-02-02T17:55:24Z
-Stopped at: Completed 25-04-PLAN.md (Unit tests)
+Last session: 2026-02-02T18:49:00Z
+Stopped at: Completed 26-01-PLAN.md (Docker documentation)
 Resume file: None
-Next action: Begin Phase 26 (Documentation & Polish)
+Next action: v1.6 milestone complete
 
 ---
-*Updated: 2026-02-02 after 25-04 complete*
+*Updated: 2026-02-02 after 26-01 complete*
