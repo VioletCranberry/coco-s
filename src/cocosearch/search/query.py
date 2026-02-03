@@ -8,7 +8,13 @@ import logging
 from dataclasses import dataclass
 
 from cocosearch.indexer.embedder import code_to_embedding
-from cocosearch.search.db import check_column_exists, get_connection_pool, get_table_name
+from cocosearch.search.db import (
+    check_column_exists,
+    check_symbol_columns_exist,
+    get_connection_pool,
+    get_table_name,
+)
+from cocosearch.search.filters import build_symbol_where_clause
 from cocosearch.search.hybrid import hybrid_search as execute_hybrid_search
 from cocosearch.search.query_analyzer import has_identifier_pattern
 
@@ -30,6 +36,9 @@ class SearchResult:
         match_type: Source of match for hybrid search ("semantic", "keyword", "both", or "" for vector-only).
         vector_score: Original vector similarity score (for hybrid search breakdown).
         keyword_score: Keyword/ts_rank score (for hybrid search breakdown).
+        symbol_type: Symbol type ("function", "class", "method", "interface", or None).
+        symbol_name: Symbol name (e.g., "process_data", "UserService.get_user", or None).
+        symbol_signature: Symbol signature (e.g., "def process_data(items: list)", or None).
     """
 
     filename: str
@@ -42,6 +51,9 @@ class SearchResult:
     match_type: str = ""  # "" for backward compat, "semantic"/"keyword"/"both" for hybrid
     vector_score: float | None = None
     keyword_score: float | None = None
+    symbol_type: str | None = None
+    symbol_name: str | None = None
+    symbol_signature: str | None = None
 
 
 # Language to file extension mapping
@@ -144,6 +156,8 @@ def search(
     min_score: float = 0.0,
     language_filter: str | None = None,
     use_hybrid: bool | None = None,
+    symbol_type: str | list[str] | None = None,
+    symbol_name: str | None = None,
 ) -> list[SearchResult]:
     """Search for code similar to query.
 
@@ -162,14 +176,21 @@ def search(
             - None (default): Auto-detect from query (enabled for identifier patterns)
             - True: Force hybrid search (falls back to vector-only if unavailable)
             - False: Use vector-only search
+        symbol_type: Filter by symbol type ("function", "class", "method", "interface").
+            Can be a single string or list of types.
+        symbol_name: Filter by symbol name using glob pattern (supports * and ?).
 
     Returns:
         List of SearchResult ordered by similarity (highest first).
         When hybrid search is used, results include match_type indicator.
+        When symbol filtering is used, results include symbol_type, symbol_name,
+        and symbol_signature fields.
 
     Raises:
         ValueError: If language_filter contains unrecognized language names,
-            or if DevOps language filter is used on a pre-v1.2 index.
+            if DevOps language filter is used on a pre-v1.2 index,
+            if symbol filter is used on a pre-v1.7 index,
+            or if symbol_type contains invalid type names.
     """
     global _has_metadata_columns, _metadata_warning_emitted
     global _has_content_text_column, _hybrid_warning_emitted
@@ -189,6 +210,16 @@ def search(
 
     pool = get_connection_pool()
     table_name = get_table_name(index_name)
+
+    # Validate symbol filter (requires v1.7+ index with symbol columns)
+    include_symbol_columns = False
+    if symbol_type is not None or symbol_name is not None:
+        if not check_symbol_columns_exist(table_name):
+            raise ValueError(
+                f"Symbol filtering requires v1.7+ index. Index '{index_name}' lacks symbol columns. "
+                "Re-index with 'cocosearch index' to enable symbol filtering."
+            )
+        include_symbol_columns = True
 
     # Check for hybrid search capability (content_text column) on first call
     if _has_content_text_column and not _hybrid_warning_emitted:
@@ -217,8 +248,9 @@ def search(
     # use_hybrid is False: always use vector-only (no action needed)
 
     # Execute hybrid search if applicable
-    # Note: hybrid search doesn't support language filtering yet (future enhancement)
-    if should_use_hybrid and not language_filter:
+    # Note: hybrid search doesn't support language or symbol filtering yet (future enhancement)
+    # TODO: Add symbol filter support to hybrid search
+    if should_use_hybrid and not language_filter and not include_symbol_columns:
         hybrid_results = execute_hybrid_search(query, index_name, limit)
 
         # Convert HybridSearchResult to SearchResult, applying min_score filter
@@ -255,6 +287,9 @@ def search(
             "1 - (embedding <=> %s::vector) AS score, "
             "block_type, hierarchy, language_id"
         )
+        # Add symbol columns when symbol filtering is active
+        if include_symbol_columns:
+            select_cols += ", symbol_type, symbol_name, symbol_signature"
     else:
         select_cols = (
             "filename, lower(location) as start_byte, upper(location) as end_byte, "
@@ -279,6 +314,13 @@ def search(
                 filter_params.extend(extensions)
         if lang_conditions:
             where_parts.append(f"({' OR '.join(lang_conditions)})")
+
+    # Build WHERE clause for symbol filter (combines with language filter via AND)
+    if include_symbol_columns:
+        symbol_where, symbol_params = build_symbol_where_clause(symbol_type, symbol_name)
+        if symbol_where:
+            where_parts.append(symbol_where)
+            filter_params.extend(symbol_params)
 
     where_clause = ""
     if where_parts:
@@ -372,17 +414,22 @@ def search(
         score = float(row[3])
         if score >= min_score:
             if include_metadata:
-                results.append(
-                    SearchResult(
-                        filename=row[0],
-                        start_byte=int(row[1]),
-                        end_byte=int(row[2]),
-                        score=score,
-                        block_type=row[4] if row[4] else "",
-                        hierarchy=row[5] if row[5] else "",
-                        language_id=row[6] if row[6] else "",
-                    )
+                # Base result with metadata columns (indices 0-6)
+                result = SearchResult(
+                    filename=row[0],
+                    start_byte=int(row[1]),
+                    end_byte=int(row[2]),
+                    score=score,
+                    block_type=row[4] if row[4] else "",
+                    hierarchy=row[5] if row[5] else "",
+                    language_id=row[6] if row[6] else "",
                 )
+                # Add symbol columns if included (indices 7-9)
+                if include_symbol_columns:
+                    result.symbol_type = row[7] if row[7] else None
+                    result.symbol_name = row[8] if row[8] else None
+                    result.symbol_signature = row[9] if row[9] else None
+                results.append(result)
             else:
                 results.append(
                     SearchResult(
