@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 31 of 32 in progress (Context Expansion Enhancement)
-Plan: 2 of 4 in phase 31 (complete)
+Plan: 3 of 4 in phase 31 (complete)
 Status: In progress
-Last activity: 2026-02-03 — Completed 31-02-PLAN.md
+Last activity: 2026-02-03 — Completed 31-03-PLAN.md
 
-Progress: [████████████████████████████████░] 98% (85 of 86 estimated plans complete)
+Progress: [████████████████████████████████░] 98% (86 of 88 estimated plans complete)
 
 ## Performance Metrics
 
@@ -39,6 +39,9 @@ Progress: [███████████████████████
 
 Recent decisions affecting v1.7 work:
 
+- **31-03**: Smart context enabled by default in MCP (matches CLI)
+- **31-03**: Context fields only included when context available (sparse response)
+- **31-03**: Explicit line counts override smart expansion in MCP
 - **31-02**: Smart context expansion enabled by default (no flags needed)
 - **31-02**: Explicit -A/-B/-C flags override smart expansion
 - **31-02**: Context output as newline-separated strings (not lists)
@@ -117,5 +120,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 31-02-PLAN.md
+Stopped at: Completed 31-03-PLAN.md
 Resume file: None
