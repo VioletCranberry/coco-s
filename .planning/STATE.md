@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 27 of 32 (Hybrid Search Foundation)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-03 — Completed 27-01-PLAN.md (content_text field)
+Last activity: 2026-02-03 — Completed 27-02-PLAN.md (graceful degradation)
 
-Progress: [████████████████████████████░░░░] 82% (70 of 85 estimated plans complete)
+Progress: [████████████████████████████░░░░] 83% (71 of 85 estimated plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 70
+- Total plans completed: 71
 - Milestones shipped: 6 (v1.0-v1.6)
 - Current milestone: v1.7 Search Enhancement
 
@@ -31,7 +31,7 @@ Progress: [███████████████████████
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 | v1.4 Dogfooding | 15-18 | 7 | 2026-01-31 |
 
-*Updated: 2026-02-03 after roadmap creation*
+*Updated: 2026-02-03 after Plan 27-02 completion*
 
 ## Accumulated Context
 
@@ -39,6 +39,8 @@ Progress: [███████████████████████
 
 Recent decisions affecting v1.7 work:
 
+- **27-02**: Proactive column check before first search (not reactive error handling)
+- **27-02**: Centralized autouse fixture for test module state reset
 - **27-01**: Store raw chunk text in content_text field (no transformation)
 - **v1.6**: All-in-one Docker image with SSE transport for Claude Desktop
 - **v1.6**: Auto-detect project from cwd with collision detection
@@ -63,5 +65,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 27-01-PLAN.md
+Stopped at: Completed 27-02-PLAN.md
 Resume file: None
