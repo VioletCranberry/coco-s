@@ -73,6 +73,14 @@ def format_json(
         if hasattr(r, "keyword_score") and r.keyword_score is not None:
             item["keyword_score"] = round(r.keyword_score, 4)
 
+        # Add symbol fields when present (clean output - omit if None)
+        if hasattr(r, "symbol_type") and r.symbol_type:
+            item["symbol_type"] = r.symbol_type
+        if hasattr(r, "symbol_name") and r.symbol_name:
+            item["symbol_name"] = r.symbol_name
+        if hasattr(r, "symbol_signature") and r.symbol_signature:
+            item["symbol_signature"] = r.symbol_signature
+
         if include_content:
             item["content"] = read_chunk_content(r.filename, r.start_byte, r.end_byte)
 
