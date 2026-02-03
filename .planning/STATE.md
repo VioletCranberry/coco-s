@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 30 of 32 in progress (Symbol Search Filters)
-Plan: 3 of 3 in phase 30 (complete)
+Plan: 4 of 4 in phase 30 (complete)
 Status: Phase 30 complete, ready for Phase 31
-Last activity: 2026-02-03 — Completed 30-03-PLAN.md (CLI and MCP symbol filter integration)
+Last activity: 2026-02-03 — Completed 30-04-PLAN.md (definition score boost)
 
-Progress: [████████████████████████████████░] 96% (82 of 85 estimated plans complete)
+Progress: [████████████████████████████████░] 97% (83 of 85 estimated plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 82
+- Total plans completed: 83
 - Milestones shipped: 6 (v1.0-v1.6)
 - Current milestone: v1.7 Search Enhancement
 
@@ -31,7 +31,7 @@ Progress: [███████████████████████
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 | v1.4 Dogfooding | 15-18 | 7 | 2026-01-31 |
 
-*Updated: 2026-02-03 after Plan 30-03 completion*
+*Updated: 2026-02-03 after Plan 30-04 completion*
 
 ## Accumulated Context
 
@@ -39,6 +39,9 @@ Progress: [███████████████████████
 
 Recent decisions affecting v1.7 work:
 
+- **30-04**: Definition keywords detected via prefix match (fast heuristic, false positives acceptable)
+- **30-04**: Apply 2x boost after RRF fusion, before limit
+- **30-04**: Skip boost silently for pre-v1.7 indexes (DEBUG log level)
 - **30-03**: CLI --symbol-type uses action=append for OR filtering
 - **30-03**: MCP symbol_type accepts both str and list[str] for flexibility
 - **30-03**: MCP response always includes symbol_type, symbol_name, symbol_signature (None if unavailable)
@@ -97,13 +100,14 @@ None yet.
 
 **v1.7 Architecture:**
 - Adding content_text column requires re-indexing existing indexes (breaking change)
-- Symbol extraction, indexing, and detection complete - ready for Phase 30 search integration
+- Symbol extraction, indexing, and detection complete - Phase 30 search integration complete
 - Symbol column detection enables graceful degradation for pre-v1.7 indexes
 - Symbol columns are nullable TEXT - pre-v1.7 indexes work without re-indexing
 - Tree-sitter deprecation warning in tree-sitter-languages 1.10.2 (harmless, awaiting upstream fix)
+- Definition boost automatically applied in hybrid_search (2x for function/class definitions)
 
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 30-03-PLAN.md, Phase 30 complete
+Stopped at: Completed 30-04-PLAN.md, Phase 30 complete
 Resume file: None
