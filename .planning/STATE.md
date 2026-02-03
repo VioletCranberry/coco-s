@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 32 of 32 (Full Language Coverage + Documentation)
-Plan: 2 of 4 in phase 32
+Plan: 3 of 4 in phase 32
 Status: Phase 32 in progress
-Last activity: 2026-02-03 — Completed 32-02-PLAN.md (Per-Language Statistics)
+Last activity: 2026-02-03 — Completed 32-03-PLAN.md (README v1.7 Feature Documentation)
 
-Progress: [█████████████████████████████████] 100% (89 of 88 estimated plans complete)
+Progress: [█████████████████████████████████] 100% (90 of 88 estimated plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 89
+- Total plans completed: 90
 - Milestones shipped: 6 (v1.0-v1.6)
 - Current milestone: v1.7 Search Enhancement
 
@@ -31,7 +31,7 @@ Progress: [███████████████████████
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 | v1.4 Dogfooding | 15-18 | 7 | 2026-01-31 |
 
-*Updated: 2026-02-03 after Phase 32 Plan 02 completion*
+*Updated: 2026-02-03 after Phase 32 Plan 03 completion*
 
 ## Accumulated Context
 
@@ -39,6 +39,10 @@ Progress: [███████████████████████
 
 Recent decisions affecting v1.7 work:
 
+- **32-03**: Quick Start positioned after What CocoSearch Does for immediate visibility
+- **32-03**: Feature sections use before/after examples to demonstrate value
+- **32-03**: CLI and MCP parameters documented together in tables for cross-reference
+- **32-03**: Search Features section placed after CLI Reference, before Troubleshooting
 - **32-02**: SQL GROUP BY aggregation for per-language stats (database-level efficiency)
 - **32-02**: Stats CLI shows Language, Files, Chunks, Lines columns with TOTAL row
 - **32-02**: Check content_text column existence to detect v1.7+ indexes
@@ -133,5 +137,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 32-02-PLAN.md (Per-Language Statistics)
+Stopped at: Completed 32-03-PLAN.md (README v1.7 Feature Documentation)
 Resume file: None
