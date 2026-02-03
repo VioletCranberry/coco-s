@@ -14,6 +14,7 @@ from dataclasses import dataclass
 
 from cocosearch.indexer.embedder import code_to_embedding
 from cocosearch.search.db import check_column_exists, get_connection_pool, get_table_name
+from cocosearch.search.filters import build_symbol_where_clause
 from cocosearch.search.query_analyzer import normalize_query_for_keyword
 
 logger = logging.getLogger(__name__)
@@ -88,6 +89,9 @@ class VectorResult:
         block_type: DevOps block type (e.g., "resource", "FROM", "function").
         hierarchy: DevOps hierarchy path (e.g., "resource.aws_s3_bucket.data").
         language_id: DevOps language identifier (e.g., "hcl", "dockerfile", "bash").
+        symbol_type: Symbol type ("function", "class", "method", "interface", or None).
+        symbol_name: Symbol name (e.g., "process_data", or None).
+        symbol_signature: Symbol signature (e.g., "def process_data(items: list)", or None).
     """
 
     filename: str
@@ -97,6 +101,9 @@ class VectorResult:
     block_type: str = ""
     hierarchy: str = ""
     language_id: str = ""
+    symbol_type: str | None = None
+    symbol_name: str | None = None
+    symbol_signature: str | None = None
 
 
 @dataclass
@@ -114,6 +121,9 @@ class HybridSearchResult:
         block_type: DevOps block type (from vector result if available).
         hierarchy: DevOps hierarchy path (from vector result if available).
         language_id: DevOps language identifier (from vector result if available).
+        symbol_type: Symbol type ("function", "class", "method", "interface", or None).
+        symbol_name: Symbol name (e.g., "process_data", or None).
+        symbol_signature: Symbol signature (e.g., "def process_data(items: list)", or None).
     """
 
     filename: str
@@ -126,6 +136,9 @@ class HybridSearchResult:
     block_type: str = ""
     hierarchy: str = ""
     language_id: str = ""
+    symbol_type: str | None = None
+    symbol_name: str | None = None
+    symbol_signature: str | None = None
 
 
 def _make_result_key(filename: str, start_byte: int, end_byte: int) -> str:
@@ -137,6 +150,8 @@ def execute_keyword_search(
     query: str,
     table_name: str,
     limit: int = 10,
+    where_clause: str = "",
+    where_params: list | None = None,
 ) -> list[KeywordResult]:
     """Execute keyword search using PostgreSQL full-text search.
 
@@ -147,6 +162,8 @@ def execute_keyword_search(
         query: Search query (will be normalized to split identifiers).
         table_name: PostgreSQL table name.
         limit: Maximum results to return.
+        where_clause: Optional SQL condition (without "WHERE") to filter results.
+        where_params: Optional list of parameters for where_clause placeholders.
 
     Returns:
         List of KeywordResult ordered by ts_rank (highest first).
@@ -162,24 +179,36 @@ def execute_keyword_search(
     # Normalize query to split identifiers
     normalized = normalize_query_for_keyword(query)
 
+    # Build WHERE clause: always include tsquery, optionally add extra conditions
+    where_parts = ["content_tsv @@ plainto_tsquery('simple', %s)"]
+    if where_clause:
+        where_parts.append(f"({where_clause})")
+    full_where = " AND ".join(where_parts)
+
     # Build tsquery using plainto_tsquery (handles spaces, simple matching)
     # Using 'simple' config for consistency with indexing (no stemming)
-    sql = """
+    sql = f"""
         SELECT
             filename,
             lower(location) as start_byte,
             upper(location) as end_byte,
             ts_rank(content_tsv, plainto_tsquery('simple', %s)) as rank
-        FROM {table}
-        WHERE content_tsv @@ plainto_tsquery('simple', %s)
+        FROM {table_name}
+        WHERE {full_where}
         ORDER BY rank DESC
         LIMIT %s
-    """.format(table=table_name)
+    """
+
+    # Build parameters: normalized (for ts_rank), normalized (for tsquery), where_params, limit
+    params: list = [normalized, normalized]
+    if where_params:
+        params.extend(where_params)
+    params.append(limit)
 
     with pool.connection() as conn:
         with conn.cursor() as cur:
             try:
-                cur.execute(sql, (normalized, normalized, limit))
+                cur.execute(sql, params)
                 rows = cur.fetchall()
             except Exception as e:
                 # Log and return empty on any error (graceful degradation)
@@ -201,6 +230,9 @@ def execute_vector_search(
     query: str,
     table_name: str,
     limit: int = 10,
+    where_clause: str = "",
+    where_params: list | None = None,
+    include_symbol_columns: bool = False,
 ) -> list[VectorResult]:
     """Execute vector similarity search.
 
@@ -211,6 +243,10 @@ def execute_vector_search(
         query: Search query (will be embedded).
         table_name: PostgreSQL table name.
         limit: Maximum results to return.
+        where_clause: Optional SQL condition (without "WHERE") to filter results.
+        where_params: Optional list of parameters for where_clause placeholders.
+        include_symbol_columns: Whether to include symbol_type, symbol_name, symbol_signature
+            in the SELECT (for v1.7+ indexes with symbol filtering).
 
     Returns:
         List of VectorResult ordered by similarity (highest first).
@@ -220,40 +256,59 @@ def execute_vector_search(
     # Embed query
     query_embedding = code_to_embedding.eval(query)
 
-    # Query with metadata columns
-    sql = """
-        SELECT
+    # Build WHERE clause if provided
+    where_sql = f"WHERE {where_clause}" if where_clause else ""
+
+    # Build SELECT columns
+    select_cols = """
             filename,
             lower(location) as start_byte,
             upper(location) as end_byte,
             1 - (embedding <=> %s::vector) AS score,
             block_type,
             hierarchy,
-            language_id
-        FROM {table}
+            language_id"""
+    if include_symbol_columns:
+        select_cols += """,
+            symbol_type,
+            symbol_name,
+            symbol_signature"""
+
+    # Query with metadata columns
+    sql = f"""
+        SELECT{select_cols}
+        FROM {table_name}
+        {where_sql}
         ORDER BY embedding <=> %s::vector
         LIMIT %s
-    """.format(table=table_name)
+    """
+
+    # Build parameters: embedding (for score), where_params, embedding (for ORDER BY), limit
+    params: list = [query_embedding]
+    if where_params:
+        params.extend(where_params)
+    params.extend([query_embedding, limit])
 
     with pool.connection() as conn:
         with conn.cursor() as cur:
             try:
-                cur.execute(sql, (query_embedding, query_embedding, limit))
+                cur.execute(sql, params)
                 rows = cur.fetchall()
             except Exception as e:
                 # Graceful degradation for pre-v1.2 indexes without metadata
                 logger.debug(f"Falling back to query without metadata: {e}")
-                sql_fallback = """
+                sql_fallback = f"""
                     SELECT
                         filename,
                         lower(location) as start_byte,
                         upper(location) as end_byte,
                         1 - (embedding <=> %s::vector) AS score
-                    FROM {table}
+                    FROM {table_name}
+                    {where_sql}
                     ORDER BY embedding <=> %s::vector
                     LIMIT %s
-                """.format(table=table_name)
-                cur.execute(sql_fallback, (query_embedding, query_embedding, limit))
+                """
+                cur.execute(sql_fallback, params)
                 rows = cur.fetchall()
                 # Return results without metadata
                 return [
@@ -266,18 +321,36 @@ def execute_vector_search(
                     for row in rows
                 ]
 
-    return [
-        VectorResult(
-            filename=row[0],
-            start_byte=int(row[1]),
-            end_byte=int(row[2]),
-            score=float(row[3]),
-            block_type=row[4] if row[4] else "",
-            hierarchy=row[5] if row[5] else "",
-            language_id=row[6] if row[6] else "",
-        )
-        for row in rows
-    ]
+    # Build results based on whether symbol columns were included
+    if include_symbol_columns:
+        return [
+            VectorResult(
+                filename=row[0],
+                start_byte=int(row[1]),
+                end_byte=int(row[2]),
+                score=float(row[3]),
+                block_type=row[4] if row[4] else "",
+                hierarchy=row[5] if row[5] else "",
+                language_id=row[6] if row[6] else "",
+                symbol_type=row[7] if row[7] else None,
+                symbol_name=row[8] if row[8] else None,
+                symbol_signature=row[9] if row[9] else None,
+            )
+            for row in rows
+        ]
+    else:
+        return [
+            VectorResult(
+                filename=row[0],
+                start_byte=int(row[1]),
+                end_byte=int(row[2]),
+                score=float(row[3]),
+                block_type=row[4] if row[4] else "",
+                hierarchy=row[5] if row[5] else "",
+                language_id=row[6] if row[6] else "",
+            )
+            for row in rows
+        ]
 
 
 def rrf_fusion(
@@ -331,6 +404,9 @@ def rrf_fusion(
         block_type = ""
         hierarchy = ""
         language_id = ""
+        symbol_type: str | None = None
+        symbol_name: str | None = None
+        symbol_signature: str | None = None
 
         # Get filename and byte positions from either source
         if key in vector_by_key:
@@ -340,6 +416,9 @@ def rrf_fusion(
             block_type = v_result.block_type
             hierarchy = v_result.hierarchy
             language_id = v_result.language_id
+            symbol_type = v_result.symbol_type
+            symbol_name = v_result.symbol_name
+            symbol_signature = v_result.symbol_signature
             filename = v_result.filename
             start_byte = v_result.start_byte
             end_byte = v_result.end_byte
@@ -371,6 +450,9 @@ def rrf_fusion(
                 block_type=block_type,
                 hierarchy=hierarchy,
                 language_id=language_id,
+                symbol_type=symbol_type,
+                symbol_name=symbol_name,
+                symbol_signature=symbol_signature,
             )
         )
 
@@ -446,6 +528,9 @@ def apply_definition_boost(
                     block_type=result.block_type,
                     hierarchy=result.hierarchy,
                     language_id=result.language_id,
+                    symbol_type=result.symbol_type,
+                    symbol_name=result.symbol_name,
+                    symbol_signature=result.symbol_signature,
                 )
             )
         else:
@@ -465,16 +550,25 @@ def hybrid_search(
     query: str,
     index_name: str,
     limit: int = 10,
+    symbol_type: str | list[str] | None = None,
+    symbol_name: str | None = None,
+    language_filter: str | None = None,
 ) -> list[HybridSearchResult]:
     """Execute hybrid search combining vector and keyword matching.
 
     Performs both vector similarity search and keyword search (if available),
-    then fuses results using RRF algorithm.
+    then fuses results using RRF algorithm. Supports symbol and language filtering
+    applied BEFORE RRF fusion for accurate filtering.
 
     Args:
         query: Search query (natural language or code identifier).
         index_name: Name of the index to search.
         limit: Maximum results to return.
+        symbol_type: Filter by symbol type ("function", "class", "method", "interface").
+            Can be a single string or list of types.
+        symbol_name: Filter by symbol name using glob pattern (supports * and ?).
+        language_filter: Filter by language via filename extension pattern.
+            Format: comma-separated language names (e.g., "python,javascript").
 
     Returns:
         List of HybridSearchResult ordered by combined score (highest first).
@@ -482,13 +576,55 @@ def hybrid_search(
     """
     table_name = get_table_name(index_name)
 
+    # Build WHERE clause for symbol filters (applied before fusion)
+    where_parts = []
+    where_params: list = []
+
+    # Add symbol filter conditions
+    if symbol_type is not None or symbol_name is not None:
+        symbol_where, symbol_params = build_symbol_where_clause(symbol_type, symbol_name)
+        if symbol_where:
+            where_parts.append(symbol_where)
+            where_params.extend(symbol_params)
+
+    # Add language filter conditions (filename-based)
+    if language_filter:
+        # Import LANGUAGE_EXTENSIONS and get_extension_patterns from query module
+        from cocosearch.search.query import LANGUAGE_EXTENSIONS, get_extension_patterns
+
+        languages = [lang.strip() for lang in language_filter.split(",")]
+        lang_conditions = []
+        for lang in languages:
+            if lang in LANGUAGE_EXTENSIONS:
+                extensions = get_extension_patterns(lang)
+                ext_parts = ["filename LIKE %s" for _ in extensions]
+                lang_conditions.append(f"({' OR '.join(ext_parts)})")
+                where_params.extend(extensions)
+        if lang_conditions:
+            where_parts.append(f"({' OR '.join(lang_conditions)})")
+
+    # Combine WHERE parts
+    where_clause = " AND ".join(where_parts) if where_parts else ""
+
+    # Determine if we need symbol columns in results
+    include_symbol_cols = symbol_type is not None or symbol_name is not None
+
     # Execute both searches
     # Request more results from each to have better fusion
     vector_limit = min(limit * 2, 100)
     keyword_limit = min(limit * 2, 100)
 
-    vector_results = execute_vector_search(query, table_name, vector_limit)
-    keyword_results = execute_keyword_search(query, table_name, keyword_limit)
+    vector_results = execute_vector_search(
+        query,
+        table_name,
+        vector_limit,
+        where_clause,
+        where_params if where_params else None,
+        include_symbol_columns=include_symbol_cols,
+    )
+    keyword_results = execute_keyword_search(
+        query, table_name, keyword_limit, where_clause, where_params if where_params else None
+    )
 
     # If no keyword results, return vector-only with match_type="semantic"
     if not keyword_results:
@@ -504,6 +640,9 @@ def hybrid_search(
                 block_type=r.block_type,
                 hierarchy=r.hierarchy,
                 language_id=r.language_id,
+                symbol_type=r.symbol_type,
+                symbol_name=r.symbol_name,
+                symbol_signature=r.symbol_signature,
             )
             for r in vector_results[:limit]
         ]
