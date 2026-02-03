@@ -3,10 +3,19 @@
 Tests format_bytes helper and get_stats function using mock database pool.
 """
 
+from datetime import datetime, timezone
 import pytest
 from unittest.mock import patch
 
-from cocosearch.management.stats import format_bytes, get_stats
+from cocosearch.management.stats import (
+    IndexStats,
+    check_staleness,
+    collect_warnings,
+    format_bytes,
+    get_comprehensive_stats,
+    get_stats,
+    get_symbol_stats,
+)
 
 
 class TestFormatBytes:
@@ -172,3 +181,269 @@ class TestGetStats:
             stats = get_stats("largeindex")
 
         assert stats["storage_size_pretty"] == "5.0 GB"
+
+
+class TestIndexStats:
+    """Tests for IndexStats dataclass."""
+
+    def test_instantiation_with_all_fields(self):
+        """Can create IndexStats with all required fields."""
+        now = datetime.now(timezone.utc)
+        stats = IndexStats(
+            name="test",
+            file_count=10,
+            chunk_count=50,
+            storage_size=1024,
+            storage_size_pretty="1.0 KB",
+            created_at=now,
+            updated_at=now,
+            is_stale=False,
+            staleness_days=1,
+            languages=[{"language": "python", "file_count": 10, "chunk_count": 50}],
+            symbols={"function": 25},
+            warnings=[],
+        )
+        assert stats.name == "test"
+        assert stats.file_count == 10
+        assert stats.chunk_count == 50
+        assert stats.storage_size == 1024
+        assert stats.storage_size_pretty == "1.0 KB"
+        assert stats.created_at == now
+        assert stats.updated_at == now
+        assert stats.is_stale is False
+        assert stats.staleness_days == 1
+        assert stats.languages == [{"language": "python", "file_count": 10, "chunk_count": 50}]
+        assert stats.symbols == {"function": 25}
+        assert stats.warnings == []
+
+    def test_to_dict_serialization(self):
+        """to_dict() returns dictionary suitable for JSON serialization."""
+        now = datetime(2026, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
+        stats = IndexStats(
+            name="test",
+            file_count=10,
+            chunk_count=50,
+            storage_size=1024,
+            storage_size_pretty="1.0 KB",
+            created_at=now,
+            updated_at=now,
+            is_stale=False,
+            staleness_days=1,
+            languages=[],
+            symbols={},
+            warnings=[],
+        )
+        result = stats.to_dict()
+        assert result["name"] == "test"
+        assert result["created_at"] == "2026-01-15T12:00:00+00:00"
+        assert result["updated_at"] == "2026-01-15T12:00:00+00:00"
+
+    def test_to_dict_with_none_datetimes(self):
+        """to_dict() handles None datetime fields."""
+        stats = IndexStats(
+            name="test",
+            file_count=10,
+            chunk_count=50,
+            storage_size=1024,
+            storage_size_pretty="1.0 KB",
+            created_at=None,
+            updated_at=None,
+            is_stale=True,
+            staleness_days=-1,
+            languages=[],
+            symbols={},
+            warnings=["No metadata found"],
+        )
+        result = stats.to_dict()
+        assert result["created_at"] is None
+        assert result["updated_at"] is None
+
+
+class TestCheckStaleness:
+    """Tests for check_staleness function."""
+
+    def test_returns_stale_for_old_index(self, mock_db_pool):
+        """Returns (True, days) for index older than threshold."""
+        # 10 days ago
+        from datetime import timedelta
+        old_date = datetime.now(timezone.utc) - timedelta(days=10)
+
+        pool, cursor, conn = mock_db_pool(results=[(old_date,)])
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            is_stale, days = check_staleness("myproject", threshold_days=7)
+
+        assert is_stale is True
+        assert days == 10
+
+    def test_returns_not_stale_for_recent_index(self, mock_db_pool):
+        """Returns (False, days) for index updated within threshold."""
+        # 2 days ago
+        from datetime import timedelta
+        recent_date = datetime.now(timezone.utc) - timedelta(days=2)
+
+        pool, cursor, conn = mock_db_pool(results=[(recent_date,)])
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            is_stale, days = check_staleness("myproject", threshold_days=7)
+
+        assert is_stale is False
+        assert days == 2
+
+    def test_threshold_boundary(self, mock_db_pool):
+        """7 days exactly is considered stale with threshold=7."""
+        from datetime import timedelta
+        boundary_date = datetime.now(timezone.utc) - timedelta(days=7)
+
+        pool, cursor, conn = mock_db_pool(results=[(boundary_date,)])
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            is_stale, days = check_staleness("myproject", threshold_days=7)
+
+        assert is_stale is True
+        assert days == 7
+
+    def test_missing_metadata(self, mock_db_pool):
+        """Returns (True, -1) when metadata doesn't exist."""
+        pool, cursor, conn = mock_db_pool(results=[None])  # fetchone returns None
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            is_stale, days = check_staleness("myproject")
+
+        assert is_stale is True
+        assert days == -1
+
+    def test_null_updated_at(self, mock_db_pool):
+        """Returns (True, -1) when updated_at is NULL."""
+        pool, cursor, conn = mock_db_pool(results=[(None,)])
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            is_stale, days = check_staleness("myproject")
+
+        assert is_stale is True
+        assert days == -1
+
+
+class TestGetSymbolStats:
+    """Tests for get_symbol_stats function."""
+
+    def test_returns_symbol_counts(self, mock_db_pool):
+        """Returns dict mapping symbol types to counts."""
+        # Results in order:
+        # 1. Column check returns symbol_type exists (fetchone)
+        # 2-4. Symbol stats query returns counts (fetchall returns remaining results)
+        pool, cursor, conn = mock_db_pool(
+            results=[
+                ("symbol_type",),  # Column exists (consumed by fetchone)
+                ("function", 150),  # First symbol count row
+                ("class", 25),     # Second symbol count row
+                ("method", 80),    # Third symbol count row
+            ]
+        )
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            with patch(
+                "cocosearch.management.stats.get_table_name",
+                return_value="codeindex_test__test_chunks",
+            ):
+                symbols = get_symbol_stats("test")
+
+        assert symbols == {"function": 150, "class": 25, "method": 80}
+
+    def test_graceful_degradation_without_symbol_column(self, mock_db_pool):
+        """Returns empty dict when symbol_type column doesn't exist."""
+        pool, cursor, conn = mock_db_pool(results=[None])  # Column doesn't exist
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            with patch(
+                "cocosearch.management.stats.get_table_name",
+                return_value="codeindex_test__test_chunks",
+            ):
+                symbols = get_symbol_stats("test")
+
+        assert symbols == {}
+
+    def test_empty_result_handling(self, mock_db_pool):
+        """Returns empty dict when no symbols exist."""
+        pool, cursor, conn = mock_db_pool(
+            results=[
+                ("symbol_type",),  # Column exists (consumed by fetchone)
+                # No more results - fetchall will return empty list
+            ]
+        )
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            with patch(
+                "cocosearch.management.stats.get_table_name",
+                return_value="codeindex_test__test_chunks",
+            ):
+                symbols = get_symbol_stats("test")
+
+        assert symbols == {}
+
+
+class TestCollectWarnings:
+    """Tests for collect_warnings function."""
+
+    def test_stale_index_warning(self, mock_db_pool):
+        """Generates staleness warning for stale index."""
+        pool, cursor, conn = mock_db_pool(results=[(100,), (100,)])  # file counts
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            with patch(
+                "cocosearch.management.stats.get_table_name",
+                return_value="codeindex_test__test_chunks",
+            ):
+                warnings = collect_warnings("test", is_stale=True, staleness_days=10)
+
+        assert len(warnings) == 1
+        assert "10 days since last update" in warnings[0]
+
+    def test_missing_metadata_warning(self, mock_db_pool):
+        """Generates warning when metadata is missing."""
+        pool, cursor, conn = mock_db_pool(results=[(100,), (100,)])
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            with patch(
+                "cocosearch.management.stats.get_table_name",
+                return_value="codeindex_test__test_chunks",
+            ):
+                warnings = collect_warnings("test", is_stale=True, staleness_days=-1)
+
+        assert len(warnings) == 1
+        assert "No metadata found" in warnings[0]
+
+    def test_no_warnings_for_fresh_index(self, mock_db_pool):
+        """Returns empty list for fresh index."""
+        pool, cursor, conn = mock_db_pool(results=[(100,), (100,)])
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            with patch(
+                "cocosearch.management.stats.get_table_name",
+                return_value="codeindex_test__test_chunks",
+            ):
+                warnings = collect_warnings("test", is_stale=False, staleness_days=1)
+
+        assert warnings == []
