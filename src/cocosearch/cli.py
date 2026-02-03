@@ -26,7 +26,7 @@ from cocosearch.config import (
 )
 from cocosearch.indexer import IndexingConfig, load_config, run_index
 from cocosearch.indexer.progress import IndexingProgress
-from cocosearch.management import clear_index, derive_index_from_git, get_language_stats, get_stats, list_indexes
+from cocosearch.management import clear_index, derive_index_from_git, get_comprehensive_stats, get_language_stats, get_stats, list_indexes
 from cocosearch.management import register_index_path
 from cocosearch.search import search
 from cocosearch.search.formatter import format_json, format_pretty
@@ -429,6 +429,79 @@ def list_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def print_warnings(warnings: list[str], console: Console) -> None:
+    """Print warning banner if there are warnings.
+
+    Args:
+        warnings: List of warning messages.
+        console: Rich console for output.
+    """
+    if not warnings:
+        return
+    from rich.panel import Panel
+
+    warning_text = "\n".join(f"[yellow]! {w}[/yellow]" for w in warnings)
+    console.print(Panel(
+        warning_text,
+        title="[bold yellow]Warnings[/bold yellow]",
+        border_style="yellow"
+    ))
+    console.print()  # Blank line after
+
+
+def format_language_table(languages: list[dict], console_width: int = 80) -> "Table":
+    """Format language distribution table with Unicode bars.
+
+    Args:
+        languages: List of language stats dicts.
+        console_width: Console width for bar sizing (default: 80).
+
+    Returns:
+        Rich Table with language distribution and Unicode bars.
+    """
+    from rich.table import Table
+    from rich.bar import Bar
+
+    table = Table(title="Language Distribution", show_header=True)
+    table.add_column("Language", style="cyan", width=12)
+    table.add_column("Files", justify="right", width=6)
+    table.add_column("Chunks", justify="right", width=8)
+    table.add_column("Distribution", width=30)
+
+    max_chunks = max((l["chunk_count"] for l in languages), default=1)
+    for lang in languages:
+        ratio = lang["chunk_count"] / max_chunks if max_chunks > 0 else 0
+        bar = Bar(size=30, begin=0, end=ratio * 30)
+        table.add_row(
+            lang["language"],
+            str(lang["file_count"]),
+            str(lang["chunk_count"]),
+            bar
+        )
+    return table
+
+
+def format_symbol_table(symbols: dict[str, int]) -> "Table | None":
+    """Format symbol statistics table.
+
+    Args:
+        symbols: Dict mapping symbol types to counts.
+
+    Returns:
+        Rich Table with symbol statistics, or None if no symbols.
+    """
+    if not symbols:
+        return None
+    from rich.table import Table
+
+    table = Table(title="Symbol Statistics")
+    table.add_column("Type", style="magenta")
+    table.add_column("Count", justify="right")
+    for sym_type, count in sorted(symbols.items(), key=lambda x: -x[1]):
+        table.add_row(sym_type, f"{count:,}")
+    return table
+
+
 def stats_command(args: argparse.Namespace) -> int:
     """Execute the stats command.
 
@@ -443,104 +516,126 @@ def stats_command(args: argparse.Namespace) -> int:
     # Initialize CocoIndex
     cocoindex.init()
 
-    if args.index:
-        # Stats for specific index
-        try:
-            stats = get_stats(args.index)
-            stats["name"] = args.index
-            lang_stats = get_language_stats(args.index)
-        except ValueError as e:
-            if args.pretty:
-                console.print(f"[bold red]Error:[/bold red] {e}")
-            else:
-                print(json.dumps({"error": str(e)}))
-            return 1
+    # Determine output mode: --json takes precedence over --pretty
+    json_output = args.json or not args.pretty
 
-        if args.pretty:
-            from rich.table import Table
-
-            # Summary stats first
-            console.print(f"\n[bold]Index:[/bold] {args.index}")
-            console.print(f"[dim]Files: {stats['file_count']} | Chunks: {stats['chunk_count']} | Size: {stats['storage_size_pretty']}[/dim]\n")
-
-            # Per-language breakdown table
-            table = Table(title="Language Statistics")
-            table.add_column("Language", style="cyan", no_wrap=True)
-            table.add_column("Files", justify="right")
-            table.add_column("Chunks", justify="right")
-            table.add_column("Lines", justify="right")
-
-            total_files = 0
-            total_chunks = 0
-            total_lines = 0
-            has_line_counts = any(ls["line_count"] is not None for ls in lang_stats)
-
-            for ls in lang_stats:
-                line_str = f"{ls['line_count']:,}" if ls["line_count"] is not None else "N/A"
-                table.add_row(
-                    ls["language"],
-                    str(ls["file_count"]),
-                    str(ls["chunk_count"]),
-                    line_str,
-                )
-                total_files += ls["file_count"]
-                total_chunks += ls["chunk_count"]
-                if ls["line_count"] is not None:
-                    total_lines += ls["line_count"]
-
-            # Add totals row
-            table.add_section()
-            total_lines_str = f"{total_lines:,}" if has_line_counts else "N/A"
-            table.add_row("TOTAL", str(total_files), str(total_chunks), total_lines_str, style="bold")
-
-            console.print(table)
-
-            if not has_line_counts:
-                console.print("\n[dim]Note: Line counts require v1.7+ index. Re-index to enable.[/dim]")
-        else:
-            # JSON output includes both summary and per-language stats
-            output = {
-                **stats,
-                "languages": lang_stats,
-            }
-            print(json.dumps(output, indent=2))
-    else:
-        # Stats for all indexes
+    # Determine which index(es) to show
+    if args.all:
+        # Show all indexes
         indexes = list_indexes()
         all_stats = []
 
         for idx in indexes:
             try:
-                stats = get_stats(idx["name"])
-                stats["name"] = idx["name"]
+                stats = get_comprehensive_stats(idx["name"], staleness_threshold=args.staleness_threshold)
                 all_stats.append(stats)
             except ValueError:
                 # Skip indexes that can't be queried
                 continue
 
-        if args.pretty:
+        if json_output:
+            # JSON output for all indexes
+            output = [s.to_dict() for s in all_stats]
+            print(json.dumps(output, indent=2))
+        else:
+            # Pretty output for all indexes
             from rich.table import Table
 
             if not all_stats:
                 console.print("[dim]No indexes found[/dim]")
             else:
-                table = Table(title="Index Statistics")
-                table.add_column("Name", style="cyan")
-                table.add_column("Files", justify="right")
-                table.add_column("Chunks", justify="right")
-                table.add_column("Size", justify="right")
+                for i, stats in enumerate(all_stats):
+                    if i > 0:
+                        console.print()  # Blank line between indexes
 
-                for stats in all_stats:
-                    table.add_row(
-                        stats["name"],
-                        str(stats["file_count"]),
-                        str(stats["chunk_count"]),
-                        stats["storage_size_pretty"],
-                    )
+                    # Show warnings first
+                    print_warnings(stats.warnings, console)
 
-                console.print(table)
+                    # Summary header
+                    console.print(f"[bold]Index:[/bold] {stats.name}")
+                    console.print(f"[dim]Files: {stats.file_count:,} | Chunks: {stats.chunk_count:,} | Size: {stats.storage_size_pretty}[/dim]")
+
+                    # Timestamps
+                    if stats.created_at:
+                        created_str = stats.created_at.strftime("%Y-%m-%d")
+                        console.print(f"[dim]Created: {created_str}[/dim]")
+                    if stats.updated_at:
+                        updated_str = stats.updated_at.strftime("%Y-%m-%d")
+                        days_ago = f"{stats.staleness_days} days ago" if stats.staleness_days >= 0 else "unknown"
+                        console.print(f"[dim]Last Updated: {updated_str} ({days_ago})[/dim]")
+                    console.print()
+
+                    # Language distribution with bars
+                    if stats.languages:
+                        lang_table = format_language_table(stats.languages)
+                        console.print(lang_table)
+
+                    # Symbol statistics (verbose mode only)
+                    if args.verbose and stats.symbols:
+                        console.print()
+                        symbol_table = format_symbol_table(stats.symbols)
+                        if symbol_table:
+                            console.print(symbol_table)
+
+        return 0
+
+    # Single index mode
+    if args.index:
+        index_name = args.index
+    else:
+        # Auto-detect from cwd (like search command)
+        git_index = derive_index_from_git()
+        if git_index:
+            index_name = git_index
         else:
-            print(json.dumps(all_stats, indent=2))
+            index_name = derive_index_name(os.getcwd())
+
+    # Get comprehensive stats for the index
+    try:
+        stats = get_comprehensive_stats(index_name, staleness_threshold=args.staleness_threshold)
+    except ValueError as e:
+        if json_output:
+            print(json.dumps({"error": str(e)}))
+        else:
+            console.print(f"[bold red]Error:[/bold red] {e}")
+        return 1
+
+    if json_output:
+        # JSON output
+        print(json.dumps(stats.to_dict(), indent=2))
+    else:
+        # Pretty output with visual elements
+
+        # Show warnings first
+        print_warnings(stats.warnings, console)
+
+        # Summary header
+        console.print(f"\n[bold]Index:[/bold] {stats.name}")
+        console.print(f"[dim]Files: {stats.file_count:,} | Chunks: {stats.chunk_count:,} | Size: {stats.storage_size_pretty}[/dim]")
+
+        # Timestamps
+        if stats.created_at:
+            created_str = stats.created_at.strftime("%Y-%m-%d")
+            console.print(f"[dim]Created: {created_str}[/dim]")
+        if stats.updated_at:
+            updated_str = stats.updated_at.strftime("%Y-%m-%d")
+            days_ago = f"{stats.staleness_days} days ago" if stats.staleness_days >= 0 else "unknown"
+            console.print(f"[dim]Last Updated: {updated_str} ({days_ago})[/dim]")
+        console.print()
+
+        # Language distribution with bars
+        if stats.languages:
+            lang_table = format_language_table(stats.languages)
+            console.print(lang_table)
+
+        # Symbol statistics (verbose mode only)
+        if args.verbose and stats.symbols:
+            console.print()
+            symbol_table = format_symbol_table(stats.symbols)
+            if symbol_table:
+                console.print(symbol_table)
+        elif args.verbose and not stats.symbols:
+            console.print("\n[dim]No symbol statistics available (requires v1.7+ index with symbol extraction)[/dim]")
 
     return 0
 
@@ -1028,12 +1123,33 @@ def main() -> None:
         "index",
         nargs="?",
         default=None,
-        help="Index name (if omitted, show stats for all indexes)",
+        help="Index name (default: auto-detect from cwd, or use --all for all indexes)",
     )
     stats_parser.add_argument(
         "--pretty",
         action="store_true",
         help="Human-readable output (default: JSON)",
+    )
+    stats_parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Show symbol type breakdown (verbose mode)",
+    )
+    stats_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output machine-readable JSON (replaces --pretty inversion)",
+    )
+    stats_parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Show stats for all indexed projects",
+    )
+    stats_parser.add_argument(
+        "--staleness-threshold",
+        type=int,
+        default=7,
+        help="Days before staleness warning (default: 7)",
     )
 
     # Languages subcommand
