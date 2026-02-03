@@ -10,6 +10,29 @@ from unittest.mock import patch
 from tests.mocks.db import MockConnectionPool, MockCursor, MockConnection
 
 
+@pytest.fixture(autouse=True)
+def reset_search_module_state():
+    """Reset search module state and patch check_column_exists.
+
+    Autouse fixture that:
+    1. Patches check_column_exists to return True (simulates v1.7+ index)
+    2. Resets module-level flags after each test
+
+    This prevents the hybrid column check from hitting a real database
+    and ensures test isolation for module-level state.
+    """
+    import cocosearch.search.query as query_module
+
+    with patch.object(query_module, "check_column_exists", return_value=True):
+        yield
+
+    # Reset all module-level flags after test
+    query_module._has_metadata_columns = True
+    query_module._metadata_warning_emitted = False
+    query_module._has_content_text_column = True
+    query_module._hybrid_warning_emitted = False
+
+
 @pytest.fixture
 def mock_db_pool():
     """Factory fixture for creating mock database pools.

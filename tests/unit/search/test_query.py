@@ -23,15 +23,8 @@ from cocosearch.search.query import (
 )
 
 
-@pytest.fixture(autouse=True)
-def reset_metadata_flag():
-    """Reset module-level metadata flags between tests.
-
-    Prevents test pollution from tests that modify _has_metadata_columns.
-    """
-    yield
-    query_module._has_metadata_columns = True
-    query_module._metadata_warning_emitted = False
+# Note: Module state reset is now handled by reset_search_module_state fixture
+# in tests/fixtures/db.py which is an autouse fixture.
 
 
 class TestSearchResult:
