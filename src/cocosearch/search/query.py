@@ -264,10 +264,16 @@ def search(
     # use_hybrid is False: always use vector-only (no action needed)
 
     # Execute hybrid search if applicable
-    # Note: hybrid search doesn't support language or symbol filtering yet (future enhancement)
-    # TODO: Add symbol filter support to hybrid search
-    if should_use_hybrid and not language_filter and not include_symbol_columns:
-        hybrid_results = execute_hybrid_search(query, index_name, limit)
+    # Hybrid search now supports language and symbol filtering (applied before RRF fusion)
+    if should_use_hybrid:
+        hybrid_results = execute_hybrid_search(
+            query,
+            index_name,
+            limit,
+            symbol_type=symbol_type,
+            symbol_name=symbol_name,
+            language_filter=language_filter,
+        )
 
         # Convert HybridSearchResult to SearchResult, applying min_score filter
         results = []
@@ -285,6 +291,9 @@ def search(
                         match_type=hr.match_type,
                         vector_score=hr.vector_score,
                         keyword_score=hr.keyword_score,
+                        symbol_type=hr.symbol_type,
+                        symbol_name=hr.symbol_name,
+                        symbol_signature=hr.symbol_signature,
                     )
                 )
         return results
