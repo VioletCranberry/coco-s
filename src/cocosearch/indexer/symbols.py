@@ -11,8 +11,10 @@ Supported languages:
 - Go: functions, methods (with receiver), structs, interfaces
 - Rust: functions, methods (in impl blocks), structs, traits, enums
 - Java: classes, interfaces, enums, methods, constructors
+- Ruby: classes, modules, methods, singleton methods
 - C: functions, structs, enums, typedefs
 - C++: functions, classes, structs, namespaces, methods
+- PHP: functions, classes, interfaces, traits, methods
 
 Features:
 - Query-based extraction using external .scm files
@@ -64,6 +66,10 @@ LANGUAGE_MAP = {
     "hpp": "cpp",
     "hxx": "cpp",
     "hh": "cpp",
+    # Ruby
+    "rb": "ruby",
+    # PHP
+    "php": "php",
 }
 
 # ============================================================================
@@ -238,6 +244,8 @@ def _build_qualified_name(node, name: str, chunk_text: str, language: str) -> st
         "java": ["class_declaration", "interface_declaration", "enum_declaration"],
         "c": ["struct_specifier"],
         "cpp": ["class_specifier", "struct_specifier", "namespace_definition"],
+        "ruby": ["class", "module"],
+        "php": ["class_declaration", "interface_declaration", "trait_declaration"],
     }
 
     parents = []
@@ -329,13 +337,16 @@ def _extract_symbols_with_query(chunk_text: str, language: str, query_text: str)
     definitions = {}  # node.id -> (node, capture_type)
     names = {}  # parent_node.id -> name_text
 
-    # Process captures from dict structure
+    # Process captures from dict structure - definitions first, then names
+    # This ensures all definition nodes are registered before we try to match names
     for capture_name, nodes in captures_dict.items():
         if capture_name.startswith("definition."):
             symbol_type = capture_name.split(".", 1)[1]
             for node in nodes:
                 definitions[node.id] = (node, symbol_type)
-        elif capture_name == "name":
+
+    for capture_name, nodes in captures_dict.items():
+        if capture_name == "name":
             for node in nodes:
                 # Find parent that is a definition
                 parent = node.parent
