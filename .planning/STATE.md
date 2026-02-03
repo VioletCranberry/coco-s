@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 28 of 32 (Hybrid Search Query)
-Plan: 2 of 4 in phase 28
+Plan: 3 of 4 in phase 28
 Status: In progress
-Last activity: 2026-02-03 — Completed 28-02-PLAN.md
+Last activity: 2026-02-03 — Completed 28-03-PLAN.md
 
-Progress: [█████████████████████████████░░░] 87% (74 of 85 estimated plans complete)
+Progress: [█████████████████████████████░░░] 88% (75 of 85 estimated plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 74
+- Total plans completed: 75
 - Milestones shipped: 6 (v1.0-v1.6)
 - Current milestone: v1.7 Search Enhancement
 
@@ -31,7 +31,7 @@ Progress: [███████████████████████
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 | v1.4 Dogfooding | 15-18 | 7 | 2026-01-31 |
 
-*Updated: 2026-02-03 after Plan 28-02 completion*
+*Updated: 2026-02-03 after Plan 28-03 completion*
 
 ## Accumulated Context
 
@@ -39,6 +39,8 @@ Progress: [███████████████████████
 
 Recent decisions affecting v1.7 work:
 
+- **28-03**: Escaped brackets (\\[semantic]) for Rich markup compatibility
+- **28-03**: JSON output omits hybrid fields when None (cleaner backward compat)
 - **28-02**: use_hybrid parameter: None=auto, True=force, False=disabled
 - **28-02**: No hybrid+language filter combination (future enhancement)
 - **28-02**: Match type color coding: cyan=semantic, green=keyword, yellow=both
@@ -73,6 +75,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T09:06:55Z
-Stopped at: Completed 28-02-PLAN.md
+Last session: 2026-02-03T09:08:19Z
+Stopped at: Completed 28-03-PLAN.md
 Resume file: None
