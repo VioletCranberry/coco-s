@@ -5,7 +5,7 @@ using mocked environments to avoid real database dependencies.
 """
 
 import os
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -54,3 +54,117 @@ class TestGetTableName:
         """Should handle index names with numbers."""
         result = get_table_name("project123")
         assert result == "codeindex_project123__project123_chunks"
+
+
+@pytest.mark.unit
+class TestCheckSymbolColumnsExist:
+    """Tests for symbol column existence checking."""
+
+    def setup_method(self):
+        """Reset module state before each test."""
+        db_module.reset_symbol_columns_cache()
+
+    def test_check_symbol_columns_exist_all_present(self):
+        """Should return True when all three symbol columns exist."""
+        # Mock connection pool and database response
+        mock_pool = MagicMock()
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+
+        # Mock that all three columns exist
+        mock_cursor.fetchall.return_value = [
+            ("symbol_type",),
+            ("symbol_name",),
+            ("symbol_signature",),
+        ]
+
+        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+        mock_pool.connection.return_value.__enter__.return_value = mock_conn
+
+        with patch.object(db_module, "get_connection_pool", return_value=mock_pool):
+            result = db_module.check_symbol_columns_exist("test_table")
+
+        assert result is True
+
+    def test_check_symbol_columns_exist_missing(self):
+        """Should return False when symbol columns are missing (pre-v1.7)."""
+        # Mock connection pool and database response
+        mock_pool = MagicMock()
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+
+        # Mock empty result (no columns found)
+        mock_cursor.fetchall.return_value = []
+
+        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+        mock_pool.connection.return_value.__enter__.return_value = mock_conn
+
+        with patch.object(db_module, "get_connection_pool", return_value=mock_pool):
+            result = db_module.check_symbol_columns_exist("test_table")
+
+        assert result is False
+
+    def test_check_symbol_columns_exist_partial(self):
+        """Should return False when only some symbol columns exist."""
+        # Mock connection pool and database response
+        mock_pool = MagicMock()
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+
+        # Mock partial columns (only 2 out of 3)
+        mock_cursor.fetchall.return_value = [
+            ("symbol_type",),
+            ("symbol_name",),
+        ]
+
+        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+        mock_pool.connection.return_value.__enter__.return_value = mock_conn
+
+        with patch.object(db_module, "get_connection_pool", return_value=mock_pool):
+            result = db_module.check_symbol_columns_exist("test_table")
+
+        assert result is False
+
+    def test_check_symbol_columns_exist_cached(self):
+        """Should use cache on repeated calls to avoid database queries."""
+        # Mock connection pool and database response
+        mock_pool = MagicMock()
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+
+        # Mock that all three columns exist
+        mock_cursor.fetchall.return_value = [
+            ("symbol_type",),
+            ("symbol_name",),
+            ("symbol_signature",),
+        ]
+
+        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+        mock_pool.connection.return_value.__enter__.return_value = mock_conn
+
+        with patch.object(db_module, "get_connection_pool", return_value=mock_pool):
+            # First call should query database
+            result1 = db_module.check_symbol_columns_exist("test_table")
+            # Second call should use cache
+            result2 = db_module.check_symbol_columns_exist("test_table")
+
+        assert result1 is True
+        assert result2 is True
+
+        # Verify database was only queried once
+        assert mock_cursor.execute.call_count == 1
+
+    def test_reset_symbol_columns_cache(self):
+        """Should clear the cache when reset function is called."""
+        # Populate cache
+        db_module._symbol_columns_available["test_table"] = True
+
+        # Verify cache has data
+        assert "test_table" in db_module._symbol_columns_available
+
+        # Reset cache
+        db_module.reset_symbol_columns_cache()
+
+        # Verify cache is empty
+        assert "test_table" not in db_module._symbol_columns_available
+        assert len(db_module._symbol_columns_available) == 0
