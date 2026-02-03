@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-03)
 
 **Core value:** Semantic code search that runs entirely locally — no data leaves your machine.
-**Current focus:** Phase 34 - Symbol Extraction Expansion
+**Current focus:** Phase 35 - Stats Dashboard
 
 ## Current Position
 
-Phase: 34 of 37 (Symbol Extraction Expansion)
-Plan: 04 of 04 (PHP, Ruby, Java Symbol Extraction)
-Status: Phase complete
-Last activity: 2026-02-03 — Completed 34-02 retroactively (work done in prior commits)
+Phase: 35 of 37 (Stats Dashboard)
+Plan: — (phase not yet planned)
+Status: Ready to plan
+Last activity: 2026-02-03 — Phase 34 complete, verified
 
-Progress: [==================================........] 84% (34/37 phases, 98/103 plans)
+Progress: [==================================........] 84% (34/37 phases, 97/103 plans)
 
 ## Performance Metrics
 
@@ -31,7 +31,7 @@ Progress: [==================================........] 84% (34/37 phases, 98/103
 | v1.6 Docker & Auto-Detect | 23-26 | 11 | 2026-02-02 |
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 
-*Updated: 2026-02-03 after Phase 33 complete*
+*Updated: 2026-02-03 after Phase 34 complete*
 
 ## Accumulated Context
 
@@ -40,38 +40,31 @@ Progress: [==================================........] 84% (34/37 phases, 98/103
 Full decision log in PROJECT.md Key Decisions table.
 
 Recent Phase 34 decisions:
+- Migrated from tree-sitter-languages to tree-sitter-language-pack 0.13.0
 - Use QueryCursor dict-based captures API (tree-sitter 0.25.x returns dict not list)
-- Remove field names from TypeScript/JavaScript queries (grammars use positional matching)
+- External .scm query files for all 10 languages (user-extensible)
+- Query file override: Project > User > Built-in
 - Preserve return types in signatures for richer search context
-- Extract receiver types for Go methods to build qualified names (Server.Start)
-- Prioritize method patterns in Rust queries to distinguish from top-level functions
-- Process definitions before names in extraction (prevents incorrect parent assignment)
-- Only extract C/C++ definitions with body (ignore forward declarations)
-- Map C++ namespaces to "class" symbol type (organizational containers)
-- Use "::" separator for C++ qualified names (MyClass::method)
-- .h files map to C by default (users can override via .cocosearch/queries/)
-- Map PHP traits to "interface" symbol type (semantic similarity to mixins)
-- Map Ruby modules to "class" symbol type (organizational containers like namespaces)
-- Normalize all language-specific constructs to 4 core types (function, method, class, interface)
+- Map namespaces/modules to "class", traits to "interface"
+- Use "::" separator for C++ qualified names
+- .h files map to C by default
 
 Recent Phase 33 decisions:
 - Apply symbol/language filters BEFORE RRF fusion (not after)
-- Add symbol fields to VectorResult and HybridSearchResult dataclasses
-- Pass include_symbol_columns flag to execute_vector_search for conditional SELECT
 - In-memory session-scoped cache (simpler than diskcache)
 - 0.95 cosine similarity threshold for semantic cache hits
 
 ### Pending Todos
 
-None — starting Phase 34.
+None — starting Phase 35.
 
 ### Blockers/Concerns
 
 **Known technical debt:**
-None - tree-sitter deprecation warnings resolved in Phase 34-01.
+None
 
 **Research flags from SUMMARY.md:**
-- Phase 34-01: Test C/C++ extraction on real codebases with heavy macros, verify failure rates
+- Phase 34: Test C/C++ extraction on real codebases with heavy macros, verify failure rates
 - Phase 34: Consider parse failure tracking in stats output (per-language counts)
 - Phase 35: Benchmark stats collection overhead, evaluate terminal UI options
 - Phase 36: Test skill routing with ambiguous queries
@@ -79,7 +72,5 @@ None - tree-sitter deprecation warnings resolved in Phase 34-01.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed Phase 34-02 retroactively (Java and Ruby extraction - work done in prior commits)
+Stopped at: Phase 34 complete, ready to plan Phase 35
 Resume file: None
-
-**Note:** Phase 34 plans were executed out of order. 34-01, 34-03, and 34-04 were completed with dedicated commits. Plan 34-02 (Java and Ruby) had its implementation bundled into commits for other plans. Summary created retroactively to document the work.

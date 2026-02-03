@@ -51,24 +51,25 @@ Plans:
 - [x] 33-02-PLAN.md -- Nested symbol display (add symbol_name/type/signature to JSON and pretty output)
 - [x] 33-03-PLAN.md -- Query caching (exact hash + semantic similarity, invalidate on reindex, --no-cache flag)
 
-#### Phase 34: Symbol Extraction Expansion
+#### Phase 34: Symbol Extraction Expansion ✓
 **Goal**: Extend symbol extraction from 5 to 10 languages with external query files
 **Depends on**: Phase 33
 **Requirements**: REQ-013, REQ-014, REQ-015, REQ-016, REQ-017, REQ-018
 **Success Criteria** (what must be TRUE):
-  1. Java files indexed with functions, classes, interfaces, enums as symbols
-  2. C files indexed with functions, structs, enums, typedefs as symbols
-  3. C++ files indexed with functions, classes, structs, namespaces as symbols
-  4. Ruby files indexed with functions, classes, modules as symbols
-  5. PHP files indexed with functions, classes, interfaces, traits as symbols
-  6. Symbol extraction uses external .scm query files (not hardcoded Python)
-**Plans**: 4 plans
+  1. ✓ Java files indexed with functions, classes, interfaces, enums as symbols
+  2. ✓ C files indexed with functions, structs, enums, typedefs as symbols
+  3. ✓ C++ files indexed with functions, classes, structs, namespaces as symbols
+  4. ✓ Ruby files indexed with functions, classes, modules as symbols
+  5. ✓ PHP files indexed with functions, classes, interfaces, traits as symbols
+  6. ✓ Symbol extraction uses external .scm query files (not hardcoded Python)
+**Plans**: 4 plans (complete)
+**Completed**: 2026-02-03
 
 Plans:
-- [ ] 34-01-PLAN.md -- tree-sitter-language-pack migration + query file architecture
-- [ ] 34-02-PLAN.md -- Java + Ruby symbol extraction
-- [ ] 34-03-PLAN.md -- C + C++ symbol extraction
-- [ ] 34-04-PLAN.md -- PHP symbol extraction + 10-language verification
+- [x] 34-01-PLAN.md -- tree-sitter-language-pack migration + query file architecture
+- [x] 34-02-PLAN.md -- Java + Ruby symbol extraction
+- [x] 34-03-PLAN.md -- C + C++ symbol extraction
+- [x] 34-04-PLAN.md -- PHP symbol extraction + 10-language verification
 
 #### Phase 35: Stats Dashboard
 **Goal**: Provide index observability via CLI, terminal dashboard, and web UI
@@ -129,8 +130,8 @@ Plans:
 | v1.5 Config & Architecture | 19-22 | 11 | Complete | 2026-02-01 |
 | v1.6 Docker & Auto-Detect | 23-26 | 11 | Complete | 2026-02-02 |
 | v1.7 Search Enhancement | 27-32 | 21 | Complete | 2026-02-03 |
-| v1.8 Polish & Observability | 33-37 | 7/13 | In progress | - |
+| v1.8 Polish & Observability | 33-37 | 11/13 | In progress | - |
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-03 after Phase 34 planning*
+*Last updated: 2026-02-03 after Phase 34 complete*
