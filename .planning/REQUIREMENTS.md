@@ -28,16 +28,16 @@ Requirements for Search Enhancement milestone. Each maps to roadmap phases.
 
 ### Symbol-Aware Search
 
-- [ ] **SYMB-01**: Schema adds `symbol_type`, `symbol_name`, `symbol_signature` columns
-- [ ] **SYMB-02**: Tree-sitter query-based symbol extraction during indexing
-- [ ] **SYMB-03**: Symbol extraction for Python (validate approach)
+- [x] **SYMB-01**: Schema adds `symbol_type`, `symbol_name`, `symbol_signature` columns
+- [x] **SYMB-02**: Tree-sitter query-based symbol extraction during indexing
+- [x] **SYMB-03**: Symbol extraction for Python (validate approach)
 - [ ] **SYMB-04**: Symbol extraction for JavaScript, TypeScript, Go, Rust
 - [ ] **SYMB-05**: CLI flag `--symbol-type` filters by symbol type (function, class, method)
 - [ ] **SYMB-06**: CLI flag `--symbol-name` filters by symbol name pattern
 - [ ] **SYMB-07**: MCP parameters `symbol_type`, `symbol_name` for symbol filtering
 - [ ] **SYMB-08**: Symbol ranking boost in RRF (definitions weighted 1.5x)
 - [ ] **SYMB-09**: Unified symbol filters work with DevOps metadata (block_type, hierarchy)
-- [ ] **SYMB-10**: Existing indexes gracefully degrade (symbol filters unavailable)
+- [x] **SYMB-10**: Existing indexes gracefully degrade (symbol filters unavailable)
 
 ### Language Coverage
 
@@ -97,16 +97,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CTXT-04 | Phase 31 | Pending |
 | CTXT-05 | Phase 31 | Pending |
 | CTXT-06 | Phase 31 | Pending |
-| SYMB-01 | Phase 29 | Pending |
-| SYMB-02 | Phase 29 | Pending |
-| SYMB-03 | Phase 29 | Pending |
+| SYMB-01 | Phase 29 | Complete |
+| SYMB-02 | Phase 29 | Complete |
+| SYMB-03 | Phase 29 | Complete |
 | SYMB-04 | Phase 30 | Pending |
 | SYMB-05 | Phase 30 | Pending |
 | SYMB-06 | Phase 30 | Pending |
 | SYMB-07 | Phase 30 | Pending |
 | SYMB-08 | Phase 30 | Pending |
 | SYMB-09 | Phase 30 | Pending |
-| SYMB-10 | Phase 29 | Pending |
+| SYMB-10 | Phase 29 | Complete |
 | LANG-01 | Phase 32 | Pending |
 | LANG-02 | Phase 32 | Pending |
 | LANG-03 | Phase 32 | Pending |
@@ -119,4 +119,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-03*
-*Last updated: 2026-02-03 after Phase 28 completion*
+*Last updated: 2026-02-03 after Phase 29 completion*

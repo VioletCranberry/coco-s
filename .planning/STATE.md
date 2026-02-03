@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Semantic code search that runs entirely locally — no data leaves your machine.
-**Current focus:** Phase 29 - Symbol-Aware Indexing
+**Current focus:** Phase 30 - Symbol Search Filters + Language Expansion
 
 ## Current Position
 
 Phase: 29 of 32 complete (Symbol-Aware Indexing)
-Plan: 3 of 3 in phase 29 (completed)
-Status: Phase 29 complete, ready for Phase 30
-Last activity: 2026-02-03 — Completed 29-03-PLAN.md (symbol column detection)
+Plan: 3 of 3 in phase 29 (verified)
+Status: Phase 29 verified, ready for Phase 30
+Last activity: 2026-02-03 — Phase 29 executed and verified
 
 Progress: [███████████████████████████████░] 93% (79 of 85 estimated plans complete)
 
@@ -31,7 +31,7 @@ Progress: [███████████████████████
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 | v1.4 Dogfooding | 15-18 | 7 | 2026-01-31 |
 
-*Updated: 2026-02-03 after Plan 29-03 completion*
+*Updated: 2026-02-03 after Phase 29 verification*
 
 ## Accumulated Context
 
@@ -92,5 +92,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 29-03-PLAN.md (symbol column detection)
+Stopped at: Phase 29 verified, ready for Phase 30 planning
 Resume file: None
