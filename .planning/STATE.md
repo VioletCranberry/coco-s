@@ -9,17 +9,17 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 28 of 32 complete (Hybrid Search Query)
-Plan: 4 of 4 in phase 28 (verified)
-Status: Phase 28 verified, ready for Phase 29
-Last activity: 2026-02-03 — Phase 28 executed and verified
+Phase: 29 of 32 in progress (Symbol-Aware Indexing)
+Plan: 1 of 2 in phase 29 (completed)
+Status: Plan 29-01 complete, ready for Plan 29-02
+Last activity: 2026-02-03 — Completed 29-01-PLAN.md (symbol extraction module)
 
-Progress: [██████████████████████████████░░] 89% (76 of 85 estimated plans complete)
+Progress: [███████████████████████████████░] 91% (77 of 85 estimated plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 76
+- Total plans completed: 77
 - Milestones shipped: 6 (v1.0-v1.6)
 - Current milestone: v1.7 Search Enhancement
 
@@ -31,7 +31,7 @@ Progress: [███████████████████████
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 | v1.4 Dogfooding | 15-18 | 7 | 2026-01-31 |
 
-*Updated: 2026-02-03 after Plan 28-04 completion (Phase 28 complete)*
+*Updated: 2026-02-03 after Plan 29-01 completion*
 
 ## Accumulated Context
 
@@ -39,6 +39,11 @@ Progress: [███████████████████████
 
 Recent decisions affecting v1.7 work:
 
+- **29-01**: Tree-sitter 0.21.x for API compatibility with tree-sitter-languages
+- **29-01**: Async function detection via AST child nodes (not text prefix)
+- **29-01**: Skip nested functions (implementation details)
+- **29-01**: Return first symbol when chunk contains multiple
+- **29-01**: Qualified method names format: ClassName.method_name
 - **28-04**: Fresh embedding flow per integration test with explicit Ollama URL
 - **28-04**: Integration tests skip gracefully when Ollama unavailable
 - **28-03**: Escaped brackets (\\[semantic]) for Rich markup compatibility
@@ -72,11 +77,12 @@ None yet.
 
 **v1.7 Architecture:**
 - Adding content_text column requires re-indexing existing indexes (breaking change)
-- Symbol extraction quality depends on Tree-sitter query patterns (validate during Phase 29)
+- Symbol extraction module complete, quality validated with 36 unit tests
+- Tree-sitter deprecation warning in tree-sitter-languages 1.10.2 (harmless, awaiting upstream fix)
 - RRF k parameter may need tuning based on codebase characteristics (benchmark during Phase 28)
 
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Phase 28 verified, ready for Phase 29 planning
+Stopped at: Completed 29-01-PLAN.md (symbol extraction module)
 Resume file: None
