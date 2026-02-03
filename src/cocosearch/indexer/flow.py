@@ -7,13 +7,18 @@ Defines the main indexing flow that:
 4. Stores results in PostgreSQL with vector indexes
 """
 
+import os
+
 import cocoindex
+import psycopg
 
 from cocosearch.indexer.config import IndexingConfig
 from cocosearch.indexer.embedder import code_to_embedding, extract_extension, extract_language
 from cocosearch.indexer.tsvector import text_to_tsvector_sql
 from cocosearch.handlers import get_custom_languages, extract_devops_metadata
 from cocosearch.indexer.file_filter import build_exclude_patterns
+from cocosearch.indexer.symbols import extract_symbol_metadata
+from cocosearch.indexer.schema_migration import ensure_symbol_columns
 
 
 def create_code_index_flow(
@@ -83,12 +88,18 @@ def create_code_index_flow(
                     language=file["extension"],
                 )
 
+                # Extract symbol metadata (function/class/method info)
+                chunk["symbol_metadata"] = chunk["text"].transform(
+                    extract_symbol_metadata,
+                    language=file["extension"],
+                )
+
                 # v1.7 Hybrid Search: Store chunk text and tsvector for keyword search
                 # content_text: Raw text for storage and potential future use
                 # content_tsv_input: Preprocessed text for PostgreSQL to_tsvector()
                 chunk["content_tsv_input"] = chunk["text"].transform(text_to_tsvector_sql)
 
-                # Collect with metadata (includes hybrid search columns)
+                # Collect with metadata (includes hybrid search and symbol columns)
                 code_embeddings.collect(
                     filename=file["filename"],
                     location=chunk["location"],
@@ -98,6 +109,9 @@ def create_code_index_flow(
                     block_type=chunk["metadata"]["block_type"],
                     hierarchy=chunk["metadata"]["hierarchy"],
                     language_id=chunk["metadata"]["language_id"],
+                    symbol_type=chunk["symbol_metadata"]["symbol_type"],
+                    symbol_name=chunk["symbol_metadata"]["symbol_name"],
+                    symbol_signature=chunk["symbol_metadata"]["symbol_signature"],
                 )
 
         # Step 5: Export to PostgreSQL with vector index
@@ -165,6 +179,21 @@ def run_index(
 
     # Setup flow (creates tables if needed)
     flow.setup()
+
+    # Ensure symbol columns exist in target table
+    # This must happen after setup (table exists) but before update (data insertion)
+    db_url = os.getenv("COCOSEARCH_DATABASE_URL")
+    if not db_url:
+        raise ValueError("Missing COCOSEARCH_DATABASE_URL environment variable")
+
+    # Get the actual table name following CocoIndex naming convention
+    # CocoIndex naming: {flow_name}__{target_name}
+    # Flow name: CodeIndex_{index_name} -> lowercased to codeindex_{index_name}
+    # Target name: {index_name}_chunks
+    table_name = f"codeindex_{index_name}__{index_name}_chunks"
+
+    with psycopg.connect(db_url) as conn:
+        ensure_symbol_columns(conn, table_name)
 
     # Run indexing and return statistics
     update_info = flow.update()

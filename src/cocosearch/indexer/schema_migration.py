@@ -116,3 +116,72 @@ def verify_hybrid_search_schema(conn: psycopg.Connection, table_name: str) -> bo
             return False
 
         return True
+
+
+def ensure_symbol_columns(conn: psycopg.Connection, table_name: str) -> dict[str, Any]:
+    """Ensure symbol metadata columns exist on a table.
+
+    This is idempotent - safe to call multiple times.
+    Adds nullable TEXT columns (no default value) for backward compatibility.
+
+    Args:
+        conn: PostgreSQL connection
+        table_name: Name of the chunks table (e.g., "myindex_chunks")
+
+    Returns:
+        Dict with migration results:
+        - columns_added: list of column names added
+        - already_exists: bool if all columns existed
+    """
+    results = {
+        "columns_added": [],
+        "already_exists": False,
+    }
+
+    symbol_columns = ["symbol_type", "symbol_name", "symbol_signature"]
+
+    with conn.cursor() as cur:
+        # Check which columns exist
+        cur.execute("""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = %s AND column_name = ANY(%s)
+        """, (table_name, symbol_columns))
+        existing = {row[0] for row in cur.fetchall()}
+
+        if len(existing) == len(symbol_columns):
+            results["already_exists"] = True
+            logger.info(f"Symbol columns already exist for {table_name}")
+            return results
+
+        # Add missing columns as TEXT NULL
+        for col in symbol_columns:
+            if col not in existing:
+                logger.info(f"Adding {col} column to {table_name}")
+                cur.execute(f"ALTER TABLE {table_name} ADD COLUMN {col} TEXT NULL")
+                results["columns_added"].append(col)
+
+        conn.commit()
+
+    logger.info(f"Symbol schema migration complete for {table_name}: {results}")
+    return results
+
+
+def verify_symbol_columns(conn: psycopg.Connection, table_name: str) -> bool:
+    """Verify symbol columns exist on a table.
+
+    Args:
+        conn: PostgreSQL connection
+        table_name: Name of the chunks table
+
+    Returns:
+        True if all symbol columns exist
+    """
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = %s AND column_name IN ('symbol_type', 'symbol_name', 'symbol_signature')
+        """, (table_name,))
+        existing = {row[0] for row in cur.fetchall()}
+        return len(existing) == 3
