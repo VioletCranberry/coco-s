@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Semantic code search that runs entirely locally — no data leaves your machine.
-**Current focus:** Phase 31 - Context Expansion Enhancement
+**Current focus:** Phase 31 - Context Expansion Enhancement (COMPLETE)
 
 ## Current Position
 
-Phase: 31 of 32 in progress (Context Expansion Enhancement)
-Plan: 3 of 4 in phase 31 (complete)
-Status: In progress
-Last activity: 2026-02-03 — Completed 31-03-PLAN.md
+Phase: 31 of 32 complete (Context Expansion Enhancement)
+Plan: 4 of 4 in phase 31 (complete)
+Status: Phase 31 complete
+Last activity: 2026-02-03 — Completed 31-04-PLAN.md
 
-Progress: [████████████████████████████████░] 98% (86 of 88 estimated plans complete)
+Progress: [█████████████████████████████████] 99% (87 of 88 estimated plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 83
+- Total plans completed: 87
 - Milestones shipped: 6 (v1.0-v1.6)
 - Current milestone: v1.7 Search Enhancement
 
@@ -31,7 +31,7 @@ Progress: [███████████████████████
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 | v1.4 Dogfooding | 15-18 | 7 | 2026-01-31 |
 
-*Updated: 2026-02-03 after Phase 30 verification*
+*Updated: 2026-02-03 after Phase 31 completion*
 
 ## Accumulated Context
 
@@ -39,6 +39,9 @@ Progress: [███████████████████████
 
 Recent decisions affecting v1.7 work:
 
+- **31-04**: CLI tests use subprocess for true E2E verification
+- **31-04**: Smart boundary tests don't require Docker (direct ContextExpander calls)
+- **31-04**: Cache verification via cache_info() inspection
 - **31-03**: Smart context enabled by default in MCP (matches CLI)
 - **31-03**: Context fields only included when context available (sparse response)
 - **31-03**: Explicit line counts override smart expansion in MCP
@@ -116,9 +119,10 @@ None yet.
 - Symbol columns are nullable TEXT - pre-v1.7 indexes work without re-indexing
 - Tree-sitter deprecation warning in tree-sitter-languages 1.10.2 (harmless, awaiting upstream fix)
 - Definition boost automatically applied in hybrid_search (2x for function/class definitions)
+- Context expansion complete (Phase 31) - ready for v1.7 release
 
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 31-03-PLAN.md
+Stopped at: Completed 31-04-PLAN.md (Phase 31 complete)
 Resume file: None
