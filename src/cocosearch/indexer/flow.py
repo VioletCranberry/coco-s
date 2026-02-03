@@ -82,11 +82,13 @@ def create_code_index_flow(
                     language=file["extension"],
                 )
 
-                # Collect with metadata (reference-only: no full text stored)
+                # Collect with metadata (now includes content_text for hybrid search)
+                # content_text stores raw chunk text for keyword/BM25-style search (v1.7)
                 code_embeddings.collect(
                     filename=file["filename"],
                     location=chunk["location"],
                     embedding=chunk["embedding"],
+                    content_text=chunk["text"],  # Store text for keyword indexing
                     block_type=chunk["metadata"]["block_type"],
                     hierarchy=chunk["metadata"]["hierarchy"],
                     language_id=chunk["metadata"]["language_id"],
