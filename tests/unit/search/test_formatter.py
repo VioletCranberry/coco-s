@@ -406,6 +406,100 @@ class TestExtensionLangMapDevOps:
         assert EXTENSION_LANG_MAP["tfvars"] == "hcl"
 
 
+class TestFormatJsonHybridFields:
+    """Tests for hybrid search fields in format_json output."""
+
+    def test_format_json_includes_match_type(self, make_search_result):
+        """JSON output should include match_type when set."""
+        results = [make_search_result(
+            filename="/test/file.py",
+            score=0.85,
+            match_type="both",
+            vector_score=0.82,
+            keyword_score=0.45,
+        )]
+
+        with patch("cocosearch.search.formatter.byte_to_line", return_value=1):
+            with patch("cocosearch.search.formatter.read_chunk_content", return_value="code"):
+                with patch("cocosearch.search.formatter.get_context_lines", return_value=([], [])):
+                    output = format_json(results)
+
+        parsed = json.loads(output)
+        item = parsed[0]
+        assert item["match_type"] == "both"
+
+    def test_format_json_includes_score_breakdown(self, make_search_result):
+        """JSON output should include vector_score and keyword_score when set."""
+        results = [make_search_result(
+            filename="/test/file.py",
+            score=0.85,
+            match_type="both",
+            vector_score=0.82345678,
+            keyword_score=0.45678901,
+        )]
+
+        with patch("cocosearch.search.formatter.byte_to_line", return_value=1):
+            with patch("cocosearch.search.formatter.read_chunk_content", return_value="code"):
+                with patch("cocosearch.search.formatter.get_context_lines", return_value=([], [])):
+                    output = format_json(results)
+
+        parsed = json.loads(output)
+        item = parsed[0]
+        # Scores should be rounded to 4 decimal places
+        assert item["vector_score"] == 0.8235
+        assert item["keyword_score"] == 0.4568
+
+    def test_format_json_omits_none_scores(self, make_search_result):
+        """JSON output should omit vector_score and keyword_score when None."""
+        results = [make_search_result(
+            filename="/test/file.py",
+            score=0.85,
+            # match_type and scores left at defaults (empty string, None)
+        )]
+
+        with patch("cocosearch.search.formatter.byte_to_line", return_value=1):
+            with patch("cocosearch.search.formatter.read_chunk_content", return_value="code"):
+                with patch("cocosearch.search.formatter.get_context_lines", return_value=([], [])):
+                    output = format_json(results)
+
+        parsed = json.loads(output)
+        item = parsed[0]
+        # None values should be omitted, not included as null
+        assert "match_type" not in item
+        assert "vector_score" not in item
+        assert "keyword_score" not in item
+
+    def test_format_json_backward_compat_no_hybrid_fields(self, make_search_result):
+        """JSON output should maintain backward compatible structure for non-hybrid results."""
+        results = [make_search_result(
+            filename="/test/file.py",
+            score=0.85,
+            block_type="function",
+            hierarchy="module.function",
+            language_id="python",
+        )]
+
+        with patch("cocosearch.search.formatter.byte_to_line", return_value=1):
+            with patch("cocosearch.search.formatter.read_chunk_content", return_value="def test(): pass"):
+                with patch("cocosearch.search.formatter.get_context_lines", return_value=([], [])):
+                    output = format_json(results)
+
+        parsed = json.loads(output)
+        item = parsed[0]
+
+        # Standard fields should be present
+        assert item["file_path"] == "/test/file.py"
+        assert item["score"] == 0.85
+        assert item["block_type"] == "function"
+        assert item["hierarchy"] == "module.function"
+        assert item["language_id"] == "python"
+
+        # Hybrid fields should not be present (backward compat)
+        assert "match_type" not in item
+        assert "vector_score" not in item
+        assert "keyword_score" not in item
+
+
 class TestFormatPrettyHybridMatchType:
     """Tests for hybrid search match type indicators in format_pretty."""
 
