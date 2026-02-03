@@ -20,7 +20,7 @@ from cocosearch.management.metadata import (
     get_index_metadata,
     register_index_path,
 )
-from cocosearch.management.stats import get_stats
+from cocosearch.management.stats import get_language_stats, get_stats
 
 __all__ = [
     "clear_index",
@@ -32,6 +32,7 @@ __all__ = [
     "get_git_root",
     "get_index_for_path",
     "get_index_metadata",
+    "get_language_stats",
     "get_stats",
     "list_indexes",
     "register_index_path",
