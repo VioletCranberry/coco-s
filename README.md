@@ -630,15 +630,21 @@ Indexed 42 files
 
 Search indexed code using natural language.
 
-| Flag                | Description              | Default              |
-| ------------------- | ------------------------ | -------------------- |
-| `-n, --index`       | Index to search          | Auto-detect from cwd |
-| `-l, --limit`       | Max results              | 10                   |
-| `--lang`            | Filter by language       | None                 |
-| `--min-score`       | Minimum similarity (0-1) | 0.3                  |
-| `-c, --context`     | Context lines            | 5                    |
-| `-i, --interactive` | Enter REPL mode          | Off                  |
-| `--pretty`          | Human-readable output    | JSON                 |
+| Flag                | Description                          | Default              |
+| ------------------- | ------------------------------------ | -------------------- |
+| `-n, --index`       | Index to search                      | Auto-detect from cwd |
+| `-l, --limit`       | Max results                          | 10                   |
+| `--lang`            | Filter by language                   | None                 |
+| `--min-score`       | Minimum similarity (0-1)             | 0.3                  |
+| `-A, --after-context` | Lines to show after match          | Smart expand         |
+| `-B, --before-context` | Lines to show before match        | Smart expand         |
+| `-C, --context`     | Lines before and after               | Smart expand         |
+| `--no-smart`        | Disable smart context expansion      | Off                  |
+| `--hybrid`          | Force hybrid search                  | Auto-detect          |
+| `--symbol-type`     | Filter by symbol type (repeatable)   | None                 |
+| `--symbol-name`     | Filter by symbol name pattern        | None                 |
+| `-i, --interactive` | Enter REPL mode                      | Off                  |
+| `--pretty`          | Human-readable output                | JSON                 |
 
 **Examples:**
 
@@ -720,6 +726,14 @@ Output:
 
 ```
 Index 'myproject' deleted successfully
+```
+
+**List supported languages:** `cocosearch languages [--json]`
+
+Show all languages CocoSearch can index with extensions and symbol support.
+
+```bash
+cocosearch languages
 ```
 
 **Start MCP server:** `cocosearch mcp`
