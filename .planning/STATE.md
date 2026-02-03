@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 29 of 32 complete (Symbol-Aware Indexing)
-Plan: 2 of 2 in phase 29 (completed)
+Plan: 3 of 3 in phase 29 (completed)
 Status: Phase 29 complete, ready for Phase 30
-Last activity: 2026-02-03 — Completed 29-02-PLAN.md (symbol indexing integration)
+Last activity: 2026-02-03 — Completed 29-03-PLAN.md (symbol column detection)
 
-Progress: [███████████████████████████████░] 92% (78 of 85 estimated plans complete)
+Progress: [███████████████████████████████░] 93% (79 of 85 estimated plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 78
+- Total plans completed: 79
 - Milestones shipped: 6 (v1.0-v1.6)
 - Current milestone: v1.7 Search Enhancement
 
@@ -31,7 +31,7 @@ Progress: [███████████████████████
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 | v1.4 Dogfooding | 15-18 | 7 | 2026-01-31 |
 
-*Updated: 2026-02-03 after Plan 29-02 completion*
+*Updated: 2026-02-03 after Plan 29-03 completion*
 
 ## Accumulated Context
 
@@ -39,6 +39,9 @@ Progress: [███████████████████████
 
 Recent decisions affecting v1.7 work:
 
+- **29-03**: Module-level cache for symbol column availability (prevent repeated queries)
+- **29-03**: All-or-nothing check (require all 3 symbol columns for True)
+- **29-03**: INFO-level logging for pre-v1.7 detection (not WARNING)
 - **29-02**: Call ensure_symbol_columns() after flow.setup() but before flow.update()
 - **29-02**: Use CocoIndex table naming: codeindex_{index_name}__{index_name}_chunks
 - **29-02**: Symbol columns as nullable TEXT (backward compatible, no defaults)
@@ -81,12 +84,13 @@ None yet.
 
 **v1.7 Architecture:**
 - Adding content_text column requires re-indexing existing indexes (breaking change)
-- Symbol extraction and indexing complete - ready for Phase 30 search integration
+- Symbol extraction, indexing, and detection complete - ready for Phase 30 search integration
+- Symbol column detection enables graceful degradation for pre-v1.7 indexes
 - Symbol columns are nullable TEXT - pre-v1.7 indexes work without re-indexing
 - Tree-sitter deprecation warning in tree-sitter-languages 1.10.2 (harmless, awaiting upstream fix)
 
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 29-02-PLAN.md (symbol indexing integration)
+Stopped at: Completed 29-03-PLAN.md (symbol column detection)
 Resume file: None
