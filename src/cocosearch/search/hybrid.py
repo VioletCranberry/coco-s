@@ -492,7 +492,7 @@ def hybrid_search(
 
     # If no keyword results, return vector-only with match_type="semantic"
     if not keyword_results:
-        return [
+        vector_only_results = [
             HybridSearchResult(
                 filename=r.filename,
                 start_byte=r.start_byte,
@@ -507,8 +507,13 @@ def hybrid_search(
             )
             for r in vector_results[:limit]
         ]
+        # Apply definition boost even in vector-only mode
+        return apply_definition_boost(vector_only_results, index_name)[:limit]
 
     # Fuse results using RRF
     fused = rrf_fusion(vector_results, keyword_results)
 
-    return fused[:limit]
+    # Apply definition boost (after RRF, before limit)
+    boosted = apply_definition_boost(fused, index_name)
+
+    return boosted[:limit]
