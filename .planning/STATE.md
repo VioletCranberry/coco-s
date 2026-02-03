@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-03)
 
 **Core value:** Semantic code search that runs entirely locally — no data leaves your machine.
-**Current focus:** v1.8 Polish & Observability
+**Current focus:** Phase 33 - Deferred v1.7 Foundation
 
 ## Current Position
 
-Phase: Not started (researching)
-Plan: —
-Status: Research complete, paused before requirements
-Last activity: 2026-02-03 — Milestone v1.8 started
+Phase: 33 of 37 (Deferred v1.7 Foundation)
+Plan: 02 of 03
+Status: In progress
+Last activity: 2026-02-03 — Completed 33-02-PLAN.md (Symbol Display)
 
-Progress: Defining requirements
+Progress: [================================..........] 79% (32/37 phases, 92/103 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 90
+- Total plans completed: 92
 - Milestones shipped: 7 (v1.0-v1.7)
-- Current milestone: None (ready for v1.8 planning)
+- Current milestone: v1.8 Polish & Observability (phases 33-37, 13 plans)
 
 **By Recent Milestone:**
 
@@ -31,7 +31,7 @@ Progress: Defining requirements
 | v1.6 Docker & Auto-Detect | 23-26 | 11 | 2026-02-02 |
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 
-*Updated: 2026-02-03 after v1.7 milestone archived*
+*Updated: 2026-02-03 after 33-02 completed*
 
 ## Accumulated Context
 
@@ -39,29 +39,34 @@ Progress: Defining requirements
 
 Full decision log in PROJECT.md Key Decisions table.
 
+Recent Phase 33 decisions:
+- Omit symbol fields when None for clean JSON output
+- Display [symbol_type] symbol_name format in pretty output
+- Truncate signatures >60 chars with ellipsis
+
 Recent v1.7 decisions:
 - RRF k=60 for hybrid search (standard value)
 - PostgreSQL 'simple' text config for code identifiers
-- Two-phase tsvector: Python preprocessing + PostgreSQL generated column
 - Tree-sitter 0.21.x for API compatibility
-- Instance-level LRU cache for context expansion
-- 50-line context cap centered on match
 - Definition boost (2x) after RRF fusion
 
 ### Pending Todos
 
-None — milestone complete.
+None — starting fresh milestone.
 
 ### Blockers/Concerns
 
-None — v1.7 shipped successfully.
+**Known technical debt:**
+- TODO: Add symbol filter support to hybrid search (query.py:268) — addressed in Phase 33-03
+- Tree-sitter deprecation warning in tree-sitter-languages 1.10.2 — addressed in Phase 34 migration
 
-**Known technical debt for v1.8:**
-- TODO: Add symbol filter support to hybrid search (query.py:268)
-- Tree-sitter deprecation warning in tree-sitter-languages 1.10.2 (harmless, awaiting upstream fix)
+**Research flags from SUMMARY.md:**
+- Phase 34: Test C/C++ extraction on real codebases, verify failure rates
+- Phase 35: Benchmark stats collection overhead, evaluate terminal UI options
+- Phase 36: Test skill routing with ambiguous queries
 
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: v1.8 research complete — ready for requirements definition
-Resume file: .planning/.continue-here.md
+Stopped at: Completed 33-02-PLAN.md
+Resume file: None
