@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 30 of 32 in progress (Symbol Search Filters)
-Plan: 2 of 3 in phase 30 (complete)
-Status: Plan 30-02 complete, ready for Plan 30-03
-Last activity: 2026-02-03 — Completed 30-02-PLAN.md (symbol filter SQL builder)
+Plan: 3 of 3 in phase 30 (complete)
+Status: Phase 30 complete, ready for Phase 31
+Last activity: 2026-02-03 — Completed 30-03-PLAN.md (CLI and MCP symbol filter integration)
 
-Progress: [████████████████████████████████░] 95% (81 of 85 estimated plans complete)
+Progress: [████████████████████████████████░] 96% (82 of 85 estimated plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 81
+- Total plans completed: 82
 - Milestones shipped: 6 (v1.0-v1.6)
 - Current milestone: v1.7 Search Enhancement
 
@@ -31,7 +31,7 @@ Progress: [███████████████████████
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 | v1.4 Dogfooding | 15-18 | 7 | 2026-01-31 |
 
-*Updated: 2026-02-03 after Plan 30-02 completion*
+*Updated: 2026-02-03 after Plan 30-03 completion*
 
 ## Accumulated Context
 
@@ -39,6 +39,10 @@ Progress: [███████████████████████
 
 Recent decisions affecting v1.7 work:
 
+- **30-03**: CLI --symbol-type uses action=append for OR filtering
+- **30-03**: MCP symbol_type accepts both str and list[str] for flexibility
+- **30-03**: MCP response always includes symbol_type, symbol_name, symbol_signature (None if unavailable)
+- **30-03**: ValueError from search() returns structured MCP error with message field
 - **30-01**: LANGUAGE_MAP with 12 extension mappings (js/jsx/mjs/cjs, ts/tsx/mts/cts, go, rs, py)
 - **30-01**: TypeScript type aliases map to "interface" symbol_type
 - **30-01**: Go structs and Rust structs/enums map to "class" symbol_type
@@ -101,5 +105,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 30-02-PLAN.md, ready for 30-03 CLI integration
+Stopped at: Completed 30-03-PLAN.md, Phase 30 complete
 Resume file: None
