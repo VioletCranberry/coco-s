@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-02-03)
 
 Phase: Not started (researching)
 Plan: —
-Status: Researching v1.8 features
+Status: Research complete, paused before requirements
 Last activity: 2026-02-03 — Milestone v1.8 started
 
 Progress: Defining requirements
@@ -63,5 +63,5 @@ None — v1.7 shipped successfully.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: v1.8 milestone started — researching
-Resume file: None
+Stopped at: v1.8 research complete — ready for requirements definition
+Resume file: .planning/.continue-here.md
