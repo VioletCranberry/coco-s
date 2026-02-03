@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 28 of 32 (Hybrid Search Query)
-Plan: 3 of 4 in phase 28
-Status: In progress
-Last activity: 2026-02-03 — Completed 28-03-PLAN.md
+Plan: 4 of 4 in phase 28
+Status: Phase complete
+Last activity: 2026-02-03 — Completed 28-04-PLAN.md
 
-Progress: [█████████████████████████████░░░] 88% (75 of 85 estimated plans complete)
+Progress: [██████████████████████████████░░] 89% (76 of 85 estimated plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 75
+- Total plans completed: 76
 - Milestones shipped: 6 (v1.0-v1.6)
 - Current milestone: v1.7 Search Enhancement
 
@@ -31,7 +31,7 @@ Progress: [███████████████████████
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 | v1.4 Dogfooding | 15-18 | 7 | 2026-01-31 |
 
-*Updated: 2026-02-03 after Plan 28-03 completion*
+*Updated: 2026-02-03 after Plan 28-04 completion (Phase 28 complete)*
 
 ## Accumulated Context
 
@@ -39,6 +39,8 @@ Progress: [███████████████████████
 
 Recent decisions affecting v1.7 work:
 
+- **28-04**: Fresh embedding flow per integration test with explicit Ollama URL
+- **28-04**: Integration tests skip gracefully when Ollama unavailable
 - **28-03**: Escaped brackets (\\[semantic]) for Rich markup compatibility
 - **28-03**: JSON output omits hybrid fields when None (cleaner backward compat)
 - **28-02**: use_hybrid parameter: None=auto, True=force, False=disabled
@@ -75,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T09:08:19Z
-Stopped at: Completed 28-03-PLAN.md
+Last session: 2026-02-03T09:18:19Z
+Stopped at: Completed 28-04-PLAN.md (Phase 28 complete)
 Resume file: None
