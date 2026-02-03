@@ -16,7 +16,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from tree_sitter import Parser
-from tree_sitter_languages import get_language
+from tree_sitter_language_pack import get_language
 
 logger = logging.getLogger(__name__)
 
@@ -173,8 +173,7 @@ class ContextExpander:
         """
         if language not in self._parsers:
             lang = get_language(language)
-            parser = Parser()
-            parser.set_language(lang)
+            parser = Parser(lang)
             self._parsers[language] = parser
         return self._parsers[language]
 

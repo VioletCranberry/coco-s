@@ -12,17 +12,17 @@ Supported languages:
 - Rust: functions, methods (in impl blocks), structs, traits, enums
 
 Features:
-- Extracts standalone functions, classes, and class methods
+- Query-based extraction using external .scm files
+- User-extensible: override queries in ~/.cocosearch/queries/ or .cocosearch/queries/
 - Methods use qualified names: "ClassName.method_name"
-- Handles decorated functions (@property, @classmethod, etc.)
-- Skips nested functions (implementation details)
-- Includes async keyword in signatures
 - Graceful error handling (returns NULL fields on parse errors)
 """
 
 import logging
-from tree_sitter import Parser
-from tree_sitter_languages import get_language
+import importlib.resources
+from pathlib import Path
+from tree_sitter import Parser, Query, QueryCursor
+from tree_sitter_language_pack import get_parser as pack_get_parser, get_language
 import cocoindex
 
 logger = logging.getLogger(__name__)
@@ -73,27 +73,48 @@ def _get_parser(language: str) -> Parser:
     global _PARSERS
 
     if language not in _PARSERS:
-        lang = get_language(language)
-        parser = Parser()
-        parser.set_language(lang)
-        _PARSERS[language] = parser
+        _PARSERS[language] = pack_get_parser(language)
 
     return _PARSERS[language]
 
 
-def _get_python_parser() -> Parser:
-    """Get or initialize the Python tree-sitter parser.
+# ============================================================================
+# Query File Resolution
+# ============================================================================
 
-    Backward compatible wrapper for existing code.
+
+def resolve_query_file(language: str, project_path: Path | None = None) -> str | None:
+    """Resolve query file with priority: Project > User > Built-in.
+
+    Args:
+        language: Tree-sitter language name (e.g., "python", "javascript").
+        project_path: Optional project root path for project-level overrides.
 
     Returns:
-        Parser configured for Python language.
+        Query file contents as string, or None if language not supported.
     """
-    return _get_parser("python")
+    query_name = f"{language}.scm"
+
+    # Priority 1: Project-level override
+    if project_path:
+        project_query = project_path / ".cocosearch" / "queries" / query_name
+        if project_query.exists():
+            return project_query.read_text()
+
+    # Priority 2: User-level override
+    user_path = Path.home() / ".cocosearch" / "queries" / query_name
+    if user_path.exists():
+        return user_path.read_text()
+
+    # Priority 3: Built-in queries
+    try:
+        return importlib.resources.files("cocosearch.indexer.queries").joinpath(query_name).read_text()
+    except FileNotFoundError:
+        return None
 
 
 # ============================================================================
-# Symbol Extraction Logic
+# Helper Functions
 # ============================================================================
 
 
@@ -112,621 +133,179 @@ def _get_node_text(source_text: str, node) -> str:
     return source_text[node.start_byte:node.end_byte]
 
 
-def _find_parent_of_type(node, type_name: str):
-    """Find first parent node of given type.
+def _map_symbol_type(raw_type: str) -> str:
+    """Map query capture types to database symbol types.
 
     Args:
-        node: Starting node.
-        type_name: Type to search for.
+        raw_type: Raw capture type from query (e.g., "class", "function", "struct").
 
     Returns:
-        Parent node of that type, or None if not found.
+        Normalized symbol type for database.
     """
-    parent = node.parent
-    while parent is not None:
-        if parent.type == type_name:
-            return parent
-        parent = parent.parent
+    mapping = {
+        "function": "function",
+        "method": "method",
+        "class": "class",
+        "interface": "interface",
+        "struct": "class",
+        "enum": "class",
+        "trait": "interface",
+        "module": "class",
+        "namespace": "class",
+        "type": "interface",
+    }
+    return mapping.get(raw_type, "function")
+
+
+def _get_container_name(node, chunk_text: str, language: str) -> str | None:
+    """Extract name from container node (class, struct, module, etc.).
+
+    Args:
+        node: Container node.
+        chunk_text: Source code text.
+        language: Language name.
+
+    Returns:
+        Container name, or None if not found.
+    """
+    # Try field name "name" first (most common)
+    name_node = node.child_by_field_name("name")
+    if name_node:
+        return _get_node_text(chunk_text, name_node)
+
+    # For some languages, scan children for identifier nodes
+    for child in node.children:
+        if child.type in ("identifier", "type_identifier"):
+            return _get_node_text(chunk_text, child)
+
     return None
 
 
-def _is_inside_class(node) -> bool:
-    """Check if node is inside a class definition."""
-    return _find_parent_of_type(node, "class_definition") is not None
-
-
-def _is_nested_function(func_node) -> bool:
-    """Check if function is nested inside another function.
-
-    Nested functions are implementation details and should not be
-    extracted as symbols.
+def _build_qualified_name(node, name: str, chunk_text: str, language: str) -> str:
+    """Build qualified name with parent context (e.g., ClassName.method_name).
 
     Args:
-        func_node: Tree-sitter function_definition node.
+        node: Definition node.
+        name: Symbol name.
+        chunk_text: Source code text.
+        language: Language name.
 
     Returns:
-        True if function is nested, False otherwise.
+        Qualified name with parent context.
     """
-    # Walk up parent chain looking for another function_definition
-    # before hitting class_definition or module
-    parent = func_node.parent
-    while parent is not None:
-        if parent.type == "function_definition":
-            return True
-        if parent.type in ("class_definition", "module"):
-            return False
+    container_types = {
+        "python": ["class_definition"],
+        "javascript": ["class_declaration", "class_body"],
+        "typescript": ["class_declaration", "class_body"],
+        "go": [],  # Go methods use receiver in query, handled differently
+        "rust": ["impl_item"],
+    }
+
+    parents = []
+    parent = node.parent
+    while parent:
+        if parent.type in container_types.get(language, []):
+            parent_name = _get_container_name(parent, chunk_text, language)
+            if parent_name:
+                parents.append(parent_name)
         parent = parent.parent
-    return False
+
+    if not parents:
+        return name
+
+    separator = "::" if language in ("cpp",) else "."
+    return separator.join(reversed(parents)) + separator + name
 
 
-def _extract_python_symbols(chunk_text: str, parser: Parser) -> list[dict]:
-    """Extract all symbols from Python code.
-
-    This function walks the syntax tree and extracts:
-    - Classes with their signatures
-    - Methods (functions inside classes) with qualified names
-    - Standalone functions (not in classes, not nested)
+def _build_signature(node, chunk_text: str, language: str, symbol_type: str) -> str:
+    """Build symbol signature from node.
 
     Args:
-        chunk_text: Source code text to parse.
-        parser: Tree-sitter parser instance.
+        node: Definition node.
+        chunk_text: Source code text.
+        language: Language name.
+        symbol_type: Symbol type (function, class, etc.).
+
+    Returns:
+        Symbol signature string.
+    """
+    # For now, use a simplified approach: extract first line of node
+    # This preserves most signature information without complex per-language logic
+    node_text = _get_node_text(chunk_text, node)
+    lines = node_text.split("\n")
+    first_line = lines[0].strip()
+
+    # Truncate if too long
+    if len(first_line) > 120:
+        first_line = first_line[:117] + "..."
+
+    return first_line
+
+
+# ============================================================================
+# Query-Based Symbol Extraction
+# ============================================================================
+
+
+def _extract_symbols_with_query(chunk_text: str, language: str, query_text: str) -> list[dict]:
+    """Extract symbols using tree-sitter query.
+
+    Args:
+        chunk_text: Source code text.
+        language: Tree-sitter language name.
+        query_text: Query file contents (.scm format).
 
     Returns:
         List of symbol dicts with symbol_type, symbol_name, symbol_signature.
     """
+    lang = get_language(language)
+    parser = _get_parser(language)
     tree = parser.parse(bytes(chunk_text, "utf8"))
+
+    query = Query(lang, query_text)
+    cursor = QueryCursor(query)
+    captures_dict = cursor.captures(tree.root_node)
+
     symbols = []
-
-    def walk_node(node, current_class=None):
-        """Recursively walk tree and extract symbols."""
-
-        if node.type == "class_definition":
-            # Extract class symbol
-            class_name_node = node.child_by_field_name("name")
-            if class_name_node:
-                class_name = _get_node_text(chunk_text, class_name_node)
-
-                # Get superclasses if any
-                superclasses_node = node.child_by_field_name("superclasses")
-                if superclasses_node:
-                    bases = _get_node_text(chunk_text, superclasses_node)
-                    signature = f"class {class_name}{bases}:"
-                else:
-                    signature = f"class {class_name}:"
-
-                symbols.append({
-                    "symbol_type": "class",
-                    "symbol_name": class_name,
-                    "symbol_signature": signature,
-                })
-
-                # Now walk class body to find methods
-                body_node = node.child_by_field_name("body")
-                if body_node:
-                    for child in body_node.children:
-                        walk_node(child, current_class=class_name)
-
-        elif node.type == "function_definition":
-            # Check if nested (skip if so)
-            if _is_nested_function(node):
-                return
-
-            # Extract function/method symbol
-            func_name_node = node.child_by_field_name("name")
-            params_node = node.child_by_field_name("parameters")
-
-            if func_name_node and params_node:
-                func_name = _get_node_text(chunk_text, func_name_node)
-                params = _get_node_text(chunk_text, params_node)
-
-                # Check if async (async is a child node of function_definition)
-                is_async = any(child.type == "async" for child in node.children)
-
-                # Build signature
-                prefix = "async def" if is_async else "def"
-                signature = f"{prefix} {func_name}{params}"
-
-                # Add return type if present
-                return_type_node = node.child_by_field_name("return_type")
-                if return_type_node:
-                    return_type = _get_node_text(chunk_text, return_type_node)
-                    signature += f" -> {return_type}"
-
-                # Determine if method or function
-                if current_class:
-                    symbols.append({
-                        "symbol_type": "method",
-                        "symbol_name": f"{current_class}.{func_name}",
-                        "symbol_signature": signature,
-                    })
-                else:
-                    symbols.append({
-                        "symbol_type": "function",
-                        "symbol_name": func_name,
-                        "symbol_signature": signature,
-                    })
-
-        elif node.type == "decorated_definition":
-            # Handle decorated functions/classes
-            # The actual definition is inside
-            definition_node = node.child_by_field_name("definition")
-            if definition_node:
-                walk_node(definition_node, current_class=current_class)
-
-        else:
-            # For other node types, recurse into children
-            # But only at module level (not inside functions/classes already handled)
-            if current_class is None and node.type in ("module", "block"):
-                for child in node.children:
-                    # Don't recurse if we're not at top level
-                    walk_node(child, current_class=None)
-
-    # Start walking from root
-    walk_node(tree.root_node)
-
-    return symbols
-
-
-# ============================================================================
-# JavaScript Symbol Extraction
-# ============================================================================
-
-
-def _extract_javascript_symbols(chunk_text: str, parser: Parser) -> list[dict]:
-    """Extract symbols from JavaScript/JSX code.
-
-    Extracts:
-    - Function declarations: function fetchUser() {}
-    - Arrow functions: const fetchUser = () => {} (named only)
-    - Class declarations: class UserService {}
-    - Methods: methods inside class bodies
-
-    Args:
-        chunk_text: Source code text to parse.
-        parser: Tree-sitter parser instance.
-
-    Returns:
-        List of symbol dicts with symbol_type, symbol_name, symbol_signature.
-    """
-    tree = parser.parse(bytes(chunk_text, "utf8"))
-    symbols = []
-
-    def walk_node(node, current_class=None):
-        """Recursively walk tree and extract symbols."""
-
-        # Function declarations
-        if node.type == "function_declaration":
-            name_node = node.child_by_field_name("name")
-            params_node = node.child_by_field_name("parameters")
-            if name_node and params_node:
-                name = _get_node_text(chunk_text, name_node)
-                params = _get_node_text(chunk_text, params_node)
-
-                symbol_type = "method" if current_class else "function"
-                symbol_name = f"{current_class}.{name}" if current_class else name
-
-                symbols.append({
-                    "symbol_type": symbol_type,
-                    "symbol_name": symbol_name,
-                    "symbol_signature": f"function {name}{params}",
-                })
-
-        # Arrow functions (named only: const name = () => {})
-        elif node.type == "lexical_declaration":
-            # Look for pattern: const/let name = arrow_function
-            for child in node.children:
-                if child.type == "variable_declarator":
-                    name_node = child.child_by_field_name("name")
-                    value_node = child.child_by_field_name("value")
-                    if name_node and value_node and value_node.type == "arrow_function":
-                        name = _get_node_text(chunk_text, name_node)
-                        params_node = value_node.child_by_field_name("parameters")
-                        if params_node:
-                            params = _get_node_text(chunk_text, params_node)
-                        else:
-                            # Single parameter without parens: x => x
-                            param_node = value_node.child_by_field_name("parameter")
-                            params = f"({_get_node_text(chunk_text, param_node)})" if param_node else "()"
-
-                        symbols.append({
-                            "symbol_type": "function",
-                            "symbol_name": name,
-                            "symbol_signature": f"const {name} = {params} => ...",
-                        })
-
-        # Class declarations
-        elif node.type == "class_declaration":
-            name_node = node.child_by_field_name("name")
-            if name_node:
-                class_name = _get_node_text(chunk_text, name_node)
-                symbols.append({
-                    "symbol_type": "class",
-                    "symbol_name": class_name,
-                    "symbol_signature": f"class {class_name}",
-                })
-
-                # Walk class body for methods
-                body_node = node.child_by_field_name("body")
-                if body_node:
-                    for child in body_node.children:
-                        walk_node(child, current_class=class_name)
-
-        # Method definitions (inside classes)
-        elif node.type == "method_definition" and current_class:
-            name_node = node.child_by_field_name("name")
-            params_node = node.child_by_field_name("parameters")
-            if name_node and params_node:
-                method_name = _get_node_text(chunk_text, name_node)
-                params = _get_node_text(chunk_text, params_node)
-
-                symbols.append({
-                    "symbol_type": "method",
-                    "symbol_name": f"{current_class}.{method_name}",
-                    "symbol_signature": f"{method_name}{params}",
-                })
-
-        else:
-            # Recurse for module-level nodes
-            if current_class is None and node.type in ("program", "statement_block"):
-                for child in node.children:
-                    walk_node(child, current_class=None)
-            elif current_class and node.type == "class_body":
-                for child in node.children:
-                    walk_node(child, current_class=current_class)
-
-    walk_node(tree.root_node)
-    return symbols
-
-
-# ============================================================================
-# TypeScript Symbol Extraction
-# ============================================================================
-
-
-def _extract_typescript_symbols(chunk_text: str, parser: Parser) -> list[dict]:
-    """Extract symbols from TypeScript/TSX code.
-
-    Extends JavaScript extraction with:
-    - Interfaces: interface User {}
-    - Type aliases: type UserID = string (mapped to "interface" symbol_type)
-
-    Args:
-        chunk_text: Source code text to parse.
-        parser: Tree-sitter parser instance.
-
-    Returns:
-        List of symbol dicts with symbol_type, symbol_name, symbol_signature.
-    """
-    tree = parser.parse(bytes(chunk_text, "utf8"))
-    symbols = []
-
-    def walk_node(node, current_class=None):
-        """Recursively walk tree and extract symbols."""
-
-        # Function declarations
-        if node.type == "function_declaration":
-            name_node = node.child_by_field_name("name")
-            params_node = node.child_by_field_name("parameters")
-            if name_node and params_node:
-                name = _get_node_text(chunk_text, name_node)
-                params = _get_node_text(chunk_text, params_node)
-
-                symbol_type = "method" if current_class else "function"
-                symbol_name = f"{current_class}.{name}" if current_class else name
-
-                symbols.append({
-                    "symbol_type": symbol_type,
-                    "symbol_name": symbol_name,
-                    "symbol_signature": f"function {name}{params}",
-                })
-
-        # Arrow functions (named only: const name = () => {})
-        elif node.type == "lexical_declaration":
-            for child in node.children:
-                if child.type == "variable_declarator":
-                    name_node = child.child_by_field_name("name")
-                    value_node = child.child_by_field_name("value")
-                    if name_node and value_node and value_node.type == "arrow_function":
-                        name = _get_node_text(chunk_text, name_node)
-                        params_node = value_node.child_by_field_name("parameters")
-                        if params_node:
-                            params = _get_node_text(chunk_text, params_node)
-                        else:
-                            param_node = value_node.child_by_field_name("parameter")
-                            params = f"({_get_node_text(chunk_text, param_node)})" if param_node else "()"
-
-                        symbols.append({
-                            "symbol_type": "function",
-                            "symbol_name": name,
-                            "symbol_signature": f"const {name} = {params} => ...",
-                        })
-
-        # Class declarations
-        elif node.type == "class_declaration":
-            name_node = node.child_by_field_name("name")
-            if name_node:
-                class_name = _get_node_text(chunk_text, name_node)
-                symbols.append({
-                    "symbol_type": "class",
-                    "symbol_name": class_name,
-                    "symbol_signature": f"class {class_name}",
-                })
-
-                body_node = node.child_by_field_name("body")
-                if body_node:
-                    for child in body_node.children:
-                        walk_node(child, current_class=class_name)
-
-        # Method definitions (inside classes)
-        elif node.type == "method_definition" and current_class:
-            name_node = node.child_by_field_name("name")
-            params_node = node.child_by_field_name("parameters")
-            if name_node and params_node:
-                method_name = _get_node_text(chunk_text, name_node)
-                params = _get_node_text(chunk_text, params_node)
-
-                symbols.append({
-                    "symbol_type": "method",
-                    "symbol_name": f"{current_class}.{method_name}",
-                    "symbol_signature": f"{method_name}{params}",
-                })
-
-        # TypeScript-specific: Interface declarations
-        elif node.type == "interface_declaration":
-            name_node = node.child_by_field_name("name")
-            if name_node:
-                interface_name = _get_node_text(chunk_text, name_node)
-                symbols.append({
-                    "symbol_type": "interface",
-                    "symbol_name": interface_name,
-                    "symbol_signature": f"interface {interface_name}",
-                })
-
-        # TypeScript-specific: Type alias declarations (mapped to "interface")
-        elif node.type == "type_alias_declaration":
-            name_node = node.child_by_field_name("name")
-            if name_node:
-                type_name = _get_node_text(chunk_text, name_node)
-                symbols.append({
-                    "symbol_type": "interface",  # Map type alias to interface per CONTEXT.md
-                    "symbol_name": type_name,
-                    "symbol_signature": f"type {type_name}",
-                })
-
-        else:
-            # Recurse for module-level nodes
-            if current_class is None and node.type in ("program", "statement_block"):
-                for child in node.children:
-                    walk_node(child, current_class=None)
-            elif current_class and node.type == "class_body":
-                for child in node.children:
-                    walk_node(child, current_class=current_class)
-
-    walk_node(tree.root_node)
-    return symbols
-
-
-# ============================================================================
-# Go Symbol Extraction
-# ============================================================================
-
-
-def _extract_go_symbols(chunk_text: str, parser: Parser) -> list[dict]:
-    """Extract symbols from Go code.
-
-    Extracts:
-    - Functions: func Process() error
-    - Methods: func (s *Server) Start() error -> Server.Start
-    - Structs: type Server struct {} (mapped to "class" symbol_type)
-    - Interfaces: type Handler interface {}
-
-    Args:
-        chunk_text: Source code text to parse.
-        parser: Tree-sitter parser instance.
-
-    Returns:
-        List of symbol dicts with symbol_type, symbol_name, symbol_signature.
-    """
-    tree = parser.parse(bytes(chunk_text, "utf8"))
-    symbols = []
-
-    for node in tree.root_node.children:
-        # Function declarations (including methods with receivers)
-        if node.type == "function_declaration":
-            name_node = node.child_by_field_name("name")
-            params_node = node.child_by_field_name("parameters")
-
-            if name_node:
-                func_name = _get_node_text(chunk_text, name_node)
-                params = _get_node_text(chunk_text, params_node) if params_node else "()"
-
-                # Check for receiver (method)
-                receiver = None
-                for child in node.children:
-                    if child.type == "parameter_list" and child.start_byte < name_node.start_byte:
-                        # This is the receiver, extract type name
-                        receiver_text = _get_node_text(chunk_text, child)
-                        # Parse receiver: (s *Server) -> Server, (s Server) -> Server
-                        inner = receiver_text.strip("()")
-                        parts = inner.split()
-                        if len(parts) >= 2:
-                            type_part = parts[-1].lstrip("*")
-                            receiver = type_part
-                        elif len(parts) == 1:
-                            receiver = parts[0].lstrip("*")
+    # Build mappings: definition_node -> (symbol_type, name_text)
+    definitions = {}  # node.id -> (node, capture_type)
+    names = {}  # parent_node.id -> name_text
+
+    # Process captures from dict structure
+    for capture_name, nodes in captures_dict.items():
+        if capture_name.startswith("definition."):
+            symbol_type = capture_name.split(".", 1)[1]
+            for node in nodes:
+                definitions[node.id] = (node, symbol_type)
+        elif capture_name == "name":
+            for node in nodes:
+                # Find parent that is a definition
+                parent = node.parent
+                while parent:
+                    if parent.id in definitions:
+                        names[parent.id] = chunk_text[node.start_byte:node.end_byte]
                         break
+                    parent = parent.parent
 
-                if receiver:
-                    symbols.append({
-                        "symbol_type": "method",
-                        "symbol_name": f"{receiver}.{func_name}",
-                        "symbol_signature": f"func {func_name}{params}",
-                    })
-                else:
-                    symbols.append({
-                        "symbol_type": "function",
-                        "symbol_name": func_name,
-                        "symbol_signature": f"func {func_name}{params}",
-                    })
+    for node_id, (node, symbol_type) in definitions.items():
+        name = names.get(node_id)
+        if name:
+            # Build qualified name for methods
+            qualified_name = _build_qualified_name(node, name, chunk_text, language)
+            signature = _build_signature(node, chunk_text, language, symbol_type)
 
-        # Method declarations (alternative syntax)
-        elif node.type == "method_declaration":
-            name_node = node.child_by_field_name("name")
-            params_node = node.child_by_field_name("parameters")
-            receiver_node = node.child_by_field_name("receiver")
-
-            if name_node:
-                method_name = _get_node_text(chunk_text, name_node)
-                params = _get_node_text(chunk_text, params_node) if params_node else "()"
-
-                receiver = None
-                if receiver_node:
-                    receiver_text = _get_node_text(chunk_text, receiver_node)
-                    inner = receiver_text.strip("()")
-                    parts = inner.split()
-                    if len(parts) >= 2:
-                        receiver = parts[-1].lstrip("*")
-                    elif len(parts) == 1:
-                        receiver = parts[0].lstrip("*")
-
-                if receiver:
-                    symbols.append({
-                        "symbol_type": "method",
-                        "symbol_name": f"{receiver}.{method_name}",
-                        "symbol_signature": f"func {method_name}{params}",
-                    })
-                else:
-                    symbols.append({
-                        "symbol_type": "function",
-                        "symbol_name": method_name,
-                        "symbol_signature": f"func {method_name}{params}",
-                    })
-
-        # Type declarations (structs, interfaces)
-        elif node.type == "type_declaration":
-            for spec in node.children:
-                if spec.type == "type_spec":
-                    name_node = spec.child_by_field_name("name")
-                    type_node = spec.child_by_field_name("type")
-
-                    if name_node and type_node:
-                        type_name = _get_node_text(chunk_text, name_node)
-
-                        if type_node.type == "struct_type":
-                            symbols.append({
-                                "symbol_type": "class",
-                                "symbol_name": type_name,
-                                "symbol_signature": f"type {type_name} struct",
-                            })
-                        elif type_node.type == "interface_type":
-                            symbols.append({
-                                "symbol_type": "interface",
-                                "symbol_name": type_name,
-                                "symbol_signature": f"type {type_name} interface",
-                            })
+            symbols.append({
+                "symbol_type": _map_symbol_type(symbol_type),
+                "symbol_name": qualified_name,
+                "symbol_signature": signature,
+            })
 
     return symbols
 
 
 # ============================================================================
-# Rust Symbol Extraction
+# Main Extract Function
 # ============================================================================
-
-
-def _extract_rust_symbols(chunk_text: str, parser: Parser) -> list[dict]:
-    """Extract symbols from Rust code.
-
-    Extracts:
-    - Functions: fn process() -> Result<(), Error>
-    - Methods: impl Server { fn start() } -> Server.start
-    - Structs: struct Server {} (mapped to "class" symbol_type)
-    - Traits: trait Handler {} (mapped to "interface" symbol_type)
-    - Enums: enum Status {} (mapped to "class" symbol_type)
-
-    Args:
-        chunk_text: Source code text to parse.
-        parser: Tree-sitter parser instance.
-
-    Returns:
-        List of symbol dicts with symbol_type, symbol_name, symbol_signature.
-    """
-    tree = parser.parse(bytes(chunk_text, "utf8"))
-    symbols = []
-
-    for node in tree.root_node.children:
-        # Function definitions (top-level)
-        if node.type == "function_item":
-            name_node = node.child_by_field_name("name")
-            params_node = node.child_by_field_name("parameters")
-
-            if name_node:
-                func_name = _get_node_text(chunk_text, name_node)
-                params = _get_node_text(chunk_text, params_node) if params_node else "()"
-
-                symbols.append({
-                    "symbol_type": "function",
-                    "symbol_name": func_name,
-                    "symbol_signature": f"fn {func_name}{params}",
-                })
-
-        # Impl blocks (methods)
-        elif node.type == "impl_item":
-            type_node = node.child_by_field_name("type")
-            type_name = None
-            if type_node:
-                type_name = _get_node_text(chunk_text, type_node)
-
-            body_node = node.child_by_field_name("body")
-            if body_node and type_name:
-                for child in body_node.children:
-                    if child.type == "function_item":
-                        name_node = child.child_by_field_name("name")
-                        params_node = child.child_by_field_name("parameters")
-
-                        if name_node:
-                            method_name = _get_node_text(chunk_text, name_node)
-                            params = _get_node_text(chunk_text, params_node) if params_node else "()"
-
-                            symbols.append({
-                                "symbol_type": "method",
-                                "symbol_name": f"{type_name}.{method_name}",
-                                "symbol_signature": f"fn {method_name}{params}",
-                            })
-
-        # Struct definitions
-        elif node.type == "struct_item":
-            name_node = node.child_by_field_name("name")
-            if name_node:
-                struct_name = _get_node_text(chunk_text, name_node)
-                symbols.append({
-                    "symbol_type": "class",
-                    "symbol_name": struct_name,
-                    "symbol_signature": f"struct {struct_name}",
-                })
-
-        # Trait definitions
-        elif node.type == "trait_item":
-            name_node = node.child_by_field_name("name")
-            if name_node:
-                trait_name = _get_node_text(chunk_text, name_node)
-                symbols.append({
-                    "symbol_type": "interface",
-                    "symbol_name": trait_name,
-                    "symbol_signature": f"trait {trait_name}",
-                })
-
-        # Enum definitions
-        elif node.type == "enum_item":
-            name_node = node.child_by_field_name("name")
-            if name_node:
-                enum_name = _get_node_text(chunk_text, name_node)
-                symbols.append({
-                    "symbol_type": "class",
-                    "symbol_name": enum_name,
-                    "symbol_signature": f"enum {enum_name}",
-                })
-
-    return symbols
 
 
 @cocoindex.op.function()
@@ -764,40 +343,24 @@ def extract_symbol_metadata(text: str, language: str) -> dict:
         }
 
     try:
-        parser = _get_parser(ts_language)
-
-        # Parse the chunk
-        tree = parser.parse(bytes(text, "utf8"))
-
-        # Log parse errors (debug level only)
-        if tree.root_node.has_error:
-            logger.debug("Parse errors in chunk (continuing with partial tree)")
-
-        # Dispatch to language-specific extractor
-        if ts_language == "python":
-            symbols = _extract_python_symbols(text, parser)
-        elif ts_language == "javascript":
-            symbols = _extract_javascript_symbols(text, parser)
-        elif ts_language == "typescript":
-            symbols = _extract_typescript_symbols(text, parser)
-        elif ts_language == "go":
-            symbols = _extract_go_symbols(text, parser)
-        elif ts_language == "rust":
-            symbols = _extract_rust_symbols(text, parser)
-        else:
-            # Fallback (should not happen with LANGUAGE_MAP)
-            symbols = []
-
-        # Return first symbol if any found
-        if symbols:
-            return symbols[0]
-        else:
-            # No symbols in this chunk
+        query_text = resolve_query_file(ts_language)
+        if query_text is None:
+            # No query file for this language - index without symbols
             return {
                 "symbol_type": None,
                 "symbol_name": None,
                 "symbol_signature": None,
             }
+
+        symbols = _extract_symbols_with_query(text, ts_language, query_text)
+
+        if symbols:
+            return symbols[0]
+        return {
+            "symbol_type": None,
+            "symbol_name": None,
+            "symbol_signature": None,
+        }
 
     except Exception as e:
         # Catastrophic failure - log and return NULLs
