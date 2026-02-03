@@ -75,6 +75,22 @@ def search_code(
             "True=always use hybrid, False=vector-only"
         ),
     ] = None,
+    symbol_type: Annotated[
+        str | list[str] | None,
+        Field(
+            description="Filter by symbol type. "
+            "Single: 'function', 'class', 'method', 'interface'. "
+            "Array: ['function', 'method'] for OR filtering."
+        ),
+    ] = None,
+    symbol_name: Annotated[
+        str | None,
+        Field(
+            description="Filter by symbol name pattern (glob). "
+            "Examples: 'get*', 'User*Service', '*Handler'. "
+            "Case-insensitive matching."
+        ),
+    ] = None,
 ) -> list[dict]:
     """Search indexed code using natural language.
 
@@ -145,13 +161,23 @@ def search_code(
     cocoindex.init()
 
     # Execute search
-    results = search(
-        query=query,
-        index_name=index_name,
-        limit=limit,
-        language_filter=language,
-        use_hybrid=use_hybrid_search,
-    )
+    try:
+        results = search(
+            query=query,
+            index_name=index_name,
+            limit=limit,
+            language_filter=language,
+            use_hybrid=use_hybrid_search,
+            symbol_type=symbol_type,
+            symbol_name=symbol_name,
+        )
+    except ValueError as e:
+        # Symbol filter errors (invalid type or pre-v1.7 index)
+        return [{
+            "error": "Symbol filter error",
+            "message": str(e),
+            "results": []
+        }]
 
     # Convert results to dicts with line numbers and content
     output = []
@@ -169,6 +195,10 @@ def search_code(
             "block_type": r.block_type,
             "hierarchy": r.hierarchy,
             "language_id": r.language_id,
+            # Symbol metadata (always included, None if not available)
+            "symbol_type": r.symbol_type,
+            "symbol_name": r.symbol_name,
+            "symbol_signature": r.symbol_signature,
         }
 
         # Include hybrid search fields when available
