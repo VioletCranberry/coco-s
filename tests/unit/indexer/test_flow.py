@@ -44,15 +44,21 @@ class TestRunIndex:
         mock_flow.setup.return_value = None
         mock_flow.update.return_value = mock_update_info
 
+        # Mock database connection and schema migration
+        mock_conn = MagicMock()
+
         with patch("cocosearch.indexer.flow.cocoindex.init"):
             with patch(
                 "cocosearch.indexer.flow.create_code_index_flow",
                 return_value=mock_flow
             ):
-                result = run_index(
-                    index_name="testindex",
-                    codebase_path=str(tmp_path),
-                )
+                with patch("cocosearch.indexer.flow.os.getenv", return_value="postgresql://localhost/test"):
+                    with patch("cocosearch.indexer.flow.psycopg.connect", return_value=mock_conn):
+                        with patch("cocosearch.indexer.flow.ensure_symbol_columns"):
+                            result = run_index(
+                                index_name="testindex",
+                                codebase_path=str(tmp_path),
+                            )
 
         # Should return the update info from flow.update()
         assert result == mock_update_info
@@ -74,16 +80,21 @@ class TestRunIndex:
         mock_flow = MagicMock()
         mock_flow.update.return_value = MagicMock()
 
+        mock_conn = MagicMock()
+
         with patch("cocosearch.indexer.flow.cocoindex.init"):
             with patch(
                 "cocosearch.indexer.flow.create_code_index_flow",
                 return_value=mock_flow
             ) as mock_create_flow:
-                run_index(
-                    index_name="testindex",
-                    codebase_path=str(tmp_path),
-                    config=custom_config,
-                )
+                with patch("cocosearch.indexer.flow.os.getenv", return_value="postgresql://localhost/test"):
+                    with patch("cocosearch.indexer.flow.psycopg.connect", return_value=mock_conn):
+                        with patch("cocosearch.indexer.flow.ensure_symbol_columns"):
+                            run_index(
+                                index_name="testindex",
+                                codebase_path=str(tmp_path),
+                                config=custom_config,
+                            )
 
         # Verify create_code_index_flow was called with config values
         call_kwargs = mock_create_flow.call_args[1]
@@ -100,16 +111,21 @@ class TestRunIndex:
         mock_flow = MagicMock()
         mock_flow.update.return_value = MagicMock()
 
+        mock_conn = MagicMock()
+
         with patch("cocosearch.indexer.flow.cocoindex.init"):
             with patch(
                 "cocosearch.indexer.flow.create_code_index_flow",
                 return_value=mock_flow
             ) as mock_create_flow:
-                run_index(
-                    index_name="testindex",
-                    codebase_path=str(tmp_path),
-                    config=None,
-                )
+                with patch("cocosearch.indexer.flow.os.getenv", return_value="postgresql://localhost/test"):
+                    with patch("cocosearch.indexer.flow.psycopg.connect", return_value=mock_conn):
+                        with patch("cocosearch.indexer.flow.ensure_symbol_columns"):
+                            run_index(
+                                index_name="testindex",
+                                codebase_path=str(tmp_path),
+                                config=None,
+                            )
 
         # Should use default include_patterns (has *.py)
         call_kwargs = mock_create_flow.call_args[1]
@@ -126,16 +142,21 @@ class TestRunIndex:
         mock_flow = MagicMock()
         mock_flow.update.return_value = MagicMock()
 
+        mock_conn = MagicMock()
+
         with patch("cocosearch.indexer.flow.cocoindex.init"):
             with patch(
                 "cocosearch.indexer.flow.create_code_index_flow",
                 return_value=mock_flow
             ) as mock_create_flow:
-                run_index(
-                    index_name="testindex",
-                    codebase_path=str(tmp_path),
-                    respect_gitignore=True,
-                )
+                with patch("cocosearch.indexer.flow.os.getenv", return_value="postgresql://localhost/test"):
+                    with patch("cocosearch.indexer.flow.psycopg.connect", return_value=mock_conn):
+                        with patch("cocosearch.indexer.flow.ensure_symbol_columns"):
+                            run_index(
+                                index_name="testindex",
+                                codebase_path=str(tmp_path),
+                                respect_gitignore=True,
+                            )
 
         call_kwargs = mock_create_flow.call_args[1]
         assert "custom_ignore/" in call_kwargs["exclude_patterns"]
@@ -150,16 +171,21 @@ class TestRunIndex:
         mock_flow = MagicMock()
         mock_flow.update.return_value = MagicMock()
 
+        mock_conn = MagicMock()
+
         with patch("cocosearch.indexer.flow.cocoindex.init"):
             with patch(
                 "cocosearch.indexer.flow.create_code_index_flow",
                 return_value=mock_flow
             ) as mock_create_flow:
-                run_index(
-                    index_name="testindex",
-                    codebase_path=str(tmp_path),
-                    respect_gitignore=False,
-                )
+                with patch("cocosearch.indexer.flow.os.getenv", return_value="postgresql://localhost/test"):
+                    with patch("cocosearch.indexer.flow.psycopg.connect", return_value=mock_conn):
+                        with patch("cocosearch.indexer.flow.ensure_symbol_columns"):
+                            run_index(
+                                index_name="testindex",
+                                codebase_path=str(tmp_path),
+                                respect_gitignore=False,
+                            )
 
         call_kwargs = mock_create_flow.call_args[1]
         assert "custom_ignore/" not in call_kwargs["exclude_patterns"]
@@ -173,15 +199,20 @@ class TestRunIndex:
         mock_flow = MagicMock()
         mock_flow.update.return_value = MagicMock()
 
+        mock_conn = MagicMock()
+
         with patch("cocosearch.indexer.flow.cocoindex.init") as mock_init:
             with patch(
                 "cocosearch.indexer.flow.create_code_index_flow",
                 return_value=mock_flow
             ):
-                run_index(
-                    index_name="testindex",
-                    codebase_path=str(tmp_path),
-                )
+                with patch("cocosearch.indexer.flow.os.getenv", return_value="postgresql://localhost/test"):
+                    with patch("cocosearch.indexer.flow.psycopg.connect", return_value=mock_conn):
+                        with patch("cocosearch.indexer.flow.ensure_symbol_columns"):
+                            run_index(
+                                index_name="testindex",
+                                codebase_path=str(tmp_path),
+                            )
 
         mock_init.assert_called_once()
 
@@ -296,6 +327,77 @@ class TestMetadataIntegration:
             index_name="test_metadata",
             codebase_path="/test/path",
             include_patterns=["*.py", "*.tf", "Dockerfile"],
+            exclude_patterns=[],
+        )
+
+        assert flow is not None
+
+
+class TestSymbolIntegration:
+    """Tests for symbol extraction integration in flow module."""
+
+    def test_extract_symbol_metadata_importable_from_flow(self):
+        """flow module successfully imports extract_symbol_metadata."""
+        import cocosearch.indexer.flow as flow_module
+
+        assert hasattr(flow_module, 'extract_symbol_metadata')
+
+    def test_ensure_symbol_columns_importable_from_flow(self):
+        """flow module successfully imports ensure_symbol_columns."""
+        import cocosearch.indexer.flow as flow_module
+
+        assert hasattr(flow_module, 'ensure_symbol_columns')
+
+    def test_flow_source_has_symbol_import(self):
+        """flow module source contains the symbols import statement."""
+        import cocosearch.indexer.flow as flow_module
+
+        source = inspect.getsource(flow_module)
+        assert "from cocosearch.indexer.symbols import" in source
+        assert "extract_symbol_metadata" in source
+
+    def test_flow_source_has_schema_migration_import(self):
+        """flow module source contains the schema migration import."""
+        import cocosearch.indexer.flow as flow_module
+
+        source = inspect.getsource(flow_module)
+        assert "from cocosearch.indexer.schema_migration import" in source
+        assert "ensure_symbol_columns" in source
+
+    def test_flow_source_has_symbol_transform(self):
+        """flow module source contains the symbol metadata transform call."""
+        import cocosearch.indexer.flow as flow_module
+
+        source = inspect.getsource(flow_module)
+        assert 'chunk["symbol_metadata"]' in source
+        assert 'extract_symbol_metadata' in source
+        assert 'language=file["extension"]' in source
+
+    def test_flow_source_collects_symbol_fields(self):
+        """flow module source collects all three symbol fields via bracket notation."""
+        import cocosearch.indexer.flow as flow_module
+
+        source = inspect.getsource(flow_module)
+        assert 'symbol_type=chunk["symbol_metadata"]["symbol_type"]' in source
+        assert 'symbol_name=chunk["symbol_metadata"]["symbol_name"]' in source
+        assert 'symbol_signature=chunk["symbol_metadata"]["symbol_signature"]' in source
+
+    def test_flow_source_calls_ensure_symbol_columns(self):
+        """flow module source calls ensure_symbol_columns after setup."""
+        import cocosearch.indexer.flow as flow_module
+
+        source = inspect.getsource(flow_module)
+        # Should call ensure_symbol_columns in run_index
+        assert 'ensure_symbol_columns(conn, table_name)' in source
+
+    def test_create_code_index_flow_with_symbols_succeeds(self):
+        """create_code_index_flow builds flow without errors after symbol wiring."""
+        from cocosearch.indexer.flow import create_code_index_flow
+
+        flow = create_code_index_flow(
+            index_name="test_symbols",
+            codebase_path="/test/path",
+            include_patterns=["*.py", "*.js"],
             exclude_patterns=[],
         )
 
