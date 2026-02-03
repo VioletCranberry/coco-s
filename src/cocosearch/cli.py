@@ -335,6 +335,10 @@ def search_command(args: argparse.Namespace) -> int:
     # args.hybrid is True if --hybrid specified, None otherwise (auto-detect)
     use_hybrid = True if getattr(args, "hybrid", None) else None
 
+    # Get symbol filters from args
+    symbol_type = getattr(args, "symbol_type", None)  # list[str] or None from action="append"
+    symbol_name = getattr(args, "symbol_name", None)  # str or None
+
     # Execute search
     try:
         results = search(
@@ -344,6 +348,8 @@ def search_command(args: argparse.Namespace) -> int:
             min_score=min_score,
             language_filter=lang_filter,
             use_hybrid=use_hybrid,
+            symbol_type=symbol_type,
+            symbol_name=symbol_name,
         )
     except Exception as e:
         if args.pretty:
@@ -836,6 +842,18 @@ def main() -> None:
         action="store_true",
         default=None,
         help="Enable hybrid search (vector + keyword). Auto-enabled for identifier patterns (camelCase/snake_case).",
+    )
+    search_parser.add_argument(
+        "--symbol-type",
+        help="Filter by symbol type. Options: function, class, method, interface. "
+             "Can be specified multiple times for OR filtering (e.g., --symbol-type function --symbol-type method).",
+        action="append",
+        dest="symbol_type",
+    )
+    search_parser.add_argument(
+        "--symbol-name",
+        help="Filter by symbol name pattern (glob). "
+             "Examples: 'get*', 'User*Service', '*Handler'. Case-insensitive matching.",
     )
 
     # List subcommand
