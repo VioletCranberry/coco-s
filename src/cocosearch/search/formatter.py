@@ -43,6 +43,14 @@ def format_json(
             "language_id": r.language_id,
         }
 
+        # Add hybrid search fields only when they have values (clean output for non-hybrid)
+        if hasattr(r, "match_type") and r.match_type:
+            item["match_type"] = r.match_type
+        if hasattr(r, "vector_score") and r.vector_score is not None:
+            item["vector_score"] = round(r.vector_score, 4)
+        if hasattr(r, "keyword_score") and r.keyword_score is not None:
+            item["keyword_score"] = round(r.keyword_score, 4)
+
         if include_content:
             item["content"] = read_chunk_content(r.filename, r.start_byte, r.end_byte)
 

@@ -331,6 +331,10 @@ def search_command(args: argparse.Namespace) -> int:
     # CLI --lang overrides inline lang:
     lang_filter = args.lang or inline_lang
 
+    # Determine hybrid mode
+    # args.hybrid is True if --hybrid specified, None otherwise (auto-detect)
+    use_hybrid = True if getattr(args, "hybrid", None) else None
+
     # Execute search
     try:
         results = search(
@@ -339,6 +343,7 @@ def search_command(args: argparse.Namespace) -> int:
             limit=limit,
             min_score=min_score,
             language_filter=lang_filter,
+            use_hybrid=use_hybrid,
         )
     except Exception as e:
         if args.pretty:
@@ -825,6 +830,12 @@ def main() -> None:
         "--pretty",
         action="store_true",
         help="Human-readable output (default: JSON)",
+    )
+    search_parser.add_argument(
+        "--hybrid",
+        action="store_true",
+        default=None,
+        help="Enable hybrid search (vector + keyword). Auto-enabled for identifier patterns (camelCase/snake_case).",
     )
 
     # List subcommand
