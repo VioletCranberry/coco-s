@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-03)
 ## Current Position
 
 Phase: 34 of 37 (Symbol Extraction Expansion)
-Plan: 03 of 03 (C and C++ Symbol Extraction)
+Plan: 04 of 04 (PHP, Ruby, Java Symbol Extraction)
 Status: Phase complete
-Last activity: 2026-02-03 — Completed 34-03: C and C++ symbol extraction
+Last activity: 2026-02-03 — Completed 34-04: 10-language symbol extraction coverage
 
-Progress: [==================================........] 84% (34/37 phases, 97/103 plans)
+Progress: [==================================........] 84% (34/37 phases, 98/103 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 96
+- Total plans completed: 97
 - Milestones shipped: 7 (v1.0-v1.7)
 - Current milestone: v1.8 Polish & Observability (phases 33-37, 13 plans)
 
@@ -49,6 +49,9 @@ Recent Phase 34 decisions:
 - Map C++ namespaces to "class" symbol type (organizational containers)
 - Use "::" separator for C++ qualified names (MyClass::method)
 - .h files map to C by default (users can override via .cocosearch/queries/)
+- Map PHP traits to "interface" symbol type (semantic similarity to mixins)
+- Map Ruby modules to "class" symbol type (organizational containers like namespaces)
+- Normalize all language-specific constructs to 4 core types (function, method, class, interface)
 
 Recent Phase 33 decisions:
 - Apply symbol/language filters BEFORE RRF fusion (not after)
@@ -74,6 +77,6 @@ None - tree-sitter deprecation warnings resolved in Phase 34-01.
 
 ## Session Continuity
 
-Last session: 2026-02-03 19:44 UTC
-Stopped at: Completed Phase 34 (Symbol Extraction Expansion)
+Last session: 2026-02-03 19:47 UTC
+Stopped at: Completed Phase 34-04 (PHP, Ruby, Java Symbol Extraction)
 Resume file: None
