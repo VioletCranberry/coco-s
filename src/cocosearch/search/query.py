@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass
 
 from cocosearch.indexer.embedder import code_to_embedding
-from cocosearch.search.db import get_connection_pool, get_table_name
+from cocosearch.search.db import check_column_exists, get_connection_pool, get_table_name
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +76,10 @@ ALL_LANGUAGES = set(LANGUAGE_EXTENSIONS.keys()) | set(DEVOPS_LANGUAGES.keys())
 # Module-level flag for metadata column availability (pre-v1.2 graceful degradation)
 _has_metadata_columns = True
 _metadata_warning_emitted = False
+
+# Module-level flag for hybrid search column availability (pre-v1.7 graceful degradation)
+_has_content_text_column = True
+_hybrid_warning_emitted = False
 
 
 def get_extension_patterns(language: str) -> list[str]:
@@ -152,6 +156,7 @@ def search(
             or if DevOps language filter is used on a pre-v1.2 index.
     """
     global _has_metadata_columns, _metadata_warning_emitted
+    global _has_content_text_column, _hybrid_warning_emitted
 
     # Validate and resolve language filter
     validated_languages = None
@@ -171,6 +176,17 @@ def search(
 
     pool = get_connection_pool()
     table_name = get_table_name(index_name)
+
+    # Check for hybrid search capability (content_text column) on first call
+    # This prepares for Phase 28 hybrid search implementation
+    if _has_content_text_column and not _hybrid_warning_emitted:
+        if not check_column_exists(table_name, "content_text"):
+            _has_content_text_column = False
+            logger.warning(
+                "Index lacks hybrid search columns (content_text). "
+                "Run 'cocosearch index' to enable hybrid search."
+            )
+            _hybrid_warning_emitted = True
 
     # Determine whether to include metadata columns in SELECT
     include_metadata = _has_metadata_columns
