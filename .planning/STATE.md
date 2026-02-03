@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-03)
 Phase: 34 of 37 (Symbol Extraction Expansion)
 Plan: 04 of 04 (PHP, Ruby, Java Symbol Extraction)
 Status: Phase complete
-Last activity: 2026-02-03 — Completed 34-04: 10-language symbol extraction coverage
+Last activity: 2026-02-03 — Completed 34-02 retroactively (work done in prior commits)
 
 Progress: [==================================........] 84% (34/37 phases, 98/103 plans)
 
@@ -45,6 +45,7 @@ Recent Phase 34 decisions:
 - Preserve return types in signatures for richer search context
 - Extract receiver types for Go methods to build qualified names (Server.Start)
 - Prioritize method patterns in Rust queries to distinguish from top-level functions
+- Process definitions before names in extraction (prevents incorrect parent assignment)
 - Only extract C/C++ definitions with body (ignore forward declarations)
 - Map C++ namespaces to "class" symbol type (organizational containers)
 - Use "::" separator for C++ qualified names (MyClass::method)
@@ -77,6 +78,8 @@ None - tree-sitter deprecation warnings resolved in Phase 34-01.
 
 ## Session Continuity
 
-Last session: 2026-02-03 19:47 UTC
-Stopped at: Completed Phase 34-04 (PHP, Ruby, Java Symbol Extraction)
+Last session: 2026-02-03
+Stopped at: Completed Phase 34-02 retroactively (Java and Ruby extraction - work done in prior commits)
 Resume file: None
+
+**Note:** Phase 34 plans were executed out of order. 34-01, 34-03, and 34-04 were completed with dedicated commits. Plan 34-02 (Java and Ruby) had its implementation bundled into commits for other plans. Summary created retroactively to document the work.
