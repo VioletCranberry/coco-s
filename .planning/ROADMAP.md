@@ -100,11 +100,11 @@ Plans:
   2. Claude Code skill includes routing guidance (when CocoSearch vs grep/find)
   3. OpenCode SKILL.md exists with setup instructions
   4. OpenCode skill includes routing guidance for code exploration workflows
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 36-01: Claude Code skill (installation + routing)
-- [ ] 36-02: OpenCode skill (installation + routing)
+- [ ] 36-01-PLAN.md -- Claude Code skill (installation + MCP config + routing guidance)
+- [ ] 36-02-PLAN.md -- OpenCode skill (installation + MCP config + routing guidance)
 
 #### Phase 37: Documentation Rebrand
 **Goal**: Update README to reflect CocoSearch's full capabilities beyond "semantic search"
