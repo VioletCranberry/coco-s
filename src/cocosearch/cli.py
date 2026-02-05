@@ -994,6 +994,40 @@ def config_check_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def serve_dashboard_command(args: argparse.Namespace) -> int:
+    """Execute the serve-dashboard command.
+
+    Starts a minimal HTTP server serving the web dashboard and API.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        Exit code (0 for success, 1 for error).
+    """
+    from cocosearch.mcp import run_server
+
+    console = Console()
+    console.print("[bold]Starting CocoSearch Dashboard[/bold]")
+    console.print(f"  Dashboard: http://{args.host}:{args.port}/dashboard")
+    console.print(f"  API: http://{args.host}:{args.port}/api/stats")
+    console.print()
+    console.print("[dim]Press Ctrl+C to stop[/dim]")
+
+    # Use MCP server with SSE transport (provides HTTP routes)
+    try:
+        run_server(transport="sse", host=args.host, port=args.port)
+        return 0
+    except KeyboardInterrupt:
+        console.print("\n[dim]Dashboard stopped[/dim]")
+        return 0
+    except OSError as e:
+        if "Address already in use" in str(e):
+            console.print(f"[bold red]Error:[/bold red] Port {args.port} is already in use")
+            return 1
+        raise
+
+
 def main() -> None:
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -1294,8 +1328,26 @@ def main() -> None:
         description="Validate required environment variables without connecting to services.",
     )
 
+    # Serve-dashboard subcommand
+    serve_parser = subparsers.add_parser(
+        "serve-dashboard",
+        help="Start standalone web dashboard server",
+        description="Start a web server to view the stats dashboard in a browser.",
+    )
+    serve_parser.add_argument(
+        "--port", "-p",
+        type=int,
+        default=8080,
+        help="Port to serve dashboard on (default: 8080)",
+    )
+    serve_parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host to bind to (default: 127.0.0.1)",
+    )
+
     # Known subcommands for routing
-    known_subcommands = ("index", "search", "list", "stats", "languages", "clear", "init", "mcp", "config", "-h", "--help")
+    known_subcommands = ("index", "search", "list", "stats", "languages", "clear", "init", "mcp", "config", "serve-dashboard", "-h", "--help")
 
     # Handle default action (query without subcommand)
     # Check before parsing if first argument is not a known subcommand
@@ -1335,6 +1387,8 @@ def main() -> None:
         else:
             parser.print_help()
             sys.exit(1)
+    elif args.command == "serve-dashboard":
+        sys.exit(serve_dashboard_command(args))
     else:
         parser.print_help()
         sys.exit(1)
