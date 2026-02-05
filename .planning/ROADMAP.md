@@ -66,10 +66,11 @@ Plans:
   3. v1.2 graceful degradation code removed (old index compat no longer supported)
   4. All tests updated and passing after each cleanup step
   5. Codebase is cleaner with reduced LOC count
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 40-01: TBD
+- [ ] 40-01-PLAN.md — Remove deprecated languages.py and metadata.py re-export modules
+- [ ] 40-02-PLAN.md — Remove v1.2 graceful degradation code from search modules
 
 #### Phase 41: Workflow Skills
 **Goal**: Users have multi-step workflow guidance for common tasks
@@ -115,4 +116,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-05 — Phase 39 complete*
+*Last updated: 2026-02-05 — Phase 40 planned*
