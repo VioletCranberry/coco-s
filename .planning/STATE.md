@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-05)
 
 **Core value:** Semantic code search that runs entirely locally — no data leaves your machine.
-**Current focus:** Planning next milestone
+**Current focus:** v1.9 Multi-Repo & Polish
 
 ## Current Position
 
-Phase: 37 of 37 (all phases complete)
-Plan: N/A
-Status: Ready to plan next milestone
-Last activity: 2026-02-05 — v1.8 milestone archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v1.9
+Last activity: 2026-02-05 — Milestone v1.9 started
 
-Progress: [==========================================] 100% (37/37 phases, 103/103 plans)
+Progress: Awaiting roadmap
 
 ## Performance Metrics
 

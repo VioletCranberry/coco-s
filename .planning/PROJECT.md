@@ -97,7 +97,19 @@ Semantic code search that runs entirely locally — no data leaves your machine.
 
 ### Active
 
-**Planning next milestone**
+**v1.9 Multi-Repo & Polish**
+
+- [ ] Single MCP registration for multiple repos (Serena-style cwd detection)
+- [ ] Prompt to index when unindexed repo detected
+- [ ] UV-based installation support (`uvx --from git+...`)
+- [ ] Per-project and global MCP configuration patterns
+- [ ] Fix test signature format mismatches
+- [ ] Remove DB migrations logic (single-user, no backwards compat needed)
+- [ ] Remove deprecated functions and v1.2 graceful degradation
+- [ ] Remove unused code paths
+- [ ] Multi-step workflow skills (onboarding, debugging, refactoring)
+- [ ] Retrieval logic documentation
+- [ ] MCP tools reference documentation
 
 ### Out of Scope
 
@@ -108,9 +120,6 @@ Semantic code search that runs entirely locally — no data leaves your machine.
 - Block type / hierarchy search filters — validate demand first
 - Config inheritance (base + override) — complexity vs value tradeoff, skip for now
 - Per-directory config overrides — skip for now, reassess if demand emerges
-- Multi-step workflow skills (onboarding, debugging, refactoring) — deferred from v1.8
-- Retrieval logic documentation — deferred from v1.8
-- MCP tools reference documentation — deferred from v1.8
 
 ## Current State
 
@@ -197,4 +206,4 @@ Environment: COCOSEARCH_DATABASE_URL (required), COCOSEARCH_OLLAMA_URL (optional
 | Hybrid search tagline | Better positioning than "semantic search" | ✓ Good |
 
 ---
-*Last updated: 2026-02-05 after v1.8 milestone complete*
+*Last updated: 2026-02-05 after v1.9 milestone started*
