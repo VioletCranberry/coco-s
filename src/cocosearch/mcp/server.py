@@ -26,9 +26,10 @@ from typing import Annotated
 import cocoindex
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
-from starlette.responses import JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse
 
 from cocosearch.cli import derive_index_name
+from cocosearch.dashboard.web import get_dashboard_html
 from cocosearch.indexer import IndexingConfig, run_index
 from cocosearch.management import clear_index as mgmt_clear_index
 from cocosearch.management import get_stats, list_indexes as mgmt_list_indexes
@@ -49,8 +50,16 @@ mcp = FastMCP("cocosearch")
 # Health endpoint for Docker/orchestration
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request):
-    """Health check endpoint for Docker HEALTHCHECK and load balancers."""
+    """Health check endpoint. Also see /dashboard for web UI."""
     return JSONResponse({"status": "ok"})
+
+
+# Dashboard endpoint
+@mcp.custom_route("/dashboard", methods=["GET"])
+async def serve_dashboard(request):
+    """Serve the web dashboard HTML."""
+    html_content = get_dashboard_html()
+    return HTMLResponse(content=html_content)
 
 
 # Stats API endpoints
