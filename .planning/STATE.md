@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-02-03)
 
 **Core value:** Semantic code search that runs entirely locally — no data leaves your machine.
-**Current focus:** Phase 35 - Stats Dashboard
+**Current focus:** Phase 36 - Developer Skills
 
 ## Current Position
 
-Phase: 35 of 37 (Stats Dashboard)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-02-05 — Completed 35-03-PLAN.md
+Phase: 36 of 37 (Developer Skills)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-05 — Completed 36-01-PLAN.md
 
-Progress: [===================================.......] 87% (35/37 phases, 100/103 plans)
+Progress: [===================================.......] 88% (36/37 phases, 101/103 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 100
+- Total plans completed: 101
 - Milestones shipped: 7 (v1.0-v1.7)
 - Current milestone: v1.8 Polish & Observability (phases 33-37, 13 plans)
 
@@ -31,13 +31,18 @@ Progress: [===================================.......] 87% (35/37 phases, 100/10
 | v1.6 Docker & Auto-Detect | 23-26 | 11 | 2026-02-02 |
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 
-*Updated: 2026-02-05 after Phase 35 plan 03 complete*
+*Updated: 2026-02-05 after Phase 36 plan 01 complete*
 
 ## Accumulated Context
 
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table.
+
+Recent Phase 36 decisions:
+- Force-add .claude directory despite global gitignore (skill file is project documentation)
+- Include 6 examples instead of minimum 5 for comprehensive coverage
+- Keep Troubleshooting section as README pointer only (no content duplication)
 
 Recent Phase 35 decisions:
 - Use IndexStats dataclass to aggregate all health metrics in one place
@@ -71,7 +76,7 @@ Recent Phase 33 decisions:
 
 ### Pending Todos
 
-None — starting Phase 35.
+None — Phase 36 plan 01 complete.
 
 ### Blockers/Concerns
 
@@ -82,10 +87,11 @@ None
 - Phase 34: Test C/C++ extraction on real codebases with heavy macros, verify failure rates
 - Phase 34: Consider parse failure tracking in stats output (per-language counts)
 - Phase 35: Benchmark stats collection overhead, evaluate terminal UI options
-- Phase 36: Test skill routing with ambiguous queries
+- Phase 36: Test skill routing decision tree effectiveness with Claude Code users
+- Phase 36: Verify line count optimization (172 vs target ~100)
 
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 35-03-PLAN.md (Phase 35 complete)
+Stopped at: Completed 36-01-PLAN.md
 Resume file: None
