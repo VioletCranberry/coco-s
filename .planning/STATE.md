@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-03)
 ## Current Position
 
 Phase: 35 of 37 (Stats Dashboard)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-05 — Completed 35-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-02-05 — Completed 35-03-PLAN.md
 
-Progress: [===================================.......] 86% (35/37 phases, 99/103 plans)
+Progress: [===================================.......] 87% (35/37 phases, 100/103 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 99
+- Total plans completed: 100
 - Milestones shipped: 7 (v1.0-v1.7)
 - Current milestone: v1.8 Polish & Observability (phases 33-37, 13 plans)
 
@@ -31,7 +31,7 @@ Progress: [===================================.......] 86% (35/37 phases, 99/103
 | v1.6 Docker & Auto-Detect | 23-26 | 11 | 2026-02-02 |
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 
-*Updated: 2026-02-05 after Phase 35 plan 02 complete*
+*Updated: 2026-02-05 after Phase 35 plan 03 complete*
 
 ## Accumulated Context
 
@@ -49,6 +49,10 @@ Recent Phase 35 decisions:
 - Cache-Control: no-cache header on API responses to prevent stale data
 - htop-style layout: header/summary/details for maximum information density
 - Static snapshot mode (--live) vs. auto-refresh mode (--live --watch)
+- Single-page HTML with embedded CSS/JS (no build step, no bundler required)
+- Chart.js via CDN for zero-config setup and browser caching
+- CSS variables with prefers-color-scheme for automatic dark/light mode
+- serve-dashboard reuses MCP server infrastructure (no duplicate HTTP code)
 
 Recent Phase 34 decisions:
 - Migrated from tree-sitter-languages to tree-sitter-language-pack 0.13.0
@@ -83,5 +87,5 @@ None
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 35-02-PLAN.md
+Stopped at: Completed 35-03-PLAN.md (Phase 35 complete)
 Resume file: None
