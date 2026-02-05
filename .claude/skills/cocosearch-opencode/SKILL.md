@@ -179,11 +179,6 @@ Shows exactly 10 lines before/after each match (vs smart expansion).
 - Symbol features require v1.7+ (reindex if upgrading)
 - Check index health: `cocosearch stats <index>`
 
-## Troubleshooting
+---
 
-For database setup, Docker installation, MCP debugging, and advanced configuration, see the [project README.md](https://github.com/fyodorovandrei/cocosearch#readme).
-
-**Quick checks:**
-- `cocosearch --version` → Shows version
-- `cocosearch stats` → Connects to database
-- Check OpenCode MCP status in settings
+**For troubleshooting, database setup, Docker installation, and advanced configuration, see the [project README.md](https://github.com/fyodorovandrei/cocosearch#readme).**
