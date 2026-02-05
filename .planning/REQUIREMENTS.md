@@ -61,27 +61,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MCP-01 | Pending | Pending |
-| MCP-02 | Pending | Pending |
-| MCP-03 | Pending | Pending |
-| MCP-04 | Pending | Pending |
-| MCP-05 | Pending | Pending |
-| TEST-01 | Pending | Pending |
-| CLEAN-01 | Pending | Pending |
-| CLEAN-02 | Pending | Pending |
-| CLEAN-03 | Pending | Pending |
-| CLEAN-04 | Pending | Pending |
-| DOC-01 | Pending | Pending |
-| DOC-02 | Pending | Pending |
-| DOC-03 | Pending | Pending |
-| DOC-04 | Pending | Pending |
-| DOC-05 | Pending | Pending |
+| MCP-01 | Phase 38 | Pending |
+| MCP-02 | Phase 38 | Pending |
+| MCP-03 | Phase 38 | Pending |
+| MCP-04 | Phase 38 | Pending |
+| MCP-05 | Phase 38 | Pending |
+| TEST-01 | Phase 39 | Pending |
+| CLEAN-01 | Phase 40 | Pending |
+| CLEAN-02 | Phase 40 | Pending |
+| CLEAN-03 | Phase 40 | Pending |
+| CLEAN-04 | Phase 40 | Pending |
+| DOC-01 | Phase 41 | Pending |
+| DOC-02 | Phase 41 | Pending |
+| DOC-03 | Phase 41 | Pending |
+| DOC-04 | Phase 42 | Pending |
+| DOC-05 | Phase 42 | Pending |
 
 **Coverage:**
 - v1.9 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15 (awaiting roadmap)
+- Mapped to phases: 15
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-05*
-*Last updated: 2026-02-05 after initial definition*
+*Last updated: 2026-02-05 after roadmap creation*

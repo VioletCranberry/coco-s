@@ -11,6 +11,7 @@
 - v1.6 All-in-One Docker & Auto-Detect -- Phases 23-26 (shipped 2026-02-02)
 - v1.7 Search Enhancement -- Phases 27-32 (shipped 2026-02-03)
 - v1.8 Polish & Observability -- Phases 33-37 (shipped 2026-02-05)
+- v1.9 Multi-Repo & Polish -- Phases 38-42 (in progress)
 
 ## Phases
 
@@ -30,6 +31,79 @@ See project history for earlier milestones:
 
 </details>
 
+### v1.9 Multi-Repo & Polish (In Progress)
+
+**Milestone Goal:** Enable single MCP registration for all projects, clean up technical debt, and document workflow patterns for users.
+
+#### Phase 38: Multi-Repo MCP Support
+**Goal**: Users can register CocoSearch once and use it across all their projects
+**Depends on**: Phase 37 (v1.8 complete)
+**Requirements**: MCP-01, MCP-02, MCP-03, MCP-04, MCP-05
+**Success Criteria** (what must be TRUE):
+  1. User can add CocoSearch to Claude Code with user scope and search any project's codebase by opening that project
+  2. User can add CocoSearch to Claude Desktop with user scope and search any project
+  3. When user searches an unindexed project, they receive a prompt to index it (not silent failure or cryptic error)
+  4. When user searches a stale index, they receive a warning about index freshness
+  5. Documentation clearly shows the single-registration pattern with `--project-from-cwd` flag
+**Plans**: TBD
+
+Plans:
+- [ ] 38-01: TBD
+
+#### Phase 39: Test Fixes
+**Goal**: Test suite passes reliably with correct signature format expectations
+**Depends on**: Phase 38
+**Requirements**: TEST-01
+**Success Criteria** (what must be TRUE):
+  1. All existing tests pass without signature format assertion failures
+  2. Signature format tests match actual implementation behavior
+**Plans**: TBD
+
+Plans:
+- [ ] 39-01: TBD
+
+#### Phase 40: Code Cleanup
+**Goal**: Remove deprecated code and migration logic safely without breaking functionality
+**Depends on**: Phase 39 (tests must pass first)
+**Requirements**: CLEAN-01, CLEAN-02, CLEAN-03, CLEAN-04
+**Success Criteria** (what must be TRUE):
+  1. DB migrations module removed from codebase (single-user tool, no backwards compat needed)
+  2. All deprecated functions removed with no remaining references
+  3. v1.2 graceful degradation code removed (old index compat no longer supported)
+  4. All tests updated and passing after each cleanup step
+  5. Codebase is cleaner with reduced LOC count
+**Plans**: TBD
+
+Plans:
+- [ ] 40-01: TBD
+
+#### Phase 41: Workflow Skills
+**Goal**: Users have multi-step workflow guidance for common tasks
+**Depends on**: Phase 38 (multi-repo enables workflows)
+**Requirements**: DOC-01, DOC-02, DOC-03
+**Success Criteria** (what must be TRUE):
+  1. Onboarding workflow skill guides users through understanding a new codebase step-by-step
+  2. Debugging workflow skill guides users through finding root cause of issues
+  3. Refactoring workflow skill guides users through safe code changes with impact analysis
+  4. Skills follow consistent multi-step format with clear when-to-use guidance
+**Plans**: TBD
+
+Plans:
+- [ ] 41-01: TBD
+
+#### Phase 42: Technical Documentation
+**Goal**: Users and contributors understand retrieval logic and MCP tool usage
+**Depends on**: Phase 40 (document final implementation, not interim states)
+**Requirements**: DOC-04, DOC-05
+**Success Criteria** (what must be TRUE):
+  1. Retrieval logic documentation explains hybrid search, RRF fusion, symbol filtering, and query caching
+  2. MCP tools reference provides complete examples for all tools with parameter descriptions
+  3. Documentation is accurate to current implementation (post-cleanup)
+**Plans**: TBD
+
+Plans:
+- [ ] 42-01: TBD
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
@@ -43,7 +117,8 @@ See project history for earlier milestones:
 | v1.6 Docker & Auto-Detect | 23-26 | 11 | Complete | 2026-02-02 |
 | v1.7 Search Enhancement | 27-32 | 21 | Complete | 2026-02-03 |
 | v1.8 Polish & Observability | 33-37 | 13 | Complete | 2026-02-05 |
+| v1.9 Multi-Repo & Polish | 38-42 | TBD | In progress | - |
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-05 — v1.8 milestone archived*
+*Last updated: 2026-02-05 — v1.9 roadmap created*

@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements for v1.9
-Last activity: 2026-02-05 — Milestone v1.9 started
+Phase: 38 of 42 (Multi-Repo MCP Support)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-02-05 — Roadmap created for v1.9
 
-Progress: Awaiting roadmap
+Progress: [##########..........] 88% (103/117 estimated plans)
 
 ## Performance Metrics
 
@@ -32,7 +32,7 @@ Progress: Awaiting roadmap
 | v1.6 Docker & Auto-Detect | 23-26 | 11 | 2026-02-02 |
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 
-*Updated: 2026-02-05 after v1.8 milestone archived*
+*Updated: 2026-02-05 after v1.9 roadmap created*
 
 ## Accumulated Context
 
@@ -42,21 +42,21 @@ Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-None — ready for next milestone planning.
+None — ready for phase planning.
 
 ### Blockers/Concerns
 
-**Known technical debt:**
-None
+**From research:**
+- uvx cwd behavior needs validation: `os.getcwd()` may return uvx cache path, not workspace. Document `--directory $(pwd)` pattern in MCP registration.
+- Old index prevalence unknown: May need migration guidance before removing graceful degradation in Phase 40.
+- CocoIndex schema completeness: Verify CocoIndex natively creates all columns before removing migration functions.
 
-**Research flags from v1.8:**
-- Phase 34: Test C/C++ extraction on real codebases with heavy macros, verify failure rates
-- Phase 34: Consider parse failure tracking in stats output (per-language counts)
-- Phase 35: Benchmark stats collection overhead, evaluate terminal UI options
-- Phase 36: Test skill routing decision tree effectiveness with both Claude Code and OpenCode users
+**Research flags from v1.8 (still relevant):**
+- Test C/C++ extraction on real codebases with heavy macros, verify failure rates
+- Consider parse failure tracking in stats output (per-language counts)
 
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: v1.8 milestone archived — ready for /gsd:new-milestone
+Stopped at: v1.9 roadmap created — ready for /gsd:plan-phase 38
 Resume file: None
