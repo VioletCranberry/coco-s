@@ -658,6 +658,7 @@ Search indexed code using natural language.
 | `--hybrid`          | Force hybrid search                  | Auto-detect          |
 | `--symbol-type`     | Filter by symbol type (repeatable)   | None                 |
 | `--symbol-name`     | Filter by symbol name pattern        | None                 |
+| `--no-cache`        | Bypass query cache (for debugging)   | Off                  |
 | `-i, --interactive` | Enter REPL mode                      | Off                  |
 | `--pretty`          | Human-readable output                | JSON                 |
 
@@ -947,11 +948,11 @@ cocosearch stats myproject --json
 
 ## Supported Languages
 
-CocoSearch indexes 31 programming languages via Tree-sitter. Symbol extraction (for `--symbol-type` and `--symbol-name` filtering) is available for 5 languages.
+CocoSearch indexes 31 programming languages via Tree-sitter. Symbol extraction (for `--symbol-type` and `--symbol-name` filtering) is available for 10 languages.
 
 ### Full Support (Symbol-Aware)
 
-**Python**, **JavaScript**, **TypeScript**, **Go**, **Rust**
+**Python**, **JavaScript**, **TypeScript**, **Go**, **Rust**, **Java**, **C**, **C++**, **Ruby**, **PHP**
 
 All features: Hybrid search, symbol filtering, smart context expansion
 
@@ -959,7 +960,7 @@ Symbol types extracted: `function`, `class`, `method`, `interface`
 
 ### Basic Support
 
-C, C++, C#, CSS, Fortran, HTML, Java, JSON, Kotlin, Markdown, Pascal, PHP, R, Ruby, Scala, Shell, Solidity, SQL, Swift, TOML, XML, YAML, Bash, Dockerfile, HCL, and more
+C#, CSS, Fortran, HTML, JSON, Kotlin, Markdown, Pascal, R, Scala, Shell, Solidity, SQL, Swift, TOML, XML, YAML, Bash, Dockerfile, HCL, and more
 
 Features: Hybrid search, semantic + keyword search
 
