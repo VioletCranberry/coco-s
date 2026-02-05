@@ -40,6 +40,7 @@ CocoSearch indexes your code and enables hybrid search — combining semantic un
 - **Hybrid search** — semantic similarity + keyword matching via RRF fusion
 - **Symbol filtering** — filter by function, class, method, or symbol name patterns
 - **Context expansion** — smart expansion to enclosing function/class boundaries
+- **Query caching** — exact and semantic cache for fast repeated queries
 - **Index observability** — stats dashboard for monitoring index health
 - **Stay private** — everything runs locally, no external API calls
 - **Use with AI assistants** — integrate via CLI or MCP (Claude Code, Claude Desktop, OpenCode)
