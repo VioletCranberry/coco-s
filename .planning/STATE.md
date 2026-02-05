@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-03)
 ## Current Position
 
 Phase: 36 of 37 (Developer Skills)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-05 — Completed 36-01-PLAN.md
+Last activity: 2026-02-05 — Completed 36-02-PLAN.md
 
-Progress: [===================================.......] 88% (36/37 phases, 101/103 plans)
+Progress: [===================================.......] 88% (36/37 phases, 102/103 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 101
+- Total plans completed: 102
 - Milestones shipped: 7 (v1.0-v1.7)
 - Current milestone: v1.8 Polish & Observability (phases 33-37, 13 plans)
 
@@ -31,7 +31,7 @@ Progress: [===================================.......] 88% (36/37 phases, 101/10
 | v1.6 Docker & Auto-Detect | 23-26 | 11 | 2026-02-02 |
 | v1.5 Config & Architecture | 19-22 | 11 | 2026-02-01 |
 
-*Updated: 2026-02-05 after Phase 36 plan 01 complete*
+*Updated: 2026-02-05 after Phase 36 plan 02 complete*
 
 ## Accumulated Context
 
@@ -40,8 +40,11 @@ Progress: [===================================.......] 88% (36/37 phases, 101/10
 Full decision log in PROJECT.md Key Decisions table.
 
 Recent Phase 36 decisions:
-- Force-add .claude directory despite global gitignore (skill file is project documentation)
-- Include 6 examples instead of minimum 5 for comprehensive coverage
+- OpenCode MCP config format differs: type: local, command array, environment not env, enabled: true
+- No troubleshooting section in skills - footer reference to README keeps focused
+- 184-line format for OpenCode skill balances comprehensiveness with context budget
+- Force-add .claude/skills/ files despite global gitignore for team sharing (applies to both skills)
+- Include 6 examples instead of minimum 5 for comprehensive coverage (both skills)
 - Keep Troubleshooting section as README pointer only (no content duplication)
 
 Recent Phase 35 decisions:
@@ -76,7 +79,7 @@ Recent Phase 33 decisions:
 
 ### Pending Todos
 
-None — Phase 36 plan 01 complete.
+None — Phase 36 plan 02 complete.
 
 ### Blockers/Concerns
 
@@ -87,11 +90,11 @@ None
 - Phase 34: Test C/C++ extraction on real codebases with heavy macros, verify failure rates
 - Phase 34: Consider parse failure tracking in stats output (per-language counts)
 - Phase 35: Benchmark stats collection overhead, evaluate terminal UI options
-- Phase 36: Test skill routing decision tree effectiveness with Claude Code users
-- Phase 36: Verify line count optimization (172 vs target ~100)
+- Phase 36: Test skill routing decision tree effectiveness with both Claude Code and OpenCode users
+- Phase 36: Verify line count optimization (172 Claude Code, 184 OpenCode vs target ~100)
 
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 36-01-PLAN.md
+Stopped at: Completed 36-02-PLAN.md
 Resume file: None
