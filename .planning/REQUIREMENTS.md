@@ -17,7 +17,7 @@ Requirements for v1.9 Multi-Repo & Polish milestone.
 
 ### Test Fixes
 
-- [ ] **TEST-01**: Fix test signature format mismatches
+- [x] **TEST-01**: Fix test signature format mismatches
 
 ### Code Cleanup
 
@@ -66,7 +66,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MCP-03 | Phase 38 | Complete |
 | MCP-04 | Phase 38 | Complete |
 | MCP-05 | Phase 38 | Complete |
-| TEST-01 | Phase 39 | Pending |
+| TEST-01 | Phase 39 | Complete |
 | CLEAN-01 | Phase 40 | Pending |
 | CLEAN-02 | Phase 40 | Pending |
 | CLEAN-03 | Phase 40 | Pending |
@@ -84,4 +84,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-05*
-*Last updated: 2026-02-05 after phase 38 completion*
+*Last updated: 2026-02-05 after phase 39 completion*

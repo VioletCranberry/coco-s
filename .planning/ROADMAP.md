@@ -46,17 +46,15 @@ Plans:
 - [x] 38-01-PLAN.md — Add --project-from-cwd flag and staleness warnings
 - [x] 38-02-PLAN.md — Document user-scope MCP registration patterns
 
-#### Phase 39: Test Fixes
+#### Phase 39: Test Fixes ✓
 **Goal**: Test suite passes reliably with correct signature format expectations
 **Depends on**: Phase 38
 **Requirements**: TEST-01
-**Success Criteria** (what must be TRUE):
-  1. All existing tests pass without signature format assertion failures
-  2. Signature format tests match actual implementation behavior
+**Status**: Complete (2026-02-05)
 **Plans**: 1 plan
 
 Plans:
-- [ ] 39-01-PLAN.md — Fix test failures (symbol signatures, CLI Namespace mocks, hybrid search mocks)
+- [x] 39-01-PLAN.md — Fix test failures (symbol signatures, CLI Namespace mocks, hybrid search mocks)
 
 #### Phase 40: Code Cleanup
 **Goal**: Remove deprecated code and migration logic safely without breaking functionality
@@ -117,4 +115,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-05 — Phase 39 planned*
+*Last updated: 2026-02-05 — Phase 39 complete*
