@@ -94,6 +94,8 @@ flowchart LR
   - [Example Searches](#example-searches)
   - [Full Development Environment](#full-development-environment)
 - [⚙️ Configuring MCP](#configuring-mcp)
+  - [Single Registration (Recommended)](#single-registration-recommended)
+  - [Per-Project Registration (Alternative)](#per-project-registration-alternative)
   - [Configuring Claude Code](#configuring-claude-code)
   - [Configuring Claude Desktop](#configuring-claude-desktop)
   - [Configuring OpenCode](#configuring-opencode)
@@ -469,6 +471,58 @@ CocoSearch provides an MCP (Model Context Protocol) server for semantic code sea
 - `list_indexes` - List all available indexes
 - `index_stats` - Get statistics for an index
 - `clear_index` - Remove an index from the database
+
+### Single Registration (Recommended)
+
+Register CocoSearch once and use it across all your projects. The `--project-from-cwd` flag tells CocoSearch to detect the project from whichever directory you're working in.
+
+**For Claude Code:**
+
+```bash
+# Register once for all projects (user scope)
+claude mcp add --scope user cocosearch -- \
+  uvx --from /absolute/path/to/cocosearch cocosearch mcp --project-from-cwd
+
+# Verify registration
+claude mcp list
+```
+
+**For Claude Desktop:**
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `~/.config/Claude/claude_desktop_config.json` (Linux):
+
+```json
+{
+  "mcpServers": {
+    "cocosearch": {
+      "command": "uvx",
+      "args": [
+        "--from", "/absolute/path/to/cocosearch",
+        "cocosearch", "mcp", "--project-from-cwd"
+      ]
+    }
+  }
+}
+```
+
+**How it works:**
+
+- `--scope user` makes the registration available in ALL projects (not just current)
+- `--project-from-cwd` tells CocoSearch to detect the project from whichever directory you're working in
+- Open any project, CocoSearch automatically searches that project's index
+- If the project isn't indexed yet, you'll get a prompt to index it
+
+**For uvx users (git+https pattern):**
+
+```bash
+# Register with uvx using git+https pattern
+claude mcp add --scope user cocosearch -- \
+  uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch mcp --project-from-cwd
+```
+
+### Per-Project Registration (Alternative)
+
+Use per-project registration when you need project-specific configuration or are running in isolated environments (CI/CD, Docker).
 
 ### Configuring Claude Code
 
