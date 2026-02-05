@@ -1,18 +1,78 @@
 """Tests for cocosearch.indexer.metadata module."""
 
-from cocosearch.indexer.metadata import (
-    DevOpsMetadata,
-    extract_hcl_metadata,
-    extract_dockerfile_metadata,
-    extract_bash_metadata,
-    _strip_leading_comments,
-    _HCL_COMMENT_LINE,
-    _DOCKERFILE_COMMENT_LINE,
-    _BASH_COMMENT_LINE,
-    _LANGUAGE_DISPATCH,
-    _LANGUAGE_ID_MAP,
-    _EMPTY_METADATA,
-)
+import re
+from dataclasses import dataclass
+
+from cocosearch.handlers.hcl import HclHandler
+from cocosearch.handlers.dockerfile import DockerfileHandler
+from cocosearch.handlers.bash import BashHandler
+
+
+# Local test helpers (previously from deprecated metadata module)
+@dataclass
+class DevOpsMetadata:
+    """Metadata dataclass for testing."""
+    block_type: str
+    hierarchy: str
+    language_id: str
+
+
+def extract_hcl_metadata(text: str) -> DevOpsMetadata:
+    """Extract metadata from HCL chunk."""
+    m = HclHandler().extract_metadata(text)
+    return DevOpsMetadata(**m)
+
+
+def extract_dockerfile_metadata(text: str) -> DevOpsMetadata:
+    """Extract metadata from Dockerfile chunk."""
+    m = DockerfileHandler().extract_metadata(text)
+    return DevOpsMetadata(**m)
+
+
+def extract_bash_metadata(text: str) -> DevOpsMetadata:
+    """Extract metadata from Bash chunk."""
+    m = BashHandler().extract_metadata(text)
+    return DevOpsMetadata(**m)
+
+
+def _strip_leading_comments(text: str, pattern: re.Pattern) -> str:
+    """Strip leading comment and blank lines from chunk text."""
+    lines = text.lstrip().split("\n")
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped and not pattern.match(line):
+            return "\n".join(lines[i:])
+    return ""
+
+
+# Access handler constants
+_HCL_COMMENT_LINE = HclHandler._COMMENT_LINE
+_DOCKERFILE_COMMENT_LINE = DockerfileHandler._COMMENT_LINE
+_BASH_COMMENT_LINE = BashHandler._COMMENT_LINE
+
+_LANGUAGE_DISPATCH = {
+    "hcl": extract_hcl_metadata,
+    "tf": extract_hcl_metadata,
+    "tfvars": extract_hcl_metadata,
+    "dockerfile": extract_dockerfile_metadata,
+    "sh": extract_bash_metadata,
+    "bash": extract_bash_metadata,
+    "zsh": extract_bash_metadata,
+    "shell": extract_bash_metadata,
+}
+
+_LANGUAGE_ID_MAP = {
+    "hcl": "hcl",
+    "tf": "hcl",
+    "tfvars": "hcl",
+    "dockerfile": "dockerfile",
+    "sh": "bash",
+    "bash": "bash",
+    "zsh": "bash",
+    "shell": "bash",
+}
+
+_EMPTY_METADATA = DevOpsMetadata(block_type="", hierarchy="", language_id="")
 
 
 def _dispatch(text: str, language: str) -> DevOpsMetadata:

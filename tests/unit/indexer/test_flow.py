@@ -221,9 +221,10 @@ class TestCustomLanguageIntegration:
     """Tests for custom language integration in flow module."""
 
     def test_devops_custom_languages_importable(self):
-        """DEVOPS_CUSTOM_LANGUAGES is importable from languages module."""
-        from cocosearch.indexer.languages import DEVOPS_CUSTOM_LANGUAGES
+        """DEVOPS_CUSTOM_LANGUAGES is importable from handlers module."""
+        from cocosearch.handlers import get_custom_languages
 
+        DEVOPS_CUSTOM_LANGUAGES = get_custom_languages()
         assert isinstance(DEVOPS_CUSTOM_LANGUAGES, list)
         assert len(DEVOPS_CUSTOM_LANGUAGES) == 3
 

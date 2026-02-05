@@ -4,12 +4,16 @@ import re
 
 import pytest
 
-from cocosearch.indexer.languages import (
-    BASH_LANGUAGE,
-    DEVOPS_CUSTOM_LANGUAGES,
-    DOCKERFILE_LANGUAGE,
-    HCL_LANGUAGE,
-)
+from cocosearch.handlers import get_custom_languages
+from cocosearch.handlers.hcl import HclHandler
+from cocosearch.handlers.dockerfile import DockerfileHandler
+from cocosearch.handlers.bash import BashHandler
+
+# Use handler constants directly
+HCL_LANGUAGE = HclHandler.SEPARATOR_SPEC
+DOCKERFILE_LANGUAGE = DockerfileHandler.SEPARATOR_SPEC
+BASH_LANGUAGE = BashHandler.SEPARATOR_SPEC
+DEVOPS_CUSTOM_LANGUAGES = get_custom_languages()
 
 
 class TestHclLanguage:
