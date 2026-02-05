@@ -9,11 +9,11 @@ Requirements for v1.9 Multi-Repo & Polish milestone.
 
 ### Multi-Repo MCP Support
 
-- [ ] **MCP-01**: MCP server accepts `--project-from-cwd` flag for single-registration multi-repo support
-- [ ] **MCP-02**: User-scope MCP registration documented for Claude Code (`claude mcp add --scope user`)
-- [ ] **MCP-03**: User-scope MCP registration documented for Claude Desktop
-- [ ] **MCP-04**: When search runs on unindexed repo, prompt user to index (not silent failure)
-- [ ] **MCP-05**: Detect stale indexes and warn user (index freshness check)
+- [x] **MCP-01**: MCP server accepts `--project-from-cwd` flag for single-registration multi-repo support
+- [x] **MCP-02**: User-scope MCP registration documented for Claude Code (`claude mcp add --scope user`)
+- [x] **MCP-03**: User-scope MCP registration documented for Claude Desktop
+- [x] **MCP-04**: When search runs on unindexed repo, prompt user to index (not silent failure)
+- [x] **MCP-05**: Detect stale indexes and warn user (index freshness check)
 
 ### Test Fixes
 
@@ -61,11 +61,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MCP-01 | Phase 38 | Pending |
-| MCP-02 | Phase 38 | Pending |
-| MCP-03 | Phase 38 | Pending |
-| MCP-04 | Phase 38 | Pending |
-| MCP-05 | Phase 38 | Pending |
+| MCP-01 | Phase 38 | Complete |
+| MCP-02 | Phase 38 | Complete |
+| MCP-03 | Phase 38 | Complete |
+| MCP-04 | Phase 38 | Complete |
+| MCP-05 | Phase 38 | Complete |
 | TEST-01 | Phase 39 | Pending |
 | CLEAN-01 | Phase 40 | Pending |
 | CLEAN-02 | Phase 40 | Pending |
@@ -84,4 +84,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-05*
-*Last updated: 2026-02-05 after roadmap creation*
+*Last updated: 2026-02-05 after phase 38 completion*

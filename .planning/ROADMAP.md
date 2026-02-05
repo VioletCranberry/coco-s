@@ -35,21 +35,16 @@ See project history for earlier milestones:
 
 **Milestone Goal:** Enable single MCP registration for all projects, clean up technical debt, and document workflow patterns for users.
 
-#### Phase 38: Multi-Repo MCP Support
+#### Phase 38: Multi-Repo MCP Support ✓
 **Goal**: Users can register CocoSearch once and use it across all their projects
 **Depends on**: Phase 37 (v1.8 complete)
 **Requirements**: MCP-01, MCP-02, MCP-03, MCP-04, MCP-05
-**Success Criteria** (what must be TRUE):
-  1. User can add CocoSearch to Claude Code with user scope and search any project's codebase by opening that project
-  2. User can add CocoSearch to Claude Desktop with user scope and search any project
-  3. When user searches an unindexed project, they receive a prompt to index it (not silent failure or cryptic error)
-  4. When user searches a stale index, they receive a warning about index freshness
-  5. Documentation clearly shows the single-registration pattern with `--project-from-cwd` flag
+**Status**: Complete (2026-02-05)
 **Plans**: 2 plans
 
 Plans:
-- [ ] 38-01-PLAN.md — Add --project-from-cwd flag and staleness warnings
-- [ ] 38-02-PLAN.md — Document user-scope MCP registration patterns
+- [x] 38-01-PLAN.md — Add --project-from-cwd flag and staleness warnings
+- [x] 38-02-PLAN.md — Document user-scope MCP registration patterns
 
 #### Phase 39: Test Fixes
 **Goal**: Test suite passes reliably with correct signature format expectations
@@ -122,4 +117,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-05 — v1.9 roadmap created*
+*Last updated: 2026-02-05 — Phase 38 complete*
