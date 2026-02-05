@@ -284,13 +284,25 @@ def _build_signature(node, chunk_text: str, language: str, symbol_type: str) -> 
 
     # For most languages, find the body and extract everything before it
     if language == "python":
-        # Python uses colon - include it
-        colon_pos = node_text.find(":")
-        if colon_pos != -1:
-            signature = node_text[:colon_pos + 1].strip()
+        # Python uses colon at end of definition line - include it
+        # The colon appears after the closing ) of parameters and optional -> return_type
+        # For multiline signatures, we need to find where the signature ends
+
+        # Find the colon that marks the end of the definition
+        # Strategy: find first occurrence of ":\n" which marks definition end
+        colon_newline = node_text.find(":\n")
+        if colon_newline != -1:
+            # Found definition-ending colon followed by newline
+            signature = node_text[:colon_newline + 1].strip()
         else:
-            lines = node_text.split("\n")
-            signature = lines[0].strip()
+            # Single-line or no body - find last colon before end
+            colon_pos = node_text.rfind(":")
+            if colon_pos != -1:
+                signature = node_text[:colon_pos + 1].strip()
+            else:
+                # No colon found (shouldn't happen for valid Python)
+                lines = node_text.split("\n")
+                signature = lines[0].strip()
     else:
         # Other languages use braces - exclude the brace
         brace_pos = node_text.find("{")
@@ -301,9 +313,9 @@ def _build_signature(node, chunk_text: str, language: str, symbol_type: str) -> 
             lines = node_text.split("\n")
             signature = lines[0].strip()
 
-    # Truncate if too long
-    if len(signature) > 120:
-        signature = signature[:117] + "..."
+    # Truncate if too long (200 chars accommodates most realistic signatures)
+    if len(signature) > 200:
+        signature = signature[:197] + "..."
 
     return signature
 

@@ -51,7 +51,7 @@ class TestFunctionExtraction:
 
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "foo"
-        assert result["symbol_signature"] == "def foo()"
+        assert result["symbol_signature"] == "def foo():"
 
     def test_function_with_parameters(self):
         """Extract function with parameters."""
@@ -60,7 +60,7 @@ class TestFunctionExtraction:
 
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "bar"
-        assert result["symbol_signature"] == "def bar(x, y=10)"
+        assert result["symbol_signature"] == "def bar(x, y=10):"
 
     def test_function_with_type_hints(self):
         """Extract function with type hints."""
@@ -69,7 +69,7 @@ class TestFunctionExtraction:
 
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "baz"
-        assert result["symbol_signature"] == "def baz(x: int, y: str = 'default') -> dict"
+        assert result["symbol_signature"] == "def baz(x: int, y: str = 'default') -> dict:"
 
     def test_async_function(self):
         """Extract async function."""
@@ -78,7 +78,7 @@ class TestFunctionExtraction:
 
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "fetch"
-        assert result["symbol_signature"] == "async def fetch(url: str) -> str"
+        assert result["symbol_signature"] == "async def fetch(url: str) -> str:"
 
     def test_decorated_function(self):
         """Extract decorated function (decorator not in signature)."""
@@ -87,7 +87,7 @@ class TestFunctionExtraction:
 
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "name"
-        assert result["symbol_signature"] == "def name(self)"
+        assert result["symbol_signature"] == "def name(self):"
 
     def test_multiple_decorators(self):
         """Extract function with multiple decorators."""
@@ -99,7 +99,7 @@ def compute(x: int) -> int:
 
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "compute"
-        assert "def compute(x: int) -> int" in result["symbol_signature"]
+        assert "def compute(x: int) -> int:" in result["symbol_signature"]
 
 
 @pytest.mark.unit
@@ -356,7 +356,7 @@ class TestComplexCases:
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "process"
         assert "def process(" in result["symbol_signature"]
-        assert "-> dict[str, list[str]]" in result["symbol_signature"]
+        assert "-> dict[str, list[str]]:" in result["symbol_signature"]
 
     def test_multiline_signature(self):
         """Extract function with multiline signature."""
@@ -371,7 +371,7 @@ class TestComplexCases:
 
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "long_function"
-        assert "tuple[int, str]" in result["symbol_signature"]
+        assert "tuple[int, str]:" in result["symbol_signature"]
 
     def test_class_with_docstring(self):
         """Extract class that has docstring."""
@@ -493,8 +493,7 @@ class TestJavaScriptSymbols:
 
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "fetchData"
-        assert "const fetchData =" in result["symbol_signature"]
-        assert "=> ..." in result["symbol_signature"]
+        assert result["symbol_signature"] == "const fetchData = (url) =>"
 
     def test_arrow_function_multiple_params(self):
         """Extract arrow function with multiple parameters."""
@@ -618,7 +617,7 @@ class TestTypeScriptSymbols:
 
         assert result["symbol_type"] == "interface"
         assert result["symbol_name"] == "UserID"
-        assert result["symbol_signature"] == "type UserID"
+        assert result["symbol_signature"] == "type UserID = string;"
 
     def test_type_alias_union(self):
         """Extract union type alias."""
@@ -675,7 +674,7 @@ class TestGoSymbols:
 
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "Process"
-        assert result["symbol_signature"] == "func Process()"
+        assert result["symbol_signature"] == "func Process() error"
 
     def test_function_with_parameters(self):
         """Extract function with parameters."""
@@ -693,7 +692,7 @@ class TestGoSymbols:
 
         assert result["symbol_type"] == "method"
         assert result["symbol_name"] == "Server.Start"
-        assert result["symbol_signature"] == "func Start()"
+        assert result["symbol_signature"] == "func (s *Server) Start() error"
 
     def test_method_with_value_receiver(self):
         """Extract method with value receiver."""
@@ -765,7 +764,7 @@ class TestRustSymbols:
 
         assert result["symbol_type"] == "function"
         assert result["symbol_name"] == "process"
-        assert result["symbol_signature"] == "fn process()"
+        assert result["symbol_signature"] == "fn process() -> Result<(), Error>"
 
     def test_function_with_parameters(self):
         """Extract function with parameters."""
@@ -795,7 +794,7 @@ class TestRustSymbols:
 
         assert result["symbol_type"] == "method"
         assert result["symbol_name"] == "Server.start"
-        assert result["symbol_signature"] == "fn start(&self)"
+        assert result["symbol_signature"] == "fn start(&self) -> Result<(), Error>"
 
     def test_multiple_methods_in_impl(self):
         """Verify multiple methods extracted from impl block."""
