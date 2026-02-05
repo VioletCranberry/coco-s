@@ -115,10 +115,10 @@ Plans:
   1. README positions CocoSearch as hybrid search + symbol filtering + context expansion tool
   2. README accurately describes all v1.8 features (caching, 10-language symbols, stats dashboard)
   3. Feature overview matches current capabilities (not just "semantic code search")
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 37-01: README rebrand
+- [ ] 37-01-PLAN.md — Rebrand README with hybrid search positioning, observability section, language tiering
 
 ## Progress
 
