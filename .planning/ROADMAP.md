@@ -53,10 +53,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. All existing tests pass without signature format assertion failures
   2. Signature format tests match actual implementation behavior
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 39-01: TBD
+- [ ] 39-01-PLAN.md — Fix test failures (symbol signatures, CLI Namespace mocks, hybrid search mocks)
 
 #### Phase 40: Code Cleanup
 **Goal**: Remove deprecated code and migration logic safely without breaking functionality
@@ -117,4 +117,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-05 — Phase 38 complete*
+*Last updated: 2026-02-05 — Phase 39 planned*
