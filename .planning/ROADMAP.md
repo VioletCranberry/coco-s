@@ -87,10 +87,12 @@ Plans:
   1. Retrieval logic documentation explains hybrid search, RRF fusion, symbol filtering, and query caching
   2. MCP tools reference provides complete examples for all tools with parameter descriptions
   3. Documentation is accurate to current implementation (post-cleanup)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 42-01: TBD
+- [ ] 42-01-PLAN.md — Architecture overview and README documentation section
+- [ ] 42-02-PLAN.md — Retrieval logic documentation (indexing + search pipelines)
+- [ ] 42-03-PLAN.md — MCP tools reference with parameter docs and examples
 
 ## Progress
 
