@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 ## Current Position
 
 Phase: 42 of 42 (Technical Documentation)
-Plan: 1 of 3 — Architecture overview complete
+Plan: 3 of 3 — MCP tools reference complete
 Status: In progress
-Last activity: 2026-02-06 — Completed 42-01-PLAN.md
+Last activity: 2026-02-06 — Completed 42-03-PLAN.md
 
-Progress: [###################.] 96% (112/117 estimated plans)
+Progress: [###################.] 97% (113/117 estimated plans)
 
 ## Performance Metrics
 
@@ -39,6 +39,12 @@ Progress: [###################.] 96% (112/117 estimated plans)
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table.
+
+**Phase 42-03 decisions:**
+- 5-column parameter table format (Parameter, Type, Required, Default, Description)
+- Dual-format examples (natural language intent + JSON request/response)
+- Documented optional fields and version-specific features (v1.7+ symbol filtering, hybrid search)
+- Error response examples for destructive operations (clear_index, index_codebase)
 
 **Phase 42-01 decisions:**
 - Text-only architecture descriptions (no diagrams per user decision)
@@ -105,5 +111,5 @@ None — ready for phase planning.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 42-01-PLAN.md (architecture overview documentation)
+Stopped at: Completed 42-03-PLAN.md (MCP tools reference documentation)
 Resume file: None
