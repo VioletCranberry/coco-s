@@ -71,9 +71,16 @@ flowchart LR
 - **PostgreSQL + pgvector** - Stores code chunks and their vector embeddings for similarity search
 - **CocoSearch** - CLI and MCP server that coordinates indexing and search
 
+## Documentation
+
+- [Architecture Overview](docs/architecture.md) — System components and data flow
+- [Retrieval Logic](docs/retrieval.md) — Hybrid search, RRF fusion, caching, and the complete indexing/search pipeline
+- [MCP Tools Reference](docs/mcp-tools.md) — Tool parameters, return formats, and examples for AI agent integration
+
 ## Table of Contents
 
 - [⚡ Quick Start (5 minutes)](#quick-start-5-minutes)
+- [📖 Documentation](#documentation)
 - [📦 Installing](#installing)
   - [Installing Ollama](#installing-ollama)
   - [Starting PostgreSQL](#starting-postgresql)
