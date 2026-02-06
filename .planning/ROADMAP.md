@@ -79,20 +79,17 @@ Plans:
 - [x] 41-02-PLAN.md — Create debugging workflow skill
 - [x] 41-03-PLAN.md — Create refactoring workflow skill
 
-#### Phase 42: Technical Documentation
+#### Phase 42: Technical Documentation ✓
 **Goal**: Users and contributors understand retrieval logic and MCP tool usage
 **Depends on**: Phase 40 (document final implementation, not interim states)
 **Requirements**: DOC-04, DOC-05
-**Success Criteria** (what must be TRUE):
-  1. Retrieval logic documentation explains hybrid search, RRF fusion, symbol filtering, and query caching
-  2. MCP tools reference provides complete examples for all tools with parameter descriptions
-  3. Documentation is accurate to current implementation (post-cleanup)
+**Status**: Complete (2026-02-06)
 **Plans**: 3 plans
 
 Plans:
-- [ ] 42-01-PLAN.md — Architecture overview and README documentation section
-- [ ] 42-02-PLAN.md — Retrieval logic documentation (indexing + search pipelines)
-- [ ] 42-03-PLAN.md — MCP tools reference with parameter docs and examples
+- [x] 42-01-PLAN.md — Architecture overview and README documentation section
+- [x] 42-02-PLAN.md — Retrieval logic documentation (indexing + search pipelines)
+- [x] 42-03-PLAN.md — MCP tools reference with parameter docs and examples
 
 ## Progress
 
@@ -107,8 +104,8 @@ Plans:
 | v1.6 Docker & Auto-Detect | 23-26 | 11 | Complete | 2026-02-02 |
 | v1.7 Search Enhancement | 27-32 | 21 | Complete | 2026-02-03 |
 | v1.8 Polish & Observability | 33-37 | 13 | Complete | 2026-02-05 |
-| v1.9 Multi-Repo & Polish | 38-42 | TBD | In progress | - |
+| v1.9 Multi-Repo & Polish | 38-42 | 11 | In progress | - |
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-06 — Phase 41 complete*
+*Last updated: 2026-02-06 — Phase 42 complete*

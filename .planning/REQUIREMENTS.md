@@ -31,8 +31,8 @@ Requirements for v1.9 Multi-Repo & Polish milestone.
 - [x] **DOC-01**: Create onboarding workflow skill (multi-step)
 - [x] **DOC-02**: Create debugging workflow skill (multi-step)
 - [x] **DOC-03**: Create refactoring workflow skill (multi-step)
-- [ ] **DOC-04**: Document retrieval logic (hybrid search, RRF fusion, symbol filtering)
-- [ ] **DOC-05**: Create MCP tools reference with complete examples
+- [x] **DOC-04**: Document retrieval logic (hybrid search, RRF fusion, symbol filtering)
+- [x] **DOC-05**: Create MCP tools reference with complete examples
 
 ## Future Requirements
 
