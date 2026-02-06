@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 ## Current Position
 
 Phase: 41 of 42 (Workflow Skills) — IN PROGRESS
-Plan: 2 of estimated 2 — Plan 02 complete
+Plan: 3 of estimated 4 — Plan 03 complete
 Status: In progress
-Last activity: 2026-02-06 — Completed 41-02-PLAN.md (debugging workflow skill)
+Last activity: 2026-02-06 — Completed 41-03-PLAN.md (refactoring workflow skill)
 
-Progress: [##################..] 94% (110/117 estimated plans)
+Progress: [##################..] 95% (111/117 estimated plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 108
+- Total plans completed: 109
 - Milestones shipped: 8 (v1.0-v1.8)
 - Last milestone: v1.8 Polish & Observability (phases 33-37, 13 plans)
 
@@ -39,6 +39,14 @@ Progress: [##################..] 94% (110/117 estimated plans)
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table.
+
+**Phase 41-03 decisions:**
+- Require fresh index (staleness_days <= 7) for refactoring - unlike debugging/onboarding
+- Use hybrid search for all refactoring searches (identifier-heavy queries)
+- Use symbol_name glob patterns to catch all variants (User* catches User, UserProfile, etc.)
+- Leaf-first ordering prevents cascading import failures
+- Every code change requires explicit user confirmation
+- Suggest testing after each change, not just at end
 
 **Phase 41-02 decisions:**
 - Wide-net search combines semantic + symbol in same step for richer context
@@ -92,5 +100,5 @@ None — ready for phase planning.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 41-02-PLAN.md (debugging workflow skill)
+Stopped at: Completed 41-03-PLAN.md (refactoring workflow skill)
 Resume file: None
