@@ -9,17 +9,17 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 
 ## Current Position
 
-Phase: 41 of 42 (Workflow Skills) — COMPLETE
-Plan: 3 of 3 — All plans complete
-Status: Phase verified, ready for next phase
-Last activity: 2026-02-06 — Phase 41 complete (3 workflow skills created)
+Phase: 42 of 42 (Technical Documentation)
+Plan: 1 of 3 — Architecture overview complete
+Status: In progress
+Last activity: 2026-02-06 — Completed 42-01-PLAN.md
 
-Progress: [###################.] 95% (111/117 estimated plans)
+Progress: [###################.] 96% (112/117 estimated plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 109
+- Total plans completed: 110
 - Milestones shipped: 8 (v1.0-v1.8)
 - Last milestone: v1.8 Polish & Observability (phases 33-37, 13 plans)
 
@@ -39,6 +39,11 @@ Progress: [###################.] 95% (111/117 estimated plans)
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table.
+
+**Phase 42-01 decisions:**
+- Text-only architecture descriptions (no diagrams per user decision)
+- Cross-reference detailed docs rather than duplicate content
+- Brief 2-3 sentence primers for core ML concepts (embeddings, vector search, RRF)
 
 **Phase 41-03 decisions:**
 - Require fresh index (staleness_days <= 7) for refactoring - unlike debugging/onboarding
@@ -100,5 +105,5 @@ None — ready for phase planning.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Phase 41 complete and verified (7/7 must-haves). Ready for Phase 42.
+Stopped at: Completed 42-01-PLAN.md (architecture overview documentation)
 Resume file: None
