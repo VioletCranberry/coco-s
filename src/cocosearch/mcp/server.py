@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Annotated
 
 import cocoindex
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
 from starlette.responses import HTMLResponse, JSONResponse
 
@@ -35,17 +35,18 @@ from cocosearch.indexer import IndexingConfig, run_index
 from cocosearch.management import clear_index as mgmt_clear_index
 from cocosearch.management import get_stats, list_indexes as mgmt_list_indexes
 from cocosearch.management import (
-    find_project_root,
     resolve_index_name,
     get_index_metadata,
     register_index_path,
 )
+from cocosearch.mcp.project_detection import _detect_project, register_roots_notification
 from cocosearch.management.stats import check_staleness, get_comprehensive_stats
 from cocosearch.search import byte_to_line, read_chunk_content, search
 from cocosearch.search.context_expander import ContextExpander
 
 # Create FastMCP server instance
 mcp = FastMCP("cocosearch")
+register_roots_notification(mcp)
 
 
 # Health endpoint for Docker/orchestration
@@ -134,8 +135,9 @@ def _get_treesitter_language(ext: str) -> str | None:
 
 
 @mcp.tool()
-def search_code(
+async def search_code(
     query: Annotated[str, Field(description="Natural language search query")],
+    ctx: Context,
     index_name: Annotated[
         str | None,
         Field(
@@ -209,33 +211,24 @@ def search_code(
     """
     # Track root_path for search header (set during auto-detection)
     root_path: Path | None = None
-
-    # Check for explicit project path from --project-from-cwd flag
-    project_path_env = os.environ.get("COCOSEARCH_PROJECT_PATH")
+    auto_detected_source = None  # Track detection source for hint
 
     # Auto-detect index if not provided
     if index_name is None:
-        if project_path_env:
-            # Use explicit path from --project-from-cwd flag
-            start_path = Path(project_path_env)
-            root_path, detection_method = find_project_root(start_path)
-        else:
-            root_path, detection_method = find_project_root()
+        detected_path, source = await _detect_project(ctx)
+        auto_detected_source = source
 
-        if root_path is None:
-            # Not in a project directory
-            return [{
-                "error": "No project detected",
-                "message": (
-                    "Not in a git repository or directory with cocosearch.yaml. "
-                    "Either navigate to your project directory, or specify index_name parameter explicitly."
-                ),
-                "results": []
-            }]
+        root_path = detected_path
+
+        # Use find_project_root to walk up to actual git/config root from detected path
+        from cocosearch.management.context import find_project_root
+        project_root, detection_method = find_project_root(detected_path)
+        if project_root is not None:
+            root_path = project_root
 
         # Resolve index name using priority chain
-        index_name = resolve_index_name(root_path, detection_method)
-        logger.info(f"Auto-detected index: {index_name} from {root_path}")
+        index_name = resolve_index_name(root_path, detection_method if project_root else None)
+        logger.info(f"Auto-detected index: {index_name} from {root_path} (source: {source})")
 
         # Check if index exists
         indexes = mgmt_list_indexes()
@@ -373,6 +366,13 @@ def search_code(
 
     # Clear cache after processing
     expander.clear_cache()
+
+    # Add hint for clients without Roots support
+    if auto_detected_source in ("env", "cwd"):
+        output.append({
+            "type": "hint",
+            "message": "Tip: Use Claude Code for automatic project detection via MCP Roots.",
+        })
 
     # Check staleness and add footer warning if needed
     try:
