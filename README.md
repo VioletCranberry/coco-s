@@ -66,8 +66,8 @@ docker build -t cocosearch -f docker/Dockerfile .
 docker compose up -d
 # Uses docker-compose.yml from this repository
 # This creates a container cocosearch-db on port 5432 with pgvector pre-installed and cocosearch-ollama on port 11434.
-# Set PostgreSQL connection URL for vector storage.
-export COCOSEARCH_DATABASE_URL="postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
+# PostgreSQL connection URL (optional, this is the default when using docker compose).
+export COCOSEARCH_DATABASE_URL="postgresql://cocosearch:cocosearch@localhost:5432/cocosearch"
 # Set Ollama API URL for embeddings.
 export COCOSEARCH_OLLAMA_URL="http://localhost:11434"
 ```

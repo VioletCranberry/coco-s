@@ -12,11 +12,30 @@ from urllib.parse import urlparse, urlunparse
 from rich.console import Console
 
 
+DEFAULT_DATABASE_URL = "postgresql://cocosearch:cocosearch@localhost:5432/cocosearch"
+
+
 class EnvVarError(NamedTuple):
     """Environment variable validation error."""
 
     var_name: str
     hint: str
+
+
+def get_database_url() -> str:
+    """Get database URL from environment or return default.
+
+    Returns COCOSEARCH_DATABASE_URL if set, otherwise the default
+    (postgresql://cocosearch:cocosearch@localhost:5432/cocosearch).
+
+    Side effect: Sets COCOINDEX_DATABASE_URL in os.environ if not already
+    set, bridging to the CocoIndex SDK which reads that variable.
+    """
+    url = os.getenv("COCOSEARCH_DATABASE_URL", DEFAULT_DATABASE_URL)
+    # Bridge: CocoIndex SDK reads COCOINDEX_DATABASE_URL, not COCOSEARCH_*
+    if not os.getenv("COCOINDEX_DATABASE_URL"):
+        os.environ["COCOINDEX_DATABASE_URL"] = url
+    return url
 
 
 def validate_required_env_vars() -> list[EnvVarError]:
@@ -30,15 +49,7 @@ def validate_required_env_vars() -> list[EnvVarError]:
     """
     errors: list[EnvVarError] = []
 
-    # Check COCOSEARCH_DATABASE_URL (required)
-    if not os.getenv("COCOSEARCH_DATABASE_URL"):
-        errors.append(
-            EnvVarError(
-                var_name="COCOSEARCH_DATABASE_URL",
-                hint="Missing COCOSEARCH_DATABASE_URL. See .env.example for format.",
-            )
-        )
-
+    # DATABASE_URL now has a default, no longer required from environment
     # COCOSEARCH_OLLAMA_URL is optional (has default), so don't validate it
 
     return errors

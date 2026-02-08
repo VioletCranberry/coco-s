@@ -5,10 +5,11 @@ querying CocoIndex-created vector tables in PostgreSQL.
 """
 
 import logging
-import os
 
 from pgvector.psycopg import register_vector
 from psycopg_pool import ConnectionPool
+
+from cocosearch.config.env_validation import get_database_url
 
 logger = logging.getLogger(__name__)
 
@@ -23,19 +24,14 @@ def get_connection_pool() -> ConnectionPool:
 
     Creates a singleton connection pool with pgvector type registration.
     The pool reads the database URL from COCOSEARCH_DATABASE_URL environment
-    variable.
+    variable, falling back to the default if not set.
 
     Returns:
         ConnectionPool configured with pgvector support.
-
-    Raises:
-        ValueError: If COCOSEARCH_DATABASE_URL is not set.
     """
     global _pool
     if _pool is None:
-        conninfo = os.getenv("COCOSEARCH_DATABASE_URL")
-        if not conninfo:
-            raise ValueError("Missing COCOSEARCH_DATABASE_URL. See .env.example for format.")
+        conninfo = get_database_url()
 
         def configure(conn):
             register_vector(conn)

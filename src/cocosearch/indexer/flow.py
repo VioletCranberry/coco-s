@@ -14,6 +14,7 @@ import psycopg
 
 import logging
 
+from cocosearch.config.env_validation import get_database_url
 from cocosearch.indexer.config import IndexingConfig
 from cocosearch.indexer.embedder import code_to_embedding, extract_language
 from cocosearch.indexer.tsvector import text_to_tsvector_sql
@@ -90,7 +91,7 @@ def create_code_index_flow(
                 # Extract DevOps metadata (block_type, hierarchy, language_id)
                 chunk["metadata"] = chunk["text"].transform(
                     extract_devops_metadata,
-                    language=file["extension"],
+                    language_id=file["extension"],
                 )
 
                 # Extract symbol metadata (function/class/method info)
@@ -196,9 +197,7 @@ def run_index(
 
     # Ensure symbol columns exist in target table
     # This must happen after setup (table exists) but before update (data insertion)
-    db_url = os.getenv("COCOSEARCH_DATABASE_URL")
-    if not db_url:
-        raise ValueError("Missing COCOSEARCH_DATABASE_URL environment variable")
+    db_url = get_database_url()
 
     # Get the actual table name following CocoIndex naming convention
     # CocoIndex naming: {flow_name}__{target_name}
