@@ -14,6 +14,7 @@ A systematic workflow for safe code refactoring. This skill guides you through c
 Before starting any refactoring, verify your semantic index is fresh and accurate.
 
 **Check index status:**
+
 ```
 list_indexes()
 index_stats()
@@ -22,6 +23,7 @@ index_stats()
 **Staleness check:** If `staleness_days > 7`, **strongly recommend reindexing**. Refactoring decisions based on stale data can miss critical dependencies.
 
 **If no index exists:** Indexing is REQUIRED before proceeding. Unlike debugging or onboarding, refactoring needs 100% accurate dependency data. Run:
+
 ```
 index_codebase(path="/path/to/project")
 ```
@@ -33,6 +35,7 @@ Wait for indexing to complete, then proceed.
 Parse the user's description to identify the refactoring type and target.
 
 **Common refactoring types:**
+
 - **Extract:** Move code into new module/service/class
 - **Rename:** Change symbol name across codebase (function, class, variable)
 - **Split:** Break large file into smaller focused files
@@ -40,6 +43,7 @@ Parse the user's description to identify the refactoring type and target.
 - **Signature change:** Modify function/method interface or API contract
 
 **Identify the target:**
+
 - Which file(s) contain the code being refactored?
 - Which symbol(s) are the primary focus? (function name, class name, module name)
 - What is the current scope? (single file, module, cross-cutting concern)
@@ -53,6 +57,7 @@ This is the most critical step. Build a complete picture of what will be affecte
 ### 2a. Find All Usages
 
 **Direct symbol references:**
+
 ```
 search_code(
     query="<target_symbol>",
@@ -63,22 +68,26 @@ search_code(
 ```
 
 Use glob patterns in `symbol_name` to catch variants. For example:
+
 - Target: "User" → `symbol_name="User*"` finds User, UserProfile, UserService, UserRepository
 - Target: "authenticate" → `symbol_name="authenticate*"` finds authenticate, authenticate_user, authenticate_request
 
 **Import references (Python):**
+
 ```
 search_code(query="import <target_module>", use_hybrid_search=True)
 search_code(query="from <target_module> import", use_hybrid_search=True)
 ```
 
 **Import references (JavaScript/TypeScript):**
+
 ```
 search_code(query="import { <target_symbol> }", use_hybrid_search=True)
 search_code(query="from '<target_module>'", use_hybrid_search=True)
 ```
 
 **Include references (C/C++):**
+
 ```
 search_code(query="#include \"<target_file>\"", use_hybrid_search=True)
 ```
@@ -86,6 +95,7 @@ search_code(query="#include \"<target_file>\"", use_hybrid_search=True)
 ### 2b. Find Test Coverage
 
 **Test files referencing target:**
+
 ```
 search_code(
     query="test <target_symbol>",
@@ -98,6 +108,7 @@ search_code(
 **Filter results to test directories:** Look for paths containing `test_/`, `tests/`, `__tests__/`, `spec/`.
 
 **Coverage assessment:**
+
 - High coverage: Multiple test files, integration + unit tests
 - Medium coverage: Some test files, unit tests only
 - Low coverage: Few or no tests found
@@ -108,6 +119,7 @@ search_code(
 For each caller found in step 2a, check what THEY export or provide. Changing your target will affect their behavior.
 
 **For each caller:**
+
 ```
 search_code(
     query="<caller_function>",
@@ -118,6 +130,7 @@ search_code(
 ```
 
 Look for:
+
 - Public API exports (appears in `__all__`, `export`, `public`)
 - Used by other modules (appears in other search results)
 - External interfaces (API routes, CLI commands, event handlers)
@@ -125,6 +138,7 @@ Look for:
 ### 2d. Present the Dependency Map
 
 **Format:**
+
 ```
 Target: [symbol/file name]
 Direct usages: N files
@@ -151,15 +165,18 @@ Risk assessment: [LOW/MEDIUM/HIGH]
 ### 2e. Branch Based on Impact
 
 **Low impact (proceed):**
+
 - Show dependency map
 - Move directly to Step 3 (generate plan)
 
 **Medium impact (confirm scope):**
+
 - Show dependency map with details
 - Ask: "This affects N files and M tests. Proceed with full refactoring, or want to reduce scope?"
 - Wait for user confirmation
 
 **High impact (warn + suggest incremental):**
+
 - Show dependency map with warning
 - Suggest: "High-impact change detected. Consider incremental approach:"
   - Phase 1: Add new API alongside old (deprecate, don't remove)
@@ -172,6 +189,7 @@ Risk assessment: [LOW/MEDIUM/HIGH]
 Produce an ordered list of changes for safe execution.
 
 **Ordering principle: Leaf-first dependency order**
+
 - Change callees before callers
 - Create new code before modifying old
 - Update imports after moving code
@@ -229,6 +247,7 @@ For each step in the plan, execute with user confirmation.
 **For each step:**
 
 1. **Show what will change:**
+
    ```
    Step N: [step name]
    File: [filename]
@@ -273,6 +292,7 @@ Recommended next steps:
 ```
 
 **If any step fails:**
+
 - STOP execution immediately
 - Show error details (test failures, syntax errors, etc.)
 - Ask: "Fix this step and retry, skip this step, or abort refactoring?"
@@ -284,7 +304,7 @@ Recommended next steps:
 
 **Use hybrid search everywhere:** Refactoring is identifier-heavy. Hybrid search combines semantic + exact matching for best recall.
 
-**Use symbol_name globs:** Catch all variants of a symbol (User*, authenticate*, Config*)
+**Use symbol_name globs:** Catch all variants of a symbol (User*, authenticate*, Config\*)
 
 **Use smart_context:** See full function/class bodies to understand how dependencies work
 
@@ -299,12 +319,14 @@ Recommended next steps:
 ## Installation
 
 **Claude Code:**
+
 ```bash
 mkdir -p ~/.claude/skills/coco-refactoring
 cp skills/coco-refactoring/SKILL.md ~/.claude/skills/coco-refactoring/SKILL.md
 ```
 
 **OpenCode:**
+
 ```bash
 mkdir -p ~/.config/opencode/skills/coco-refactoring
 cp skills/coco-refactoring/SKILL.md ~/.config/opencode/skills/coco-refactoring/SKILL.md

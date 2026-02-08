@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: cocoindex
       POSTGRES_DB: cocoindex
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U cocoindex -d cocoindex"]
       interval: 10s
@@ -24,7 +24,9 @@ services:
     ports:
       - "11434:11434"
     volumes:
-      - ollama_data:/root/.ollama
+      - ./ollama_data:/root/.ollama
+    entrypoint: /bin/sh
+    command: -c "ollama serve & sleep 5 && ollama pull nomic-embed-text && wait"
     healthcheck:
       test: ["CMD", "ollama", "list"]
       interval: 10s
@@ -32,7 +34,3 @@ services:
       retries: 5
       start_period: 60s
     restart: unless-stopped
-
-volumes:
-  postgres_data:
-  ollama_data:

@@ -27,21 +27,25 @@ Before starting any debugging session, verify the index is healthy and current:
 Parse what the user is reporting. Different inputs require different extraction:
 
 **If error message or exception:**
+
 - Extract error type: `ValueError`, `TypeError`, `NullPointerException`, etc.
 - Extract key identifiers: function names, class names, variable names from stack trace
 - Extract semantic context: what operation was being performed?
 
 **If unexpected behavior:**
+
 - Extract what's happening vs. what should happen
 - Extract any mentioned functions, files, or data flows
 - Identify the symptom's observable effects
 
 **If user provides stack trace:**
+
 - Parse the call stack: which functions are involved?
 - Identify entry point (top of stack) and failure point (bottom of stack)
 - Extract file paths and line numbers if present
 
 **Store extracted information:**
+
 - **Identifiers:** List of function names, class names, variables mentioned
 - **Semantic query:** Natural language description of the problem
 - **Suspected area:** File paths or module names mentioned
@@ -53,6 +57,7 @@ Present back to user: "I see the error is `<error-type>` in `<function-name>` wh
 **This is the critical discovery phase.** Run both semantic and symbol searches simultaneously to find the strongest leads.
 
 **Semantic search for symptom:**
+
 ```
 search_code(
     query="<user's symptom description>",
@@ -64,6 +69,7 @@ search_code(
 
 **Symbol search for each identifier:**
 For each identifier extracted from the symptom (function names, class names, error types):
+
 ```
 search_code(
     query="<identifier>",
@@ -75,12 +81,14 @@ search_code(
 ```
 
 **Synthesize results:**
+
 - Which files appear in BOTH semantic and symbol searches? These are the strongest candidates.
 - Which functions have high scores in both searches? Likely the root cause.
 - Any files that appear in symbol search but NOT semantic? Might be related but not the origin.
 
 **Present findings:**
 "Based on the symptom, I found these strong leads:
+
 - `<file-path>` contains `<function-name>` (appears in both semantic and symbol searches)
 - `<other-file>` has related code but lower confidence
 - Total of X files mention this identifier
@@ -88,6 +96,7 @@ search_code(
 The issue likely originates in `<strongest-candidate>`. Want me to trace how code flows through this area?"
 
 **Branch based on findings:**
+
 - **Clear origin found:** Proceed to Step 3 (trace the call chain)
 - **Multiple candidates (3+):** Ask user which area to focus on first
 - **Nothing relevant found:** Try broader search terms:
@@ -102,6 +111,7 @@ The issue likely originates in `<strongest-candidate>`. Want me to trace how cod
 **One-hop trace:**
 
 1. **Find the suspected origin function:**
+
 ```
 search_code(
     query="<function-name>",
@@ -112,6 +122,7 @@ search_code(
 ```
 
 2. **Find immediate callers:**
+
 ```
 search_code(
     query="calls <function-name>",
@@ -121,7 +132,8 @@ search_code(
 ```
 
 3. **Find immediate callees (what it calls):**
-Look at the function body from step 1, extract called functions, then search for each:
+   Look at the function body from step 1, extract called functions, then search for each:
+
 ```
 search_code(
     query="<called-function-name>",
@@ -132,10 +144,12 @@ search_code(
 
 **Present one-hop view:**
 "Function `<function-name>` at `<file>:<line>`:
+
 - Called by: `<caller-A>`, `<caller-B>`, `<caller-C>`
 - Calls: `<callee-D>`, `<callee-E>`
 
 Here's the function body:
+
 ```
 [full function code from smart_context]
 ```
@@ -144,17 +158,20 @@ Here's the function body:
 "This is one level deep. Want me to trace deeper into any of these callers or callees?"
 
 **If user wants deeper trace:**
+
 - Ask which direction: "Trace upward (who calls the callers) or downward (what the callees call)?"
 - Repeat the one-hop search for the selected function
 - Present the expanded view
 - Repeat until root cause is identified or user says stop
 
 **Trace strategies:**
+
 - **For errors in leaf functions:** Trace UPWARD to find where bad data originates
 - **For errors in entry points:** Trace DOWNWARD to find where the error is thrown
 - **For flow understanding:** Trace both directions, building a call graph
 
 **Stop conditions:**
+
 - User says "that's enough"
 - Found the root cause (code that's clearly wrong)
 - Hit architectural boundaries (external API calls, database, file system)
@@ -197,6 +214,7 @@ This explains your symptom: when an attacker sends a crafted JWT, it's accepted 
 **If user wants fix suggestions:**
 
 1. **Search for correct patterns:**
+
 ```
 search_code(
     query="JWT token validation with signature verification",
@@ -206,6 +224,7 @@ search_code(
 ```
 
 2. **Find similar fixed code:**
+
 ```
 search_code(
     query="jwt.decode verify signature",
@@ -214,7 +233,7 @@ search_code(
 ```
 
 3. **Present fix based on established patterns:**
-"Here's how it's done correctly in `src/api/auth.py:23`:
+   "Here's how it's done correctly in `src/api/auth.py:23`:
 
 ```python
 def validate_api_token(token: str) -> User:
@@ -226,6 +245,7 @@ def validate_api_token(token: str) -> User:
 ```
 
 Suggested fix for `validator.py:45`:
+
 1. Add signature verification with `SECRET_KEY`
 2. Specify allowed algorithms
 3. Add exception handling for invalid tokens
@@ -240,6 +260,7 @@ Want me to show the exact code change?"
 **Pattern 1: Symbol type filtering for specific searches**
 
 When debugging object-oriented code:
+
 ```
 # Find all classes related to authentication
 search_code(query="authentication", symbol_type="class")
@@ -251,6 +272,7 @@ search_code(query="error handler", symbol_type=["method", "function"])
 **Pattern 2: Language filtering for polyglot codebases**
 
 When error is language-specific:
+
 ```
 # Python-specific async issue
 search_code(query="async await deadlock", language="python")
@@ -262,6 +284,7 @@ search_code(query="type mismatch interface", language="typescript")
 **Pattern 3: Symbol name wildcards for related functions**
 
 When tracing naming conventions:
+
 ```
 # Find all handler functions
 search_code(query="request processing", symbol_name="*Handler")
@@ -273,6 +296,7 @@ search_code(query="validation", symbol_name="validate*")
 **Pattern 4: Context expansion for full understanding**
 
 When you need complete function bodies:
+
 ```
 # Get full function context (default with smart_context=True)
 search_code(query="database transaction", smart_context=True)
@@ -284,12 +308,14 @@ search_code(query="error handling", context_before=10, context_after=10)
 ## Installation
 
 **For Claude Code:**
+
 ```bash
 mkdir -p ~/.claude/skills/coco-debugging
 cp skills/coco-debugging/SKILL.md ~/.claude/skills/coco-debugging/SKILL.md
 ```
 
 **For OpenCode:**
+
 ```bash
 mkdir -p ~/.config/opencode/skills/coco-debugging
 cp skills/coco-debugging/SKILL.md ~/.config/opencode/skills/coco-debugging/SKILL.md
