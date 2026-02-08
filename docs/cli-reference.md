@@ -4,7 +4,7 @@ CocoSearch provides a command-line interface for indexing and searching code. Ou
 
 ### Indexing Commands
 
-`cocosearch index <path> [options]`
+`uvx cocosearch index <path> [options]`
 
 Index a codebase for semantic search.
 
@@ -18,21 +18,13 @@ Index a codebase for semantic search.
 **Example:**
 
 ```bash
-cocosearch index ./my-project --name myproject
-```
-
-Output:
-
-```
-Using derived index name: myproject
-Indexing ./my-project...
-Indexed 42 files
+uvx cocosearch index ./my-project --name myproject
 ```
 
 ### Searching Commands
 
-`cocosearch search <query> [options]`
-`cocosearch search --interactive`
+`uvx cocosearch search <query> [options]`
+`uvx cocosearch search --interactive`
 
 Search indexed code using natural language.
 
@@ -57,143 +49,112 @@ Search indexed code using natural language.
 
 ```bash
 # Basic search
-cocosearch search "authentication logic" --pretty
+uvx cocosearch search "authentication logic" --pretty
 
 # Filter by language
-cocosearch search "error handling" --lang python
+uvx cocosearch search "error handling" --lang python
 
 # Inline language filter
-cocosearch search "database connection lang:go"
+uvx cocosearch search "database connection lang:go"
 
 # Interactive mode
-cocosearch search --interactive
-```
-
-Output (--pretty):
-
-```
-[1] src/auth/login.py:45-67 (score: 0.89)
-    def authenticate_user(username: str, password: str) -> User:
-        """Authenticate user credentials against database."""
-        ...
+uvx cocosearch search --interactive
 ```
 
 ### Managing Indexes
 
-**List indexes:** `cocosearch list [--pretty]`
+**List indexes:** `uvx cocosearch list [--pretty]`
 
 Show all available indexes.
 
 ```bash
-cocosearch list --pretty
+uvx cocosearch list --pretty
 ```
 
-Output:
+**Index statistics:** `uvx cocosearch stats [index] [--pretty]`
 
-```
-       Indexes
-┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Name       ┃ Table                  ┃
-┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ myproject  │ cocosearch_myproject   │
-│ another    │ cocosearch_another     │
-└────────────┴────────────────────────┘
-```
-
-**Index statistics:** `cocosearch stats [index] [--pretty]`
-
-Show statistics for one or all indexes.
+Show statistics for one or all indexes. Includes file count, chunk count, size, language distribution, and parse health.
 
 ```bash
-cocosearch stats myproject --pretty
+uvx cocosearch stats myproject --pretty
 ```
 
-Output:
+| Flag                    | Description                            | Default |
+| ----------------------- | -------------------------------------- | ------- |
+| `--pretty`              | Human-readable output                  | JSON    |
+| `--json`                | Machine-readable JSON output           | Off     |
+| `-v, --verbose`         | Show symbol type breakdown             | Off     |
+| `--all`                 | Show stats for all indexes             | Off     |
+| `--show-failures`       | Show individual file parse failure details | Off |
+| `--staleness-threshold` | Days before staleness warning          | 7       |
+| `--live`                | Terminal dashboard (multi-pane layout) | Off     |
+| `--watch`               | Auto-refresh dashboard (requires --live) | Off   |
+| `--refresh-interval`    | Refresh interval in seconds for --watch | 1.0    |
 
-```
-    Index: myproject
-┏━━━━━━━━━┳━━━━━━━━━━━┓
-┃ Metric  ┃ Value     ┃
-┡━━━━━━━━━╇━━━━━━━━━━━┩
-│ Files   │ 42        │
-│ Chunks  │ 127       │
-│ Size    │ 2.3 MB    │
-└─────────┴───────────┘
-```
+**Parse health** is shown by default when available. It displays a percentage of files that parsed cleanly along with a per-language breakdown (ok, partial, error, unsupported).
 
-**Clear index:** `cocosearch clear <index> [--force] [--pretty]`
-
-Delete an index and all its data. Prompts for confirmation unless `--force`.
+To see individual file failure details (file paths and error types), use the `--show-failures` flag:
 
 ```bash
-cocosearch clear myproject --force
+uvx cocosearch stats myproject --pretty --show-failures
 ```
 
-Output:
+**Clear index:** `uvx cocosearch clear <index> [--force] [--pretty]`
 
-```
-Index 'myproject' deleted successfully
+Delete an index and all its data (including the associated parse results table). Prompts for confirmation unless `--force`.
+
+```bash
+uvx cocosearch clear myproject --force
 ```
 
-**List supported languages:** `cocosearch languages [--json]`
+**List supported languages:** `uvx cocosearch languages [--json]`
 
 Show all languages CocoSearch can index with extensions and symbol support.
 
 ```bash
-cocosearch languages
+uvx cocosearch languages
 ```
 
-**Start MCP server:** `cocosearch mcp`
+**Start MCP server:** `uvx cocosearch mcp`
 
 Start the MCP server for LLM integration. Typically invoked by MCP clients, not directly.
 
 ```bash
-cocosearch mcp  # Runs until killed, used by Claude/OpenCode
+uvx cocosearch mcp  # Runs until killed, used by Claude/OpenCode
 ```
 
 ## Observability
 
-Monitor index health, language distribution, and symbol breakdown.
+Monitor index health, language distribution, symbol breakdown, and parse health.
 
 ### Index Statistics
 
 ```bash
-cocosearch stats myproject --pretty
+uvx cocosearch stats myproject --pretty
 ```
 
-Output shows file count, chunk count, size, and staleness warnings:
+Shows file count, chunk count, size, staleness warnings, language distribution with bar charts, and parse health summary.
 
-```
-    Index: myproject
-┏━━━━━━━━━┳━━━━━━━━━━━━━┓
-┃ Metric  ┃ Value       ┃
-┡━━━━━━━━━╇━━━━━━━━━━━━━┩
-│ Files   │ 68          │
-│ Chunks  │ 488         │
-│ Size    │ 2.1 MB      │
-│ Updated │ 2 days ago  │
-└─────────┴─────────────┘
-```
+### Parse Health
 
-### Language Breakdown
-
-View per-language file counts, chunk distribution, and line counts:
+Parse health tracks how well tree-sitter parsed each indexed file. It is displayed by default in the stats output:
 
 ```bash
-cocosearch stats myproject --pretty
+uvx cocosearch stats myproject --pretty
 ```
 
+For detailed failure information including file paths and error types:
+
+```bash
+uvx cocosearch stats myproject --pretty --show-failures
 ```
-           Language Statistics
-┏━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━━┓
-┃ Language   ┃ Files ┃ Chunks ┃  Lines ┃
-┡━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━━┩
-│ python     │    42 │    287 │  3,521 │
-│ typescript │    18 │    156 │  2,103 │
-│ markdown   │     5 │     32 │    654 │
-├────────────┼───────┼────────┼────────┤
-│ TOTAL      │    68 │    488 │  6,516 │
-└────────────┴───────┴────────┴────────┘
+
+### JSON Output
+
+Machine-readable stats for automation:
+
+```bash
+uvx cocosearch stats myproject --json
 ```
 
 ### Dashboard
@@ -201,16 +162,8 @@ cocosearch stats myproject --pretty
 Web-based stats visualization:
 
 ```bash
-cocosearch serve-dashboard
+uvx cocosearch serve-dashboard
 # Opens browser to http://localhost:8080
 ```
 
 The dashboard displays real-time index health with language distribution charts.
-
-### JSON Output
-
-Machine-readable stats for automation:
-
-```bash
-cocosearch stats myproject --json
-```

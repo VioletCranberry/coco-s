@@ -20,7 +20,7 @@ CocoSearch is a hybrid semantic code search system that runs entirely locally. T
 
 **Tree-sitter:** Language-aware code parser supporting 31 programming languages. Used by CocoIndex's `SplitRecursively` function to chunk code at semantic boundaries (function definitions, class boundaries) rather than arbitrary byte offsets. Default chunk size: 1000 bytes with 300 byte overlap.
 
-**FastMCP:** Model Context Protocol server framework exposing CocoSearch functionality as tools for AI assistants (Claude Code, Claude Desktop, OpenCode). Provides stdio, SSE, and HTTP transports for client integration. Implementation: `src/cocosearch/mcp/server.py`
+**FastMCP:** Model Context Protocol server framework exposing CocoSearch functionality as tools for AI assistants (Claude Code, Claude Desktop, OpenCode). Provides stdio, SSE, and HTTP transports for client integration. Supports the MCP Roots capability for automatic project detection in clients that support it (such as Claude Code). Implementation: `src/cocosearch/mcp/server.py`
 
 ## Data Flow — Indexing
 
@@ -33,6 +33,7 @@ The indexing pipeline transforms a codebase into searchable vector embeddings:
 5. **Metadata Extraction:** Extract DevOps block types (pipeline, job, stage), symbol information (function/class/method names, signatures), and language identifiers
 6. **Text Preprocessing:** Generate tsvector representation for full-text search capabilities
 7. **Storage:** Insert chunks into PostgreSQL with vector index (cosine distance) and GIN index (tsvector)
+8. **Parse Tracking:** After indexing completes, parse results are recorded per file (ok, partial, error, unsupported). This non-fatal tracking provides observability into tree-sitter parse health.
 
 See [Retrieval Logic](retrieval.md) for complete pipeline details including error handling and performance optimizations.
 
@@ -57,21 +58,23 @@ See [Retrieval Logic](retrieval.md) for scoring formulas, cache implementation, 
 
 CocoSearch exposes five MCP tools for AI assistant integration:
 
-- `search_code` — Semantic search with hybrid mode, symbol filtering, context expansion
+- `search_code` — Async semantic search with hybrid mode, symbol filtering, context expansion. Accepts Context for Roots-based project detection.
 - `index_codebase` — Create or update code index from directory path
 - `list_indexes` — Show all available indexes with metadata
-- `index_stats` — Get statistics (file count, chunk count, language breakdown, staleness)
-- `clear_index` — Delete an index and all associated data
+- `index_stats` — Get statistics including parse health data and optional `include_failures` parameter for detailed failure listing
+- `clear_index` — Delete an index and all associated data (including parse results)
 
 **Transport Support:** stdio (Claude Code), SSE (server-sent events), HTTP (Claude Desktop via mcp-remote bridge)
 
-**Project Detection:** The `--project-from-cwd` flag enables automatic index detection from working directory. MCP clients can work across multiple projects without manual configuration per project.
+**Project Detection:** CocoSearch uses a priority chain for automatic index detection: MCP Roots (automatic in Claude Code) > `--project-from-cwd` environment variable > current working directory. In clients that support Roots (like Claude Code), the project is detected automatically with no configuration needed.
 
 See [MCP Tools Reference](mcp-tools.md) for complete parameter documentation, return formats, and usage examples.
 
 ## Key Design Decisions
 
 **Local-first:** All processing happens on your machine. Ollama runs the embedding model locally, PostgreSQL stores data locally, no external API calls. Your code never leaves your environment.
+
+**Infra-only Docker:** Docker provides PostgreSQL+pgvector and Ollama infrastructure only. CocoSearch runs natively via `uvx` for faster iteration and simpler updates. This keeps the Docker image lightweight and avoids Python dependency management inside containers.
 
 **Hybrid search:** Combines vector similarity (semantic understanding) with PostgreSQL full-text search (keyword precision). Automatically enabled for identifier patterns, manually available for all queries. Solves the "exact function name match" problem that pure semantic search struggles with.
 
@@ -86,3 +89,5 @@ See [MCP Tools Reference](mcp-tools.md) for complete parameter documentation, re
 **Semantic chunking:** Tree-sitter provides language-aware code splitting at function/class boundaries rather than arbitrary byte counts. Produces more coherent chunks that better represent logical code units. Falls back to simple splitting for unsupported languages.
 
 **Symbol metadata:** Extract function/class/method names and signatures during indexing for precise filtering. Enables queries like "find all functions named `validate*`" or "show only class definitions". Currently supported for 10 languages (Python, JavaScript, TypeScript, Go, Rust, Java, C, C++, Ruby, PHP).
+
+**Parse tracking:** Non-fatal parse status tracking per file provides observability without blocking indexing. Each file receives a status (ok, partial, error, unsupported) based on tree-sitter results. Parse failures are surfaced in stats output and available via the MCP `index_stats` tool.
