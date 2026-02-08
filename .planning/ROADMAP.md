@@ -28,10 +28,11 @@ v1.10 is a refinement milestone that standardizes credentials, simplifies the Do
   2. Running `cocosearch index .` without setting COCOSEARCH_DATABASE_URL connects to `postgresql://cocosearch:cocosearch@localhost:5432/cocosearch`
   3. `docker compose up` starts PostgreSQL with `cocosearch:cocosearch` credentials matching the application default
   4. `cocosearch config check` shows "default" as the source for DATABASE_URL when no env var is set (not an error)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 43-01: TBD
+- [ ] 43-01-PLAN.md -- Fix DevOps metadata bug, create get_database_url() helper, update all Python callsites and tests
+- [ ] 43-02-PLAN.md -- Align docker-compose.yml and all docs/scripts to cocosearch:cocosearch credentials
 
 ### Phase 44: Docker Image Simplification
 **Goal**: Docker image provides only infrastructure services (PostgreSQL+pgvector, Ollama+model) with no application code
@@ -98,7 +99,7 @@ Phases execute in numeric order: 43 -> 44 -> 45 -> 46 -> 47
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 43. Bug Fix & Credential Defaults | 0/TBD | Not started | - |
+| 43. Bug Fix & Credential Defaults | 0/2 | Planned | - |
 | 44. Docker Image Simplification | 0/TBD | Not started | - |
 | 45. MCP Protocol Enhancements | 0/TBD | Not started | - |
 | 46. Parse Failure Tracking | 0/TBD | Not started | - |
