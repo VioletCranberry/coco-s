@@ -54,7 +54,7 @@ cocosearch stats  # Should connect to database
       ],
       "enabled": true,
       "environment": {
-        "COCOSEARCH_DATABASE_URL": "postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
+        "COCOSEARCH_DATABASE_URL": "postgresql://cocosearch:cocosearch@localhost:5432/cocosearch"
       }
     }
   }

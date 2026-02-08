@@ -28,7 +28,7 @@ cocosearch index /path/to/your/project
 
 ```bash
 claude mcp add --transport stdio --scope user \
-  --env COCOSEARCH_DATABASE_URL=postgresql://cocoindex:cocoindex@localhost:5432/cocoindex \
+  --env COCOSEARCH_DATABASE_URL=postgresql://cocosearch:cocosearch@localhost:5432/cocosearch \
   cocosearch -- uv run --directory /absolute/path/to/cocosearch cocosearch mcp
 ```
 
@@ -56,7 +56,7 @@ Add to `~/.claude.json`:
         "mcp"
       ],
       "env": {
-        "COCOSEARCH_DATABASE_URL": "postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
+        "COCOSEARCH_DATABASE_URL": "postgresql://cocosearch:cocosearch@localhost:5432/cocosearch"
       }
     }
   }
