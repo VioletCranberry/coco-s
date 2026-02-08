@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A local-first semantic code search tool exposed via MCP and CLI. Point it at a codebase, it indexes using CocoIndex with Ollama embeddings and PostgreSQL storage, then search semantically through natural language queries. Built for understanding unfamiliar codebases without sending code to external services. Supports 31 languages including DevOps files (Terraform, Dockerfile, Bash) with language-aware chunking, symbol extraction, and rich metadata. Features hybrid search (vector + keyword), context expansion, symbol filtering, and multi-repo MCP support. Configurable via YAML config file with developer setup automation. Available as all-in-one Docker container or native installation. Includes workflow skills for onboarding, debugging, and refactoring.
+A local-first semantic code search tool exposed via MCP and CLI. Point it at a codebase, it indexes using CocoIndex with Ollama embeddings and PostgreSQL storage, then search semantically through natural language queries. Built for understanding unfamiliar codebases without sending code to external services. Supports 31 languages including DevOps files (Terraform, Dockerfile, Bash) with language-aware chunking, symbol extraction, and rich metadata. Features hybrid search (vector + keyword), context expansion, symbol filtering, and multi-repo MCP support. Configurable via YAML config file with developer setup automation. Docker image provides infrastructure (PostgreSQL+pgvector, Ollama+model); CocoSearch runs natively via uv/uvx. Includes workflow skills for onboarding, debugging, and refactoring.
 
 ## Core Value
 
@@ -106,7 +106,16 @@ Semantic code search that runs entirely locally — no data leaves your machine.
 
 ### Active
 
-(None — planning next milestone)
+- [ ] Fix indexing bug: `language` → `language_id` parameter in DevOps metadata extraction
+- [ ] Default COCOSEARCH_DATABASE_URL to `postgresql://cocosearch:cocosearch@localhost:5432/cocosearch`
+- [ ] Align docker-compose.yml credentials to cocosearch:cocosearch
+- [ ] Simplify Docker image to infra-only (PostgreSQL+pgvector, Ollama+model — no CocoSearch)
+- [ ] Document both usage paths: docker-compose for dev, uvx for MCP
+- [ ] MCP Roots capability support (protocol-correct project detection)
+- [ ] HTTP transport project context via query params
+- [ ] Parse failure tracking in stats output (per-language counts)
+- [ ] Add table of contents to reference documentation files
+- [ ] Update Docker documentation for infra-only model
 
 ### Out of Scope
 
@@ -128,12 +137,12 @@ Search features: Hybrid search (RRF), context expansion, symbol filtering, query
 Multi-repo: Single MCP registration via --project-from-cwd with staleness warnings.
 Observability: CLI stats, HTTP API, terminal dashboard, web UI with Chart.js.
 Test coverage: 1022 unit tests + integration tests with real PostgreSQL and Ollama.
-Documentation: Architecture overview, retrieval logic docs, MCP tools reference, workflow skills (onboarding, debugging, refactoring).
+Documentation: Architecture overview, retrieval logic docs, MCP tools reference, workflow skills, CLI reference, search features guide.
 Configuration: YAML config with env var substitution, 4-level precedence, config check command.
 Developer setup: One-command bootstrap via dev-setup.sh with Docker Compose.
-Docker deployment: All-in-one container with s6-overlay, multi-transport support (stdio/SSE/HTTP).
+Docker: Infra-only image (PostgreSQL+pgvector, Ollama+model) with s6-overlay; CocoSearch runs natively.
 Auto-detect: Project detection from working directory with collision handling.
-Environment: COCOSEARCH_DATABASE_URL (required), COCOSEARCH_OLLAMA_URL (optional).
+Environment: COCOSEARCH_DATABASE_URL (default: cocosearch@localhost), COCOSEARCH_OLLAMA_URL (optional).
 
 ## Constraints
 
@@ -208,6 +217,9 @@ Environment: COCOSEARCH_DATABASE_URL (required), COCOSEARCH_OLLAMA_URL (optional
 | Skills auto-execute MCP tools | No manual CLI commands needed in workflows | ✓ Good |
 | Text-only architecture docs | No diagrams, cross-reference detailed docs | ✓ Good |
 | Actual values in docs | k=60, TTL=24h, chunk_size=1000 from source code | ✓ Good |
+| Docker = infra only | CocoSearch runs natively; Docker provides PostgreSQL+Ollama only | — Pending |
+| Default DATABASE_URL | Match Docker image creds, reduce setup friction | — Pending |
+| Standardize cocosearch:cocosearch creds | One set of credentials everywhere | — Pending |
 
 ---
-*Last updated: 2026-02-06 after v1.9 milestone*
+*Last updated: 2026-02-08 after v1.10 milestone start*
