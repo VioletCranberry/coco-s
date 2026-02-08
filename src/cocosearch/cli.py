@@ -503,6 +503,83 @@ def format_symbol_table(symbols: dict[str, int]) -> "Table | None":
     return table
 
 
+def format_parse_health(parse_stats: dict, console: Console) -> None:
+    """Display parse health summary and per-language breakdown.
+
+    Shows a color-coded summary line (green >= 95%, yellow >= 80%, red < 80%)
+    followed by a per-language table with ok/partial/error/unsupported columns.
+
+    Args:
+        parse_stats: Parse stats dict from get_parse_stats().
+        console: Rich console for output.
+    """
+    if not parse_stats:
+        return
+
+    pct = parse_stats.get("parse_health_pct", 100.0)
+    total = parse_stats.get("total_files", 0)
+    ok = parse_stats.get("total_ok", 0)
+
+    # Summary line with color coding
+    color = "green" if pct >= 95 else "yellow" if pct >= 80 else "red"
+    console.print(f"\n[{color}]Parse health: {pct}% clean ({ok}/{total} files)[/{color}]")
+
+    # Per-language table
+    from rich.table import Table
+
+    table = Table(title="Parse Status by Language")
+    table.add_column("Language", style="cyan")
+    table.add_column("Files", justify="right")
+    table.add_column("OK", justify="right", style="green")
+    table.add_column("Partial", justify="right", style="yellow")
+    table.add_column("Error", justify="right", style="red")
+    table.add_column("Unsupported", justify="right", style="dim")
+
+    for lang, counts in sorted(parse_stats.get("by_language", {}).items()):
+        table.add_row(
+            lang,
+            str(counts["files"]),
+            str(counts["ok"]),
+            str(counts["partial"]),
+            str(counts["error"]),
+            str(counts["unsupported"]),
+        )
+    console.print(table)
+
+
+def format_parse_failures(failures: list[dict], console: Console) -> None:
+    """Display individual file parse failure details.
+
+    Shows a table of files that had non-ok parse status with their
+    language, status, and error message.
+
+    Args:
+        failures: List of failure dicts from get_parse_failures().
+        console: Rich console for output.
+    """
+    if not failures:
+        console.print("\n[dim]No parse failures found[/dim]")
+        return
+
+    from rich.table import Table
+
+    table = Table(title="Parse Failures")
+    table.add_column("File", style="white", no_wrap=True)
+    table.add_column("Language", style="cyan")
+    table.add_column("Status", style="yellow")
+    table.add_column("Error", style="red", max_width=60)
+
+    for f in failures:
+        status_style = "red" if f["parse_status"] == "error" else "yellow" if f["parse_status"] == "partial" else "dim"
+        table.add_row(
+            f["file_path"],
+            f["language"],
+            f"[{status_style}]{f['parse_status']}[/{status_style}]",
+            f.get("error_message") or "",
+        )
+    console.print(table)
+
+
 def stats_command(args: argparse.Namespace) -> int:
     """Execute the stats command.
 
@@ -614,6 +691,10 @@ def stats_command(args: argparse.Namespace) -> int:
                         if symbol_table:
                             console.print(symbol_table)
 
+                    # Parse health
+                    if stats.parse_stats:
+                        format_parse_health(stats.parse_stats, console)
+
         return 0
 
     # Single index mode
@@ -639,7 +720,11 @@ def stats_command(args: argparse.Namespace) -> int:
 
     if json_output:
         # JSON output
-        print(json.dumps(stats.to_dict(), indent=2))
+        data = stats.to_dict()
+        if args.show_failures:
+            from cocosearch.management.stats import get_parse_failures
+            data["parse_failures"] = get_parse_failures(index_name)
+        print(json.dumps(data, indent=2))
     else:
         # Pretty output with visual elements
 
@@ -673,6 +758,18 @@ def stats_command(args: argparse.Namespace) -> int:
                 console.print(symbol_table)
         elif args.verbose and not stats.symbols:
             console.print("\n[dim]No symbol statistics available (requires v1.7+ index with symbol extraction)[/dim]")
+
+        # Parse health (always shown if available)
+        if stats.parse_stats:
+            format_parse_health(stats.parse_stats, console)
+
+        # Parse failure details (only with --show-failures flag)
+        if args.show_failures and stats.parse_stats:
+            from cocosearch.management.stats import get_parse_failures
+            failures = get_parse_failures(index_name)
+            format_parse_failures(failures, console)
+        elif args.show_failures and not stats.parse_stats:
+            console.print("\n[dim]No parse statistics available (requires re-indexing with v1.10+)[/dim]")
 
     return 0
 
@@ -1242,6 +1339,11 @@ def main() -> None:
         default=1.0,
         metavar="SECONDS",
         help="Refresh interval for --watch mode (default: 1.0)",
+    )
+    stats_parser.add_argument(
+        "--show-failures",
+        action="store_true",
+        help="Show individual file parse failure details",
     )
 
     # Languages subcommand
