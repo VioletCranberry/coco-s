@@ -44,10 +44,11 @@ Plans:
   3. Health check reports healthy when PostgreSQL accepts connections and Ollama responds on port 11434
   4. Container exposes only ports 5432 (PostgreSQL) and 11434 (Ollama), not port 3000
   5. Users can follow documentation to set up docker-compose for infrastructure and uvx for MCP registration
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 44-01: TBD
+- [ ] 44-01-PLAN.md -- Strip Docker image: remove Python builder, delete svc-mcp, rewire init-ready, upgrade PG 16 to 17
+- [ ] 44-02-PLAN.md -- Update README and MCP docs for infra-only Docker model
 
 ### Phase 45: MCP Protocol Enhancements
 **Goal**: MCP server detects the active project using the protocol-standard Roots capability with graceful fallback for unsupported clients
@@ -100,7 +101,7 @@ Phases execute in numeric order: 43 -> 44 -> 45 -> 46 -> 47
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 43. Bug Fix & Credential Defaults | 2/2 | Complete | 2026-02-08 |
-| 44. Docker Image Simplification | 0/TBD | Not started | - |
+| 44. Docker Image Simplification | 0/2 | Not started | - |
 | 45. MCP Protocol Enhancements | 0/TBD | Not started | - |
 | 46. Parse Failure Tracking | 0/TBD | Not started | - |
 | 47. Documentation Update | 0/TBD | Not started | - |
