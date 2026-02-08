@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 44 of 47 (Docker Image Simplification)
-Plan: Ready to plan
-Status: Phase 43 verified and complete
-Last activity: 2026-02-08 -- Phase 43 verified (4/4 must-haves passed)
+Plan: 01 of 01 (complete)
+Status: Phase 44 complete
+Last activity: 2026-02-08 -- Completed 44-01-PLAN.md (Docker image simplification)
 
-Progress: [##..................] 10% (2/~20 plans across v1.10)
+Progress: [###.................] 15% (3/~20 plans across v1.10)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 116 (across v1.0-v1.10)
+- Total plans completed: 117 (across v1.0-v1.10)
 - Milestones shipped: 10 (v1.0-v1.9)
 - Last milestone: v1.9 Multi-Repo & Polish (phases 38-42, 11 plans)
 
@@ -27,12 +27,12 @@ Progress: [##..................] 10% (2/~20 plans across v1.10)
 
 | Milestone | Phases | Plans | Shipped |
 |-----------|--------|-------|---------|
-| v1.10 Infrastructure & Protocol | 43-47 | 2/~20 | In progress |
+| v1.10 Infrastructure & Protocol | 43-47 | 3/~20 | In progress |
 | v1.9 Multi-Repo & Polish | 38-42 | 11 | 2026-02-06 |
 | v1.8 Polish & Observability | 33-37 | 13 | 2026-02-05 |
 | v1.7 Search Enhancement | 27-32 | 21 | 2026-02-03 |
 
-*Updated: 2026-02-08 after 43-01 execution*
+*Updated: 2026-02-08 after 44-01 execution*
 
 ## Accumulated Context
 
@@ -42,6 +42,8 @@ Full decision log in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
 - Docker = infra only (CocoSearch runs natively; Docker provides PostgreSQL+Ollama only)
+- Docker base image switched from python:3.11-slim to debian:bookworm-slim
+- PostgreSQL upgraded from 16 to 17 in Docker image (aligns with docker-compose.yml)
 - Default DATABASE_URL to match Docker image creds, reduce setup friction
 - Standardize cocosearch:cocosearch credentials everywhere
 - .env.example DATABASE_URL marked as optional (commented out) since app has default
@@ -52,7 +54,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None -- ready for phase 44 planning.
+None -- phase 44 complete. Ready for phase 45.
 
 ### Blockers/Concerns
 
@@ -64,5 +66,5 @@ None -- ready for phase 44 planning.
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Phase 43 complete and verified. Ready for `/gsd:plan-phase 44`.
+Stopped at: Completed 44-01-PLAN.md. Phase 44 complete.
 Resume file: None
