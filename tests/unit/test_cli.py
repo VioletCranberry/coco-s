@@ -200,6 +200,7 @@ class TestStatsCommand:
             languages=[],
             symbols={},
             warnings=[],
+            parse_stats={},
         )
 
         with patch("cocoindex.init"):
@@ -214,6 +215,7 @@ class TestStatsCommand:
                     live=False,
                     watch=False,
                     refresh_interval=1.0,
+                    show_failures=False,
                 )
                 result = stats_command(args)
 

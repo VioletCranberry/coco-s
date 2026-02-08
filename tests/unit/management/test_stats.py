@@ -13,6 +13,8 @@ from cocosearch.management.stats import (
     collect_warnings,
     format_bytes,
     get_comprehensive_stats,
+    get_parse_failures,
+    get_parse_stats,
     get_stats,
     get_symbol_stats,
 )
@@ -202,6 +204,7 @@ class TestIndexStats:
             languages=[{"language": "python", "file_count": 10, "chunk_count": 50}],
             symbols={"function": 25},
             warnings=[],
+            parse_stats={},
         )
         assert stats.name == "test"
         assert stats.file_count == 10
@@ -215,6 +218,7 @@ class TestIndexStats:
         assert stats.languages == [{"language": "python", "file_count": 10, "chunk_count": 50}]
         assert stats.symbols == {"function": 25}
         assert stats.warnings == []
+        assert stats.parse_stats == {}
 
     def test_to_dict_serialization(self):
         """to_dict() returns dictionary suitable for JSON serialization."""
@@ -232,6 +236,7 @@ class TestIndexStats:
             languages=[],
             symbols={},
             warnings=[],
+            parse_stats={},
         )
         result = stats.to_dict()
         assert result["name"] == "test"
@@ -253,6 +258,7 @@ class TestIndexStats:
             languages=[],
             symbols={},
             warnings=["No metadata found"],
+            parse_stats={},
         )
         result = stats.to_dict()
         assert result["created_at"] is None
@@ -447,3 +453,158 @@ class TestCollectWarnings:
                 warnings = collect_warnings("test", is_stale=False, staleness_days=1)
 
         assert warnings == []
+
+
+class TestGetParseStats:
+    """Tests for get_parse_stats function."""
+
+    def test_returns_aggregated_stats(self, mock_db_pool):
+        """Returns per-language breakdown with correct structure."""
+        pool, cursor, conn = mock_db_pool(
+            results=[
+                (True,),  # Table exists
+                ("python", "ok", 100),
+                ("python", "partial", 5),
+                ("python", "error", 2),
+                ("javascript", "ok", 50),
+            ]
+        )
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            stats = get_parse_stats("test")
+
+        assert "by_language" in stats
+        assert "python" in stats["by_language"]
+        assert stats["by_language"]["python"]["ok"] == 100
+        assert stats["by_language"]["python"]["partial"] == 5
+        assert stats["by_language"]["python"]["error"] == 2
+        assert stats["by_language"]["javascript"]["ok"] == 50
+        assert stats["total_files"] == 157
+        assert stats["total_ok"] == 150
+        assert stats["parse_health_pct"] == round(150 / 157 * 100, 1)
+
+    def test_returns_empty_for_missing_table(self, mock_db_pool):
+        """Returns empty dict when parse_results table doesn't exist."""
+        pool, cursor, conn = mock_db_pool(results=[(False,)])  # Table doesn't exist
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            stats = get_parse_stats("old_index")
+
+        assert stats == {}
+
+    def test_returns_100_percent_for_all_ok(self, mock_db_pool):
+        """Returns 100% health when all files parse ok."""
+        pool, cursor, conn = mock_db_pool(
+            results=[
+                (True,),  # Table exists
+                ("python", "ok", 50),
+            ]
+        )
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            stats = get_parse_stats("test")
+
+        assert stats["parse_health_pct"] == 100.0
+
+    def test_returns_100_percent_for_empty_table(self, mock_db_pool):
+        """Returns 100% health when no files are tracked."""
+        pool, cursor, conn = mock_db_pool(
+            results=[
+                (True,),  # Table exists
+                # No rows from aggregation
+            ]
+        )
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            stats = get_parse_stats("test")
+
+        assert stats["parse_health_pct"] == 100.0
+        assert stats["total_files"] == 0
+
+
+class TestGetParseFailures:
+    """Tests for get_parse_failures function."""
+
+    def test_returns_failure_details(self, mock_db_pool):
+        """Returns list of failure dicts for non-ok files."""
+        pool, cursor, conn = mock_db_pool(
+            results=[
+                (True,),  # Table exists
+                ("src/broken.py", "python", "error", "SyntaxError"),
+                ("src/partial.js", "javascript", "partial", "ERROR nodes at lines: 5"),
+            ]
+        )
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            failures = get_parse_failures("test")
+
+        assert len(failures) == 2
+        assert failures[0]["file_path"] == "src/broken.py"
+        assert failures[0]["parse_status"] == "error"
+        assert failures[1]["parse_status"] == "partial"
+
+    def test_returns_empty_for_missing_table(self, mock_db_pool):
+        """Returns empty list when table doesn't exist."""
+        pool, cursor, conn = mock_db_pool(results=[(False,)])
+
+        with patch(
+            "cocosearch.management.stats.get_connection_pool", return_value=pool
+        ):
+            failures = get_parse_failures("old_index")
+
+        assert failures == []
+
+
+class TestIndexStatsWithParseStats:
+    """Tests for IndexStats with parse_stats field."""
+
+    def test_to_dict_includes_parse_stats(self):
+        """to_dict() includes parse_stats in output."""
+        stats = IndexStats(
+            name="test",
+            file_count=10,
+            chunk_count=50,
+            storage_size=1024,
+            storage_size_pretty="1.0 KB",
+            created_at=None,
+            updated_at=None,
+            is_stale=False,
+            staleness_days=0,
+            languages=[],
+            symbols={},
+            warnings=[],
+            parse_stats={"by_language": {"python": {"files": 10, "ok": 9, "partial": 1, "error": 0, "unsupported": 0}}, "parse_health_pct": 90.0, "total_files": 10, "total_ok": 9},
+        )
+        d = stats.to_dict()
+        assert "parse_stats" in d
+        assert d["parse_stats"]["parse_health_pct"] == 90.0
+
+    def test_to_dict_with_empty_parse_stats(self):
+        """to_dict() handles empty parse_stats (pre-v46 indexes)."""
+        stats = IndexStats(
+            name="test",
+            file_count=10,
+            chunk_count=50,
+            storage_size=1024,
+            storage_size_pretty="1.0 KB",
+            created_at=None,
+            updated_at=None,
+            is_stale=False,
+            staleness_days=0,
+            languages=[],
+            symbols={},
+            warnings=[],
+            parse_stats={},
+        )
+        d = stats.to_dict()
+        assert d["parse_stats"] == {}
