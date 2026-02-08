@@ -19,12 +19,12 @@ Requirements for v1.10 milestone. Each maps to roadmap phases.
 
 ### Docker Simplification
 
-- [ ] **DOCK-01**: Remove Python builder stage from Dockerfile (no CocoSearch in image)
-- [ ] **DOCK-02**: Remove svc-mcp service from s6-overlay (delete service dir and all references)
-- [ ] **DOCK-03**: Update health-check script to check PostgreSQL and Ollama only
-- [ ] **DOCK-04**: Update Dockerfile exposed ports (remove 3000, keep 5432 and 11434)
-- [ ] **DOCK-05**: Document docker-compose for dev workflow (infra + native CocoSearch)
-- [ ] **DOCK-06**: Document uvx MCP registration pointing at Docker services
+- [x] **DOCK-01**: Remove Python builder stage from Dockerfile (no CocoSearch in image)
+- [x] **DOCK-02**: Remove svc-mcp service from s6-overlay (delete service dir and all references)
+- [x] **DOCK-03**: Update health-check script to check PostgreSQL and Ollama only
+- [x] **DOCK-04**: Update Dockerfile exposed ports (remove 3000, keep 5432 and 11434)
+- [x] **DOCK-05**: Document docker-compose for dev workflow (infra + native CocoSearch)
+- [x] **DOCK-06**: Document uvx MCP registration pointing at Docker services
 
 ### MCP Protocol
 
@@ -83,12 +83,12 @@ Deferred to future release. Tracked but not in current roadmap.
 | INFRA-01 | Phase 43 | Complete |
 | INFRA-02 | Phase 43 | Complete |
 | INFRA-03 | Phase 43 | Complete |
-| DOCK-01 | Phase 44 | Pending |
-| DOCK-02 | Phase 44 | Pending |
-| DOCK-03 | Phase 44 | Pending |
-| DOCK-04 | Phase 44 | Pending |
-| DOCK-05 | Phase 44 | Pending |
-| DOCK-06 | Phase 44 | Pending |
+| DOCK-01 | Phase 44 | Complete |
+| DOCK-02 | Phase 44 | Complete |
+| DOCK-03 | Phase 44 | Complete |
+| DOCK-04 | Phase 44 | Complete |
+| DOCK-05 | Phase 44 | Complete |
+| DOCK-06 | Phase 44 | Complete |
 | PROTO-01 | Phase 45 | Pending |
 | PROTO-02 | Phase 45 | Pending |
 | PROTO-03 | Phase 45 | Pending |
@@ -111,4 +111,4 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-08*
-*Last updated: 2026-02-08 after Phase 43 completion*
+*Last updated: 2026-02-08 after Phase 44 completion*

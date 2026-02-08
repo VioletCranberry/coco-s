@@ -12,7 +12,7 @@ v1.10 is a refinement milestone that standardizes credentials, simplifies the Do
 ## Phases
 
 - [x] **Phase 43: Bug Fix & Credential Defaults** - Fix DevOps metadata bug and standardize database credentials for zero-config setup
-- [ ] **Phase 44: Docker Image Simplification** - Strip CocoSearch from Docker image, making it infra-only (PostgreSQL+pgvector, Ollama+model)
+- [x] **Phase 44: Docker Image Simplification** - Strip CocoSearch from Docker image, making it infra-only (PostgreSQL+pgvector, Ollama+model)
 - [ ] **Phase 45: MCP Protocol Enhancements** - Add Roots capability for protocol-correct project detection with HTTP query param fallback
 - [ ] **Phase 46: Parse Failure Tracking** - Track and surface tree-sitter parse failures per language in stats output
 - [ ] **Phase 47: Documentation Update** - Update all documentation for infra-only Docker model and new defaults
@@ -47,8 +47,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 44-01-PLAN.md -- Strip Docker image: remove Python builder, delete svc-mcp, rewire init-ready, upgrade PG 16 to 17
-- [ ] 44-02-PLAN.md -- Update README and MCP docs for infra-only Docker model
+- [x] 44-01-PLAN.md -- Strip Docker image: remove Python builder, delete svc-mcp, rewire init-ready, upgrade PG 16 to 17
+- [x] 44-02-PLAN.md -- Update README and MCP docs for infra-only Docker model
 
 ### Phase 45: MCP Protocol Enhancements
 **Goal**: MCP server detects the active project using the protocol-standard Roots capability with graceful fallback for unsupported clients
@@ -101,7 +101,7 @@ Phases execute in numeric order: 43 -> 44 -> 45 -> 46 -> 47
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 43. Bug Fix & Credential Defaults | 2/2 | Complete | 2026-02-08 |
-| 44. Docker Image Simplification | 0/2 | Not started | - |
+| 44. Docker Image Simplification | 2/2 | Complete | 2026-02-08 |
 | 45. MCP Protocol Enhancements | 0/TBD | Not started | - |
 | 46. Parse Failure Tracking | 0/TBD | Not started | - |
 | 47. Documentation Update | 0/TBD | Not started | - |
