@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 46 of 47 (Parse Failure Tracking)
-Plan: Ready to plan
-Status: Phase 45 verified and complete
-Last activity: 2026-02-08 -- Phase 45 verified (5/5 must-haves passed)
+Plan: 01 of 03 complete
+Status: In progress
+Last activity: 2026-02-08 -- Completed 46-01-PLAN.md (parse tracking foundation)
 
-Progress: [#######.............] 35% (7/~20 plans across v1.10)
+Progress: [########............] 40% (8/~20 plans across v1.10)
 
 ## Performance Metrics
 
@@ -27,12 +27,12 @@ Progress: [#######.............] 35% (7/~20 plans across v1.10)
 
 | Milestone | Phases | Plans | Shipped |
 |-----------|--------|-------|---------|
-| v1.10 Infrastructure & Protocol | 43-47 | 7/~20 | In progress   |
+| v1.10 Infrastructure & Protocol | 43-47 | 8/~20 | In progress   |
 | v1.9 Multi-Repo & Polish | 38-42 | 11 | 2026-02-06 |
 | v1.8 Polish & Observability | 33-37 | 13 | 2026-02-05 |
 | v1.7 Search Enhancement | 27-32 | 21 | 2026-02-03 |
 
-*Updated: 2026-02-08 after phase 45 completion*
+*Updated: 2026-02-08 after 46-01 completion*
 
 ## Accumulated Context
 
@@ -66,10 +66,13 @@ Recent decisions affecting current work:
 - Mock _detect_project at definition site (cocosearch.mcp.project_detection._detect_project), not import site
 - Mock find_project_root at cocosearch.management.context.find_project_root (matches local import)
 - "No project detected" error removed in Plan 02; auto-detect tests expect "Index not found" when find_project_root returns (None, None)
+- Store tree-sitter language name (e.g., "python") in parse_results.language, not file extension
+- Parse tracking is non-fatal: wrapped in try/except in run_index()
+- Post-flow tracking pattern: query chunks table for DISTINCT filenames, read from disk, process independently
 
 ### Pending Todos
 
-None -- ready for phase 46 planning.
+None -- ready for 46-02 (stats display).
 
 ### Blockers/Concerns
 
@@ -79,5 +82,5 @@ None -- ready for phase 46 planning.
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Phase 45 complete and verified. Ready for `/gsd:plan-phase 46`.
+Stopped at: Completed 46-01-PLAN.md. Ready for 46-02 (stats display).
 Resume file: None
