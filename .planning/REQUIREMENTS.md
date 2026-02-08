@@ -28,12 +28,12 @@ Requirements for v1.10 milestone. Each maps to roadmap phases.
 
 ### MCP Protocol
 
-- [ ] **PROTO-01**: Implement MCP Roots capability for project detection via `ctx.list_roots()`
-- [ ] **PROTO-02**: Convert relevant MCP tools to async for Context access
-- [ ] **PROTO-03**: Graceful fallback when client doesn't support Roots (catch error, fall to env/cwd)
-- [ ] **PROTO-04**: Shared `_detect_project()` helper with priority: roots > query_param > env > cwd
-- [ ] **PROTO-05**: HTTP transport `?project=` query param via ContextVar middleware
-- [ ] **PROTO-06**: Parse `file://` URIs to filesystem paths with platform handling
+- [x] **PROTO-01**: Implement MCP Roots capability for project detection via `ctx.list_roots()`
+- [x] **PROTO-02**: Convert relevant MCP tools to async for Context access
+- [x] **PROTO-03**: Graceful fallback when client doesn't support Roots (catch error, fall to env/cwd)
+- [x] **PROTO-04**: Shared `_detect_project()` helper with priority: roots > query_param > env > cwd
+- [x] **PROTO-05**: HTTP transport `?project=` query param via ContextVar middleware
+- [x] **PROTO-06**: Parse `file://` URIs to filesystem paths with platform handling
 
 ### Observability
 
@@ -89,12 +89,12 @@ Deferred to future release. Tracked but not in current roadmap.
 | DOCK-04 | Phase 44 | Complete |
 | DOCK-05 | Phase 44 | Complete |
 | DOCK-06 | Phase 44 | Complete |
-| PROTO-01 | Phase 45 | Pending |
-| PROTO-02 | Phase 45 | Pending |
-| PROTO-03 | Phase 45 | Pending |
-| PROTO-04 | Phase 45 | Pending |
-| PROTO-05 | Phase 45 | Pending |
-| PROTO-06 | Phase 45 | Pending |
+| PROTO-01 | Phase 45 | Complete |
+| PROTO-02 | Phase 45 | Complete |
+| PROTO-03 | Phase 45 | Complete |
+| PROTO-04 | Phase 45 | Complete |
+| PROTO-05 | Phase 45 | Complete |
+| PROTO-06 | Phase 45 | Complete |
 | OBS-01 | Phase 46 | Pending |
 | OBS-02 | Phase 46 | Pending |
 | OBS-03 | Phase 46 | Pending |
@@ -111,4 +111,4 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-08*
-*Last updated: 2026-02-08 after Phase 44 completion*
+*Last updated: 2026-02-08 after Phase 45 completion*

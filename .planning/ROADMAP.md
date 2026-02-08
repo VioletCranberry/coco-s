@@ -13,7 +13,7 @@ v1.10 is a refinement milestone that standardizes credentials, simplifies the Do
 
 - [x] **Phase 43: Bug Fix & Credential Defaults** - Fix DevOps metadata bug and standardize database credentials for zero-config setup
 - [x] **Phase 44: Docker Image Simplification** - Strip CocoSearch from Docker image, making it infra-only (PostgreSQL+pgvector, Ollama+model)
-- [ ] **Phase 45: MCP Protocol Enhancements** - Add Roots capability for protocol-correct project detection with HTTP query param fallback
+- [x] **Phase 45: MCP Protocol Enhancements** - Add Roots capability for protocol-correct project detection with HTTP query param fallback
 - [ ] **Phase 46: Parse Failure Tracking** - Track and surface tree-sitter parse failures per language in stats output
 - [ ] **Phase 47: Documentation Update** - Update all documentation for infra-only Docker model and new defaults
 
@@ -63,9 +63,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 45-01-PLAN.md -- Create project_detection.py module with file_uri_to_path, _detect_project priority chain, and roots notification handler
-- [ ] 45-02-PLAN.md -- Convert search_code to async with Context injection, integrate _detect_project for project detection
-- [ ] 45-03-PLAN.md -- Create project detection tests, update existing MCP tests for async, fix pre-existing test failures
+- [x] 45-01-PLAN.md -- Create project_detection.py module with file_uri_to_path, _detect_project priority chain, and roots notification handler
+- [x] 45-02-PLAN.md -- Convert search_code to async with Context injection, integrate _detect_project for project detection
+- [x] 45-03-PLAN.md -- Create project detection tests, update existing MCP tests for async, fix pre-existing test failures
 
 ### Phase 46: Parse Failure Tracking
 **Goal**: Users can see how many files failed tree-sitter parsing per language when reviewing index health
@@ -104,7 +104,7 @@ Phases execute in numeric order: 43 -> 44 -> 45 -> 46 -> 47
 |-------|----------------|--------|-----------|
 | 43. Bug Fix & Credential Defaults | 2/2 | Complete | 2026-02-08 |
 | 44. Docker Image Simplification | 2/2 | Complete | 2026-02-08 |
-| 45. MCP Protocol Enhancements | 0/3 | In progress | - |
+| 45. MCP Protocol Enhancements | 3/3 | Complete | 2026-02-08 |
 | 46. Parse Failure Tracking | 0/TBD | Not started | - |
 | 47. Documentation Update | 0/TBD | Not started | - |
 
