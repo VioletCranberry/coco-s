@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 43 of 47 (Bug Fix & Credential Defaults)
-Plan: 43-02 of 2 complete (43-01 pending)
-Status: In progress
-Last activity: 2026-02-08 -- Completed 43-02-PLAN.md
+Plan: 2 of 2 complete
+Status: Phase complete
+Last activity: 2026-02-08 -- Completed 43-01-PLAN.md
 
-Progress: [#...................] 5% (1/~20 plans across v1.10)
+Progress: [##..................] 10% (2/~20 plans across v1.10)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 115 (across v1.0-v1.10)
+- Total plans completed: 116 (across v1.0-v1.10)
 - Milestones shipped: 10 (v1.0-v1.9)
 - Last milestone: v1.9 Multi-Repo & Polish (phases 38-42, 11 plans)
 
@@ -27,12 +27,12 @@ Progress: [#...................] 5% (1/~20 plans across v1.10)
 
 | Milestone | Phases | Plans | Shipped |
 |-----------|--------|-------|---------|
-| v1.10 Infrastructure & Protocol | 43-47 | 1/~20 | In progress |
+| v1.10 Infrastructure & Protocol | 43-47 | 2/~20 | In progress |
 | v1.9 Multi-Repo & Polish | 38-42 | 11 | 2026-02-06 |
 | v1.8 Polish & Observability | 33-37 | 13 | 2026-02-05 |
 | v1.7 Search Enhancement | 27-32 | 21 | 2026-02-03 |
 
-*Updated: 2026-02-08 after 43-02 execution*
+*Updated: 2026-02-08 after 43-01 execution*
 
 ## Accumulated Context
 
@@ -46,21 +46,23 @@ Recent decisions affecting current work:
 - Standardize cocosearch:cocosearch credentials everywhere
 - .env.example DATABASE_URL marked as optional (commented out) since app has default
 - dev-setup.sh messaging updated: env var is optional when using docker compose
+- get_database_url() bridges COCOSEARCH_DATABASE_URL to COCOINDEX_DATABASE_URL as side-effect
+- validate_required_env_vars() returns empty list (no required env vars remain)
+- All DATABASE_URL callsites centralized through get_database_url()
 
 ### Pending Todos
 
-- Execute 43-01-PLAN.md (Python code changes: get_database_url helper, callsite updates, tests)
+None -- phase 43 complete. Ready for phase 44.
 
 ### Blockers/Concerns
 
 **Research flags for later phases:**
 - Phase 45 (MCP Roots): Validate `ctx.session.list_roots()` across transports; Claude Desktop does NOT support roots
 - Phase 45 (HTTP Query Params): Verify Starlette query params accessible through FastMCP SDK transport layer
-
-**Note:** `src/cocosearch/cli.py` has pre-existing unstaged changes (likely from 43-01 work-in-progress). Verify clean state before executing 43-01.
+- Pre-existing MCP test failures in tests/unit/mcp/test_server.py (2 tests) -- unrelated to phase 43 work
 
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 43-02-PLAN.md
+Stopped at: Completed 43-01-PLAN.md (phase 43 complete)
 Resume file: None
