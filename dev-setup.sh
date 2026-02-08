@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Variables
 CLEANUP_NEEDED=false
-export COCOSEARCH_DATABASE_URL="postgresql://cocoindex:cocoindex@localhost:5432/cocoindex"
+export COCOSEARCH_DATABASE_URL="postgresql://cocosearch:cocosearch@localhost:5432/cocosearch"
 
 # Trap handlers
 cleanup_on_exit() {
@@ -112,9 +112,11 @@ show_next_steps() {
   echo "Setup complete!"
   echo "==============="
   echo ""
-  echo "Set this in your shell (add to ~/.bashrc or ~/.zshrc for persistence):"
+  echo "DATABASE_URL defaults to postgresql://cocosearch:cocosearch@localhost:5432/cocosearch"
+  echo "No environment variable needed when using docker compose."
   echo ""
-  echo "  export COCOSEARCH_DATABASE_URL=\"postgresql://cocoindex:cocoindex@localhost:5432/cocoindex\""
+  echo "To override (add to ~/.bashrc or ~/.zshrc):"
+  echo "  export COCOSEARCH_DATABASE_URL=\"postgresql://custom:pass@host:5432/db\""
   echo ""
   echo "Quick reference commands:"
   echo ""
