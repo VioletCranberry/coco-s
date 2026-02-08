@@ -57,13 +57,15 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. MCP tools in Claude Code (which supports Roots) automatically detect the project without --project-from-cwd
   2. MCP tools in Claude Desktop (which does NOT support Roots) fall back to env var or cwd detection without errors
-  3. HTTP transport accepts `?project=/path/to/repo` query parameter for project context
+  3. HTTP transport accepts `?project_path=/path/to/repo` query parameter for project context
   4. Project detection follows consistent priority: roots > query_param > env > cwd across all transports
   5. `file://` URIs from Roots are correctly parsed to filesystem paths on the current platform
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 45-01: TBD
+- [ ] 45-01-PLAN.md -- Create project_detection.py module with file_uri_to_path, _detect_project priority chain, and roots notification handler
+- [ ] 45-02-PLAN.md -- Convert search_code to async with Context injection, integrate _detect_project for project detection
+- [ ] 45-03-PLAN.md -- Create project detection tests, update existing MCP tests for async, fix pre-existing test failures
 
 ### Phase 46: Parse Failure Tracking
 **Goal**: Users can see how many files failed tree-sitter parsing per language when reviewing index health
@@ -102,7 +104,7 @@ Phases execute in numeric order: 43 -> 44 -> 45 -> 46 -> 47
 |-------|----------------|--------|-----------|
 | 43. Bug Fix & Credential Defaults | 2/2 | Complete | 2026-02-08 |
 | 44. Docker Image Simplification | 2/2 | Complete | 2026-02-08 |
-| 45. MCP Protocol Enhancements | 0/TBD | Not started | - |
+| 45. MCP Protocol Enhancements | 0/3 | In progress | - |
 | 46. Parse Failure Tracking | 0/TBD | Not started | - |
 | 47. Documentation Update | 0/TBD | Not started | - |
 
