@@ -72,14 +72,16 @@ Plans:
 **Depends on**: Phase 43 (working indexing pipeline)
 **Requirements**: OBS-01, OBS-02, OBS-03, OBS-04
 **Success Criteria** (what must be TRUE):
-  1. After indexing, each chunk has a `parse_status` value (ok, error, or unsupported) stored in the database
+  1. After indexing, each file has a `parse_status` value (ok, partial, error, or unsupported) stored in the database
   2. `cocosearch stats` CLI shows parse failure counts per language alongside existing metrics
   3. MCP `index_stats` tool response includes parse failure breakdown per language
   4. HTTP `/api/stats` endpoint includes parse failure data in its JSON response
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 46-01: TBD
+- [ ] 46-01-PLAN.md -- Create parse_tracking module, schema migration, integrate into flow.py and clear.py
+- [ ] 46-02-PLAN.md -- Add parse stats queries, extend IndexStats, update CLI with parse health display and --show-failures
+- [ ] 46-03-PLAN.md -- Surface parse stats in MCP/HTTP endpoints, add comprehensive tests
 
 ### Phase 47: Documentation Update
 **Goal**: All documentation accurately reflects the infra-only Docker model, new defaults, and protocol enhancements
@@ -105,7 +107,7 @@ Phases execute in numeric order: 43 -> 44 -> 45 -> 46 -> 47
 | 43. Bug Fix & Credential Defaults | 2/2 | Complete | 2026-02-08 |
 | 44. Docker Image Simplification | 2/2 | Complete | 2026-02-08 |
 | 45. MCP Protocol Enhancements | 3/3 | Complete | 2026-02-08 |
-| 46. Parse Failure Tracking | 0/TBD | Not started | - |
+| 46. Parse Failure Tracking | 0/3 | Not started | - |
 | 47. Documentation Update | 0/TBD | Not started | - |
 
 ---
