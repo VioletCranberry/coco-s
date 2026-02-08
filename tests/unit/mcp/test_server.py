@@ -11,10 +11,20 @@ from cocosearch.mcp.server import (
 )
 
 
+def _make_mock_ctx():
+    """Create a minimal mock Context for tests that pass explicit index_name."""
+    ctx = MagicMock()
+    ctx.session = MagicMock()
+    ctx.request_context = MagicMock()
+    ctx.request_context.request = None
+    return ctx
+
+
 class TestSearchCode:
     """Tests for search_code MCP tool."""
 
-    def test_returns_result_list(self, mock_code_to_embedding, mock_db_pool):
+    @pytest.mark.asyncio
+    async def test_returns_result_list(self, mock_code_to_embedding, mock_db_pool):
         """Returns list of result dicts."""
         pool, cursor, _conn = mock_db_pool(results=[
             ("/test/file.py", 0, 100, 0.9, "", "", ""),
@@ -24,8 +34,9 @@ class TestSearchCode:
             with patch("cocosearch.search.query.get_connection_pool", return_value=pool):
                 with patch("cocosearch.mcp.server.byte_to_line", return_value=1):
                     with patch("cocosearch.mcp.server.read_chunk_content", return_value="def test(): pass"):
-                        result = search_code(
+                        result = await search_code(
                             query="test query",
+                            ctx=_make_mock_ctx(),
                             index_name="testindex",
                             limit=5,
                         )
@@ -36,7 +47,8 @@ class TestSearchCode:
         assert "content" in result[0]
         assert "score" in result[0]
 
-    def test_applies_limit(self, mock_code_to_embedding, mock_db_pool):
+    @pytest.mark.asyncio
+    async def test_applies_limit(self, mock_code_to_embedding, mock_db_pool):
         """Respects limit parameter."""
         pool, cursor, _conn = mock_db_pool(results=[
             ("/test/file1.py", 0, 100, 0.9, "", "", ""),
@@ -47,8 +59,9 @@ class TestSearchCode:
             with patch("cocosearch.search.query.get_connection_pool", return_value=pool):
                 with patch("cocosearch.mcp.server.byte_to_line", return_value=1):
                     with patch("cocosearch.mcp.server.read_chunk_content", return_value="code"):
-                        result = search_code(
+                        result = await search_code(
                             query="test",
+                            ctx=_make_mock_ctx(),
                             index_name="testindex",
                             limit=1,
                         )
@@ -57,7 +70,8 @@ class TestSearchCode:
         # This test verifies the limit parameter is passed correctly
         assert isinstance(result, list)
 
-    def test_language_filter(self, mock_code_to_embedding, mock_db_pool):
+    @pytest.mark.asyncio
+    async def test_language_filter(self, mock_code_to_embedding, mock_db_pool):
         """Applies language filter."""
         pool, cursor, _conn = mock_db_pool(results=[
             ("/test/file.py", 0, 100, 0.9, "", "", ""),
@@ -67,8 +81,9 @@ class TestSearchCode:
             with patch("cocosearch.search.query.get_connection_pool", return_value=pool):
                 with patch("cocosearch.mcp.server.byte_to_line", return_value=1):
                     with patch("cocosearch.mcp.server.read_chunk_content", return_value="code"):
-                        result = search_code(
+                        result = await search_code(
                             query="test",
+                            ctx=_make_mock_ctx(),
                             index_name="testindex",
                             limit=10,
                             language="python",
@@ -83,7 +98,8 @@ class TestSearchCode:
 class TestSearchCodeMetadata:
     """Tests for metadata fields in search_code MCP response."""
 
-    def test_response_includes_metadata(self, mock_code_to_embedding, mock_db_pool):
+    @pytest.mark.asyncio
+    async def test_response_includes_metadata(self, mock_code_to_embedding, mock_db_pool):
         """search_code result should include block_type, hierarchy, language_id."""
         pool, cursor, _conn = mock_db_pool(results=[
             ("/infra/main.tf", 0, 200, 0.92, "resource", "resource.aws_s3_bucket.data", "hcl"),
@@ -93,8 +109,9 @@ class TestSearchCodeMetadata:
             with patch("cocosearch.search.query.get_connection_pool", return_value=pool):
                 with patch("cocosearch.mcp.server.byte_to_line", return_value=1):
                     with patch("cocosearch.mcp.server.read_chunk_content", return_value="resource {}"):
-                        result = search_code(
+                        result = await search_code(
                             query="s3 bucket",
+                            ctx=_make_mock_ctx(),
                             index_name="testindex",
                             limit=5,
                         )
@@ -105,7 +122,8 @@ class TestSearchCodeMetadata:
         assert item["hierarchy"] == "resource.aws_s3_bucket.data"
         assert item["language_id"] == "hcl"
 
-    def test_response_empty_metadata_for_non_devops(self, mock_code_to_embedding, mock_db_pool):
+    @pytest.mark.asyncio
+    async def test_response_empty_metadata_for_non_devops(self, mock_code_to_embedding, mock_db_pool):
         """Non-DevOps results should have empty string metadata fields."""
         pool, cursor, _conn = mock_db_pool(results=[
             ("/test/file.py", 0, 100, 0.85, "", "", ""),
@@ -115,8 +133,9 @@ class TestSearchCodeMetadata:
             with patch("cocosearch.search.query.get_connection_pool", return_value=pool):
                 with patch("cocosearch.mcp.server.byte_to_line", return_value=1):
                     with patch("cocosearch.mcp.server.read_chunk_content", return_value="def test(): pass"):
-                        result = search_code(
+                        result = await search_code(
                             query="test",
+                            ctx=_make_mock_ctx(),
                             index_name="testindex",
                             limit=5,
                         )
@@ -251,10 +270,11 @@ class TestIndexCodebase:
                         "num_updates": 2,
                     }
                 })
-                result = index_codebase(
-                    path=str(tmp_codebase),
-                    index_name="testindex",
-                )
+                with patch("cocosearch.mcp.server.register_index_path"):
+                    result = index_codebase(
+                        path=str(tmp_codebase),
+                        index_name="testindex",
+                    )
 
         assert result["success"] is True
         assert result["index_name"] == "testindex"
@@ -265,10 +285,11 @@ class TestIndexCodebase:
         with patch("cocoindex.init"):
             with patch("cocosearch.mcp.server.run_index") as mock_run:
                 mock_run.return_value = MagicMock(stats={})
-                result = index_codebase(
-                    path=str(tmp_codebase),
-                    index_name=None,  # Should be derived
-                )
+                with patch("cocosearch.mcp.server.register_index_path"):
+                    result = index_codebase(
+                        path=str(tmp_codebase),
+                        index_name=None,  # Should be derived
+                    )
 
         assert result["success"] is True
         assert result["index_name"] == "codebase"  # tmp_codebase creates "codebase" dir
