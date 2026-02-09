@@ -246,7 +246,7 @@ def get_parse_stats(index_name: str) -> dict:
 
     Returns:
         Dict with keys:
-        - by_language: Per-language breakdown with ok/partial/error/unsupported counts
+        - by_language: Per-language breakdown with ok/partial/error/no_grammar counts
         - parse_health_pct: Percentage of files that parsed cleanly
         - total_files: Total files tracked
         - total_ok: Total files with ok status
@@ -295,7 +295,7 @@ def get_parse_stats(index_name: str) -> dict:
                 "ok": 0,
                 "partial": 0,
                 "error": 0,
-                "unsupported": 0,
+                "no_grammar": 0,
             }
         by_language[language][parse_status] += count
         by_language[language]["files"] += count
@@ -326,14 +326,14 @@ def get_parse_failures(
     Args:
         index_name: The name of the index.
         status_filter: List of parse statuses to include.
-            Default: ["partial", "error", "unsupported"] (all non-ok).
+            Default: ["partial", "error", "no_grammar"] (all non-ok).
 
     Returns:
         List of dicts with keys: file_path, language, parse_status, error_message.
         Empty list [] if parse_results table does not exist.
     """
     if status_filter is None:
-        status_filter = ["partial", "error", "unsupported"]
+        status_filter = ["partial", "error", "no_grammar"]
 
     pool = get_connection_pool()
     table_name = f"cocosearch_parse_results_{index_name}"

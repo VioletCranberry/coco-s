@@ -91,7 +91,7 @@ uv run cocosearch stats myproject --pretty
 | `--watch`               | Auto-refresh dashboard (requires --live)   | Off     |
 | `--refresh-interval`    | Refresh interval in seconds for --watch    | 1.0     |
 
-**Parse health** is shown by default when available. It displays a percentage of files that parsed cleanly along with a per-language breakdown (ok, partial, error, unsupported).
+**Parse health** is shown by default when available. It displays a percentage of files that parsed cleanly along with a per-language breakdown (ok, partial, error, no grammar).
 
 To see individual file failure details (file paths and error types), use the `--show-failures` flag:
 

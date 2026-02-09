@@ -7,7 +7,7 @@ Parse status categories:
 - ok: Clean parse, no ERROR nodes in tree
 - partial: Tree produced but with ERROR nodes (chunks still extracted)
 - error: Total failure (exception during parsing)
-- unsupported: Language not supported by tree-sitter
+- no_grammar: No tree-sitter grammar available for this language
 """
 
 import logging
@@ -19,6 +19,13 @@ from tree_sitter_language_pack import get_parser as pack_get_parser
 from cocosearch.indexer.symbols import LANGUAGE_MAP
 
 logger = logging.getLogger(__name__)
+
+# Extensions that are indexed as plain text — no tree-sitter grammar exists
+# or parse health is meaningless. Excluded from parse tracking entirely.
+_SKIP_PARSE_EXTENSIONS = frozenset({
+    "md", "mdx", "txt", "rst", "csv", "json", "yaml", "yml", "toml", "xml",
+    "html", "css", "svg", "lock", "ini", "cfg", "conf", "env", "properties",
+})
 
 
 def detect_parse_status(file_content: str, language_ext: str) -> tuple[str, str | None]:
@@ -33,11 +40,11 @@ def detect_parse_status(file_content: str, language_ext: str) -> tuple[str, str 
         - ("ok", None) - clean parse, no ERROR nodes
         - ("partial", "ERROR nodes at lines: 5, 12") - tree produced but with errors
         - ("error", "Exception: ...") - total failure
-        - ("unsupported", None) - language not in LANGUAGE_MAP
+        - ("no_grammar", None) - language not in LANGUAGE_MAP
     """
     ts_language = LANGUAGE_MAP.get(language_ext)
     if ts_language is None:
-        return ("unsupported", None)
+        return ("no_grammar", None)
 
     try:
         parser = pack_get_parser(ts_language)
@@ -96,7 +103,7 @@ def track_parse_results(
         table_name: Name of the chunks table to query for indexed files.
 
     Returns:
-        Summary dict: {"total_files": N, "ok": N, "partial": N, "error": N, "unsupported": N}
+        Summary dict: {"total_files": N, "ok": N, "partial": N, "error": N, "no_grammar": N}
     """
     # Query chunks table for distinct indexed files
     with conn.cursor() as cur:
@@ -104,23 +111,31 @@ def track_parse_results(
         files = cur.fetchall()
 
     results = []
-    summary = {"total_files": 0, "ok": 0, "partial": 0, "error": 0, "unsupported": 0}
+    summary = {"total_files": 0, "ok": 0, "partial": 0, "error": 0, "no_grammar": 0}
 
     for filename, language_id in files:
+        # Skip text-only formats — no tree-sitter grammar, parse health is meaningless
+        if language_id in _SKIP_PARSE_EXTENSIONS:
+            continue
+
         summary["total_files"] += 1
 
         # Read file content from disk
         file_path = Path(codebase_path) / filename
+        if not file_path.is_file():
+            # File deleted from disk but chunks remain in DB (stale index)
+            # — skip silently rather than reporting a false error
+            continue
         try:
             file_content = file_path.read_text(encoding="utf-8", errors="replace")
         except Exception as e:
-            # File unreadable -- record as error rather than failing entire tracking
+            # File exists but unreadable — record as error
             results.append(
                 {
                     "file_path": filename,
                     "language": language_id,
                     "parse_status": "error",
-                    "error_message": f"FileNotFoundError: {e}",
+                    "error_message": f"Read error: {e}",
                 }
             )
             summary["error"] += 1
@@ -130,7 +145,7 @@ def track_parse_results(
         status, error_message = detect_parse_status(file_content, language_id)
 
         # Map extension to tree-sitter language name for storage
-        # For unsupported languages, store the language_id as-is
+        # For languages without a grammar, store the language_id as-is
         ts_language = LANGUAGE_MAP.get(language_id, language_id)
 
         results.append(
@@ -150,7 +165,7 @@ def track_parse_results(
         f"Parse tracking complete for '{index_name}': "
         f"{summary['total_files']} files, "
         f"{summary['ok']} ok, {summary['partial']} partial, "
-        f"{summary['error']} error, {summary['unsupported']} unsupported"
+        f"{summary['error']} error, {summary['no_grammar']} no_grammar"
     )
 
     return summary

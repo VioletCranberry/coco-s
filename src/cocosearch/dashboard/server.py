@@ -34,6 +34,75 @@ class DashboardHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404)
 
+    def do_POST(self):  # noqa: N802
+        if self.path == "/api/reindex":
+            self._handle_reindex()
+        else:
+            self.send_error(404)
+
+    def _handle_reindex(self):
+        import cocoindex
+        from cocosearch.indexer import IndexingConfig, run_index
+        from cocosearch.management import (
+            get_index_metadata,
+            set_index_status,
+            register_index_path,
+        )
+
+        content_length = int(self.headers.get("Content-Length", 0))
+        raw = self.rfile.read(content_length) if content_length else b""
+        try:
+            body = json.loads(raw) if raw else {}
+        except json.JSONDecodeError:
+            self._json_response({"error": "Invalid JSON body"}, status=400)
+            return
+
+        index_name = body.get("index_name")
+        fresh = body.get("fresh", False)
+
+        if not index_name:
+            self._json_response({"error": "index_name is required"}, status=400)
+            return
+
+        metadata = get_index_metadata(index_name)
+        if not metadata or not metadata.get("canonical_path"):
+            self._json_response(
+                {"error": f"Index '{index_name}' not found or has no source path"},
+                status=400,
+            )
+            return
+
+        source_path = metadata["canonical_path"]
+
+        try:
+            set_index_status(index_name, "indexing")
+        except Exception:
+            pass
+
+        def _run():
+            try:
+                cocoindex.init()
+                run_index(
+                    index_name=index_name,
+                    codebase_path=source_path,
+                    config=IndexingConfig(),
+                    fresh=fresh,
+                )
+                register_index_path(index_name, source_path)
+            except Exception as exc:
+                logger.error(f"Background reindex failed: {exc}")
+            finally:
+                try:
+                    set_index_status(index_name, "indexed")
+                except Exception:
+                    pass
+
+        thread = threading.Thread(target=_run, daemon=True)
+        thread.start()
+
+        action = "Fresh reindex" if fresh else "Reindex"
+        self._json_response({"success": True, "message": f"{action} started for '{index_name}'"})
+
     def _serve_dashboard(self):
         from cocosearch.dashboard.web import get_dashboard_html
 

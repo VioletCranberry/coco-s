@@ -555,7 +555,7 @@ def format_parse_health(parse_stats: dict, console: Console) -> None:
     """Display parse health summary and per-language breakdown.
 
     Shows a color-coded summary line (green >= 95%, yellow >= 80%, red < 80%)
-    followed by a per-language table with ok/partial/error/unsupported columns.
+    followed by a per-language table with ok/partial/error/no_grammar columns.
 
     Args:
         parse_stats: Parse stats dict from get_parse_stats().
@@ -583,7 +583,7 @@ def format_parse_health(parse_stats: dict, console: Console) -> None:
     table.add_column("OK", justify="right", style="green")
     table.add_column("Partial", justify="right", style="yellow")
     table.add_column("Error", justify="right", style="red")
-    table.add_column("Unsupported", justify="right", style="dim")
+    table.add_column("No Grammar", justify="right", style="dim")
 
     for lang, counts in sorted(parse_stats.get("by_language", {}).items()):
         table.add_row(
@@ -592,7 +592,7 @@ def format_parse_health(parse_stats: dict, console: Console) -> None:
             str(counts["ok"]),
             str(counts["partial"]),
             str(counts["error"]),
-            str(counts["unsupported"]),
+            str(counts["no_grammar"]),
         )
     console.print(table)
 

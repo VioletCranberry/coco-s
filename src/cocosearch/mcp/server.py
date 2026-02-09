@@ -13,6 +13,7 @@ Provides Model Context Protocol server with tools for:
 import os
 import sys
 import logging
+import threading
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,15 +42,15 @@ from cocosearch.management import (  # noqa: E402
     register_index_path,
     set_index_status,
 )
-from cocosearch.mcp.project_detection import (
+from cocosearch.mcp.project_detection import (  # noqa: E402
     _detect_project,
     register_roots_notification,
-)  # noqa: E402
-from cocosearch.management.stats import (
+)
+from cocosearch.management.stats import (  # noqa: E402
     check_staleness,
     get_comprehensive_stats,
     get_parse_failures,
-)  # noqa: E402
+)
 from cocosearch.search import byte_to_line, read_chunk_content, search  # noqa: E402
 from cocosearch.search.context_expander import ContextExpander  # noqa: E402
 
@@ -150,6 +151,61 @@ async def api_stats_single(request):
         )
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=404)
+
+
+@mcp.custom_route("/api/reindex", methods=["POST"])
+async def api_reindex(request):
+    """Trigger reindexing of an existing index in a background thread."""
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON body"}, status_code=400)
+
+    index_name = body.get("index_name")
+    fresh = body.get("fresh", False)
+
+    if not index_name:
+        return JSONResponse({"error": "index_name is required"}, status_code=400)
+
+    # Look up source path from metadata
+    metadata = get_index_metadata(index_name)
+    if not metadata or not metadata.get("canonical_path"):
+        return JSONResponse(
+            {"error": f"Index '{index_name}' not found or has no source path"},
+            status_code=400,
+        )
+
+    source_path = metadata["canonical_path"]
+
+    # Set status to indexing
+    try:
+        set_index_status(index_name, "indexing")
+    except Exception:
+        pass
+
+    def _run():
+        try:
+            cocoindex.init()
+            run_index(
+                index_name=index_name,
+                codebase_path=source_path,
+                config=IndexingConfig(),
+                fresh=fresh,
+            )
+            register_index_path(index_name, source_path)
+        except Exception as exc:
+            logger.error(f"Background reindex failed: {exc}")
+        finally:
+            try:
+                set_index_status(index_name, "indexed")
+            except Exception:
+                pass
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+
+    action = "Fresh reindex" if fresh else "Reindex"
+    return JSONResponse({"success": True, "message": f"{action} started for '{index_name}'"})
 
 
 def _get_treesitter_language(ext: str) -> str | None:

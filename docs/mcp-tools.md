@@ -189,14 +189,14 @@ Check how many files and chunks are indexed in "my-api-server" and when it was l
         "ok": 175,
         "partial": 3,
         "error": 2,
-        "unsupported": 0
+        "no_grammar": 0
       },
       "typescript": {
         "files": 120,
         "ok": 115,
         "partial": 3,
         "error": 2,
-        "unsupported": 0
+        "no_grammar": 0
       }
     }
   },

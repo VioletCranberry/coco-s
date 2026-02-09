@@ -609,7 +609,7 @@ class TestIndexStatsWithParseStats:
                         "ok": 9,
                         "partial": 1,
                         "error": 0,
-                        "unsupported": 0,
+                        "no_grammar": 0,
                     }
                 },
                 "parse_health_pct": 90.0,

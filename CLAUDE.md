@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CocoSearch is a local-first hybrid semantic code search tool powered by CocoIndex and Tree-sitter. It indexes codebases into PostgreSQL with pgvector embeddings (via Ollama) and provides search through CLI, MCP server, or interactive REPL. No external APIs — everything runs locally.
+CocoSearch is a local-first hybrid semantic code search tool powered by CocoIndex and Tree-sitter. It indexes codebases into PostgreSQL with pgvector embeddings (via Ollama) and provides search through CLI, MCP server, or interactive REPL. No external APIs — everything runs locally. Requires Python >=3.11.
 
 ## Development Setup
 
@@ -30,14 +30,16 @@ uv run pytest
 # Run a single test file
 uv run pytest tests/unit/search/test_cache.py -v
 
-# Run integration tests (requires Docker containers running)
-uv run pytest tests/integration -m integration
+# Run a single test by name
+uv run pytest -k "test_rrf_double_match_ranks_higher" -v
 
 # Run handler tests
 uv run pytest tests/unit/handlers/ -v
 
-# Lint
+# Lint and format
 uv run ruff check src/ tests/
+uv run ruff check --fix src/ tests/     # Auto-fix lint issues
+uv run ruff format src/ tests/          # Format code
 
 # CLI usage
 uv run cocosearch index .
@@ -73,17 +75,19 @@ uv run cocosearch mcp --project-from-cwd
 
 **Key patterns:**
 
-- Singleton DB connection pool via `search.db` — reset between tests with `reset_db_pool()` auto-use fixture
+- Singleton DB connection pool via `search.db` — reset between tests with `reset_db_pool()` autouse fixture in `tests/conftest.py`
 - Handler autodiscovery: any `handlers/*.py` (not prefixed with `_`) implementing `LanguageHandler` protocol is auto-registered
 - CocoIndex framework orchestrates the indexing pipeline in `indexer/flow.py`
 
 ## Testing
 
-Tests are split into `tests/unit/` (mocked, default) and `tests/integration/` (real Docker containers via testcontainers). The default pytest marker is `unit` (set in `addopts`), so `uv run pytest` runs only unit tests.
+All tests are unit tests (`tests/unit/`), fully mocked and requiring no infrastructure. `uv run pytest` runs them by default.
+
+**Markers are auto-applied** by conftest.py — tests under `tests/unit/` get `@pytest.mark.unit` automatically. No need to add them manually.
 
 Async tests use `pytest-asyncio` with `strict` mode — async test functions must be decorated with `@pytest.mark.asyncio`.
 
-Integration tests use `testcontainers` to spin up PostgreSQL (port 5433) and Ollama automatically. Shared fixtures live in `tests/fixtures/`.
+Shared fixtures live in `tests/fixtures/`.
 
 ## Adding a Language Handler
 
@@ -95,4 +99,4 @@ Integration tests use `testcontainers` to spin up PostgreSQL (port 5433) and Oll
 
 ## Configuration
 
-Project config via `cocosearch.yaml` in project root. Environment variables prefixed with `COCOSEARCH_` (e.g., `COCOSEARCH_DATABASE_URL`, `COCOSEARCH_OLLAMA_URL`). See `.env.example` for available options.
+Project config via `cocosearch.yaml` (no leading dot) in project root. Environment variables prefixed with `COCOSEARCH_` (e.g., `COCOSEARCH_DATABASE_URL`, `COCOSEARCH_OLLAMA_URL`). See `.env.example` for available options.

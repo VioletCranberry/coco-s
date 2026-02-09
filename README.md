@@ -1,6 +1,6 @@
-# CocoSearch
+# Coco-s
 
-CocoSearch is a local-first hybrid semantic code search tool powered by [CocoIndex](https://github.com/cocoindex-io/cocoindex) and [Tree-sitter](https://tree-sitter.github.io/tree-sitter/). It indexes codebases into PostgreSQL with pgvector embeddings (via Ollama) and provides search through CLI, MCP server, or interactive REPL. No external APIs — everything runs locally.
+Coco[S]earch is a local-first hybrid semantic code search tool powered by [CocoIndex](https://github.com/cocoindex-io/cocoindex) and [Tree-sitter](https://tree-sitter.github.io/tree-sitter/). It indexes codebases into PostgreSQL with pgvector embeddings (via Ollama) and provides search through CLI, MCP server, or interactive REPL. No external APIs — everything runs locally. Incremental updates by default. `.gitignore` is respected.
 
 ## Disclaimer
 
@@ -37,6 +37,8 @@ This is a personal initiative built using [GSD](https://github.com/glittercowboy
 - **coco-onboarding** ([SKILL.md](./skills/coco-onboarding/SKILL.md)): Use when onboarding to a new or unfamiliar codebase. Guides you through understanding architecture, key modules, and code patterns step-by-step using CocoSearch.
 - **coco-refactoring** ([SKILL.md](./skills/coco-refactoring/SKILL.md)): Use when planning a refactoring, extracting code into a new module, renaming across the codebase, or splitting a large file. Guides impact analysis and safe step-by-step execution using CocoSearch.
 - **coco-explain** ([SKILL.md](./skills/coco-explain/SKILL.md)): Use when a user asks how something works — a flow, logic path, subsystem, or concept. Guides targeted deep-dive explanations using CocoSearch semantic and hybrid search.
+- **coco-new-feature** ([SKILL.md](./skills/coco-new-feature/SKILL.md)): Use when adding new functionality — a new command, endpoint, module, handler, or capability. Guides placement, pattern matching, and integration using CocoSearch.
+- **coco-subway** ([SKILL.md](./skills/coco-subway/SKILL.md)): Use when the user wants to visualize codebase structure as an interactive London Underground-style subway map. AI-generated visualization using CocoSearch tools for exploration.
 
 ## Quick Start
 
@@ -53,8 +55,8 @@ claude mcp add --scope user cocosearch -- \
 Alternatively, use skills:
 
 ```bash
-# Install coco skills.
-for skill in coco-onboarding coco-refactoring coco-debugging coco-quickstart coco-explain; do
+# Install coco skills. For global installation install them to ~/.claude/skills/
+for skill in coco-onboarding coco-refactoring coco-debugging coco-quickstart coco-explain coco-new-feature coco-subway; do
     mkdir -p .claude/skills/$skill
     cp skills/$skill/SKILL.md .claude/skills/$skill/SKILL.md
 done
@@ -105,7 +107,6 @@ uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch languages
 │ Typescript │ .ts, .tsx, .mts, .cts       │    ✓    │
 │ XML        │ .xml                        │    ✗    │
 │ YAML       │ .yaml, .yml                 │    ✗    │
-│ Bash       │ .bash                       │    ✗    │
 │ Dockerfile │ Dockerfile                  │    ✗    │
 │ HCL        │ .hcl                        │    ✗    │
 └────────────┴─────────────────────────────┴─────────┘
@@ -140,8 +141,6 @@ uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch search --int
 # View index stats with parse health
 uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch stats --pretty
 
-uv run cocosearch stats --pretty
-
 Index: cocosearch
 Source: /GIT/coco-s
 Status: Indexed
@@ -164,21 +163,17 @@ Last Updated: 2026-02-09 (0 days ago)
 │ yaml         │      1 │        1 │                                │
 └──────────────┴────────┴──────────┴────────────────────────────────┘
 
-Parse health: 85.8% clean (139/162 files)
+Parse health: 98.6% clean (141/143 files)
                   Parse Status by Language
 ┏━━━━━━━━━━━━┳━━━━━━━┳━━━━━┳━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━┓
-┃ Language   ┃ Files ┃  OK ┃ Partial ┃ Error ┃ Unsupported ┃
-┡━━━━━━━━━━━━╇━━━━━━━╇━━━━━╇━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━┩
-│ bash       │     2 │   0 │       0 │     0 │           2 │
-│ hcl        │     1 │   0 │       0 │     0 │           1 │
-│ html       │     1 │   0 │       0 │     0 │           1 │
-│ javascript │     1 │   1 │       0 │     0 │           0 │
-│ md         │    15 │   0 │       0 │     0 │          15 │
-│ python     │   138 │ 138 │       0 │     0 │           0 │
-│ toml       │     1 │   0 │       0 │     0 │           1 │
-│ yaml       │     1 │   0 │       0 │     0 │           1 │
-│ yml        │     2 │   0 │       0 │     0 │           2 │
-└────────────┴───────┴─────┴─────────┴───────┴─────────────┘
+┃ Language   ┃ Files ┃  OK ┃ Partial ┃ Error ┃ No Grammar ┃
+┡━━━━━━━━━━━━╇━━━━━━━╇━━━━━╇━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━┩
+│ bash       │     2 │   2 │       0 │     0 │          0 │
+│ dockerfile │     1 │   0 │       0 │     0 │          1 │
+│ hcl        │     1 │   0 │       0 │     0 │          1 │
+│ javascript │     1 │   1 │       0 │     0 │          0 │
+│ python     │   138 │ 138 │       0 │     0 │          0 │
+└────────────┴───────┴─────┴─────────┴───────┴────────────┘
 
 # View index stats with parse health live
 uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch stats --live
@@ -194,7 +189,7 @@ uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch stats --live
 │  Size          8.9 MB                   ││ ┃ Lang              ┃      Files ┃       Chunks ┃ Distribution                   ┃ │
 │  Source        /GIT/coco-s              ││ ┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩ │
 │  Status        Indexed                  ││ │ py                │        138 │         1388 │ ██████████████████████████████ │ │
-│  Parse Health  85.8% (139/162)          ││ │ md                │         15 │          151 │ ███▎                           │ │
+│  Parse Health  98.6% (141/143)          ││ │ md                │         15 │          151 │ ███▎                           │ │
 │                                         ││ │ html              │          1 │           23 │ ▍                              │ │
 │  Created       2026-02-09               ││ │ bash              │          2 │            7 │ ▏                              │ │
 │  Updated       2026-02-09               ││ │ toml              │          1 │            2 │                                │ │
@@ -209,7 +204,7 @@ For the full list of commands and flags, see [CLI Reference](./docs/cli-referenc
 
 ## Configuration
 
-Create `.cocosearch.yaml` in your project root to customize indexing:
+Create `cocosearch.yaml` in your project root to customize indexing:
 
 ```yaml
 indexing:
@@ -225,4 +220,15 @@ indexing:
     - "*.min.js"
   chunk_size: 1000 # bytes
   chunk_overlap: 300 # bytes
+```
+
+## Testing
+
+Tests use [pytest](https://docs.pytest.org/). All tests are unit tests, fully mocked, and require no infrastructure. Markers are auto-applied based on directory -- no need to add them manually.
+
+```bash
+uv run pytest                                          # Run all unit tests
+uv run pytest tests/unit/search/test_cache.py -v       # Single file
+uv run pytest -k "test_rrf_double_match" -v            # Single test by name
+uv run pytest tests/unit/handlers/ -v                  # Handler tests
 ```

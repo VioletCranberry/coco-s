@@ -144,7 +144,7 @@ The indexing pipeline transforms raw code files into searchable chunks with embe
   - `ok` — Clean parse with no errors
   - `partial` — Parse completed but with error nodes in the tree
   - `error` — Parse failed completely
-  - `unsupported` — No tree-sitter grammar available for the file's language
+  - `no_grammar` — No tree-sitter grammar available for the file's language
 - Results are stored in a per-index `parse_results` table (`cocosearch_parse_results_{index_name}`) with columns: file_path, language, parse_status, error_message
 - This tracking is non-fatal — parse failures do not block indexing
 - The parse results table is dropped when an index is cleared via `clear_index`

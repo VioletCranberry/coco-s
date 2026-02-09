@@ -33,7 +33,7 @@ The indexing pipeline transforms a codebase into searchable vector embeddings:
 5. **Metadata Extraction:** Extract DevOps block types (pipeline, job, stage), symbol information (function/class/method names, signatures), and language identifiers
 6. **Text Preprocessing:** Generate tsvector representation for full-text search capabilities
 7. **Storage:** Insert chunks into PostgreSQL with vector index (cosine distance) and GIN index (tsvector)
-8. **Parse Tracking:** After indexing completes, parse results are recorded per file (ok, partial, error, unsupported). This non-fatal tracking provides observability into tree-sitter parse health.
+8. **Parse Tracking:** After indexing completes, parse results are recorded per file (ok, partial, error, no_grammar). This non-fatal tracking provides observability into tree-sitter parse health.
 
 See [Retrieval Logic](retrieval.md) for complete pipeline details including error handling and performance optimizations.
 
@@ -90,4 +90,4 @@ See [MCP Tools Reference](mcp-tools.md) for complete parameter documentation, re
 
 **Symbol metadata:** Extract function/class/method names and signatures during indexing for precise filtering. Enables queries like "find all functions named `validate*`" or "show only class definitions". Currently supported for 10 languages (Python, JavaScript, TypeScript, Go, Rust, Java, C, C++, Ruby, PHP).
 
-**Parse tracking:** Non-fatal parse status tracking per file provides observability without blocking indexing. Each file receives a status (ok, partial, error, unsupported) based on tree-sitter results. Parse failures are surfaced in stats output and available via the MCP `index_stats` tool.
+**Parse tracking:** Non-fatal parse status tracking per file provides observability without blocking indexing. Each file receives a status (ok, partial, error, no_grammar) based on tree-sitter results. Parse failures are surfaced in stats output and available via the MCP `index_stats` tool.

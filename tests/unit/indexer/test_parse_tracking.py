@@ -38,22 +38,34 @@ class TestDetectParseStatus:
         # Should contain at least one line number
         assert any(c.isdigit() for c in msg)
 
-    def test_unsupported_for_unknown_extension(self):
-        """Returns ('unsupported', None) for extensions not in LANGUAGE_MAP."""
+    def test_no_grammar_for_unknown_extension(self):
+        """Returns ('no_grammar', None) for extensions not in LANGUAGE_MAP."""
         status, msg = detect_parse_status("FROM ubuntu:latest", "dockerfile")
-        assert status == "unsupported"
+        assert status == "no_grammar"
         assert msg is None
 
-    def test_unsupported_for_empty_extension(self):
-        """Returns ('unsupported', None) for empty extension."""
+    def test_no_grammar_for_markdown(self):
+        """Markdown has no tree-sitter grammar — returns no_grammar."""
+        status, msg = detect_parse_status("# Hello\nSome text", "md")
+        assert status == "no_grammar"
+        assert msg is None
+
+    def test_no_grammar_for_empty_extension(self):
+        """Returns ('no_grammar', None) for empty extension."""
         status, msg = detect_parse_status("some content", "")
-        assert status == "unsupported"
+        assert status == "no_grammar"
         assert msg is None
 
-    def test_unsupported_for_unknown_lang(self):
-        """Returns ('unsupported', None) for completely unknown extensions."""
+    def test_no_grammar_for_unknown_lang(self):
+        """Returns ('no_grammar', None) for completely unknown extensions."""
         status, msg = detect_parse_status("some content", "zzz")
-        assert status == "unsupported"
+        assert status == "no_grammar"
+        assert msg is None
+
+    def test_ok_for_valid_bash(self):
+        """Returns ('ok', None) for valid Bash script."""
+        status, msg = detect_parse_status("#!/bin/bash\necho hello\n", "sh")
+        assert status == "ok"
         assert msg is None
 
     def test_ok_for_valid_go(self):
@@ -98,3 +110,25 @@ class TestCollectErrorLines:
         assert len(lines) > 0
         # All lines should be positive integers (1-indexed)
         assert all(isinstance(line, int) and line >= 1 for line in lines)
+
+
+class TestSkipParseExtensions:
+    """Tests for _SKIP_PARSE_EXTENSIONS exclusion set."""
+
+    def test_markdown_in_skip_set(self):
+        from cocosearch.indexer.parse_tracking import _SKIP_PARSE_EXTENSIONS
+
+        assert "md" in _SKIP_PARSE_EXTENSIONS
+        assert "mdx" in _SKIP_PARSE_EXTENSIONS
+
+    def test_text_formats_in_skip_set(self):
+        from cocosearch.indexer.parse_tracking import _SKIP_PARSE_EXTENSIONS
+
+        for ext in ("txt", "json", "yaml", "yml", "toml", "xml", "csv"):
+            assert ext in _SKIP_PARSE_EXTENSIONS, f"{ext} should be skipped"
+
+    def test_code_extensions_not_in_skip_set(self):
+        from cocosearch.indexer.parse_tracking import _SKIP_PARSE_EXTENSIONS
+
+        for ext in ("py", "js", "ts", "go", "rs", "sh"):
+            assert ext not in _SKIP_PARSE_EXTENSIONS, f"{ext} should NOT be skipped"

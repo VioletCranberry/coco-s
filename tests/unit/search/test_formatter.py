@@ -5,7 +5,7 @@ Tests JSON and pretty output formatters with mocked file operations.
 
 import io
 import json
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from rich.console import Console
 
@@ -14,6 +14,14 @@ from cocosearch.search.formatter import (
     format_pretty,
     EXTENSION_LANG_MAP,
 )
+
+
+def _mock_expander():
+    """Create a mock ContextExpander that returns empty context."""
+    mock = MagicMock()
+    mock.return_value = mock  # ContextExpander() returns itself
+    mock.get_context_lines.return_value = ([], [], [], False, False)
+    return mock
 
 
 class TestFormatJson:
@@ -28,8 +36,8 @@ class TestFormatJson:
                 "cocosearch.search.formatter.read_chunk_content", return_value="code"
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(results)
 
@@ -47,8 +55,8 @@ class TestFormatJson:
                 "cocosearch.search.formatter.read_chunk_content", return_value="code"
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(results)
 
@@ -71,8 +79,8 @@ class TestFormatJson:
                 return_value=code_content,
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(results, include_content=True)
 
@@ -94,8 +102,6 @@ class TestFormatJson:
 
     def test_includes_context_lines(self, make_search_result):
         """JSON should contain context_before and context_after as strings."""
-        from unittest.mock import MagicMock
-
         results = [make_search_result()]
 
         mock_expander = MagicMock()
@@ -125,8 +131,6 @@ class TestFormatJson:
 
     def test_no_context_when_disabled(self, make_search_result):
         """JSON should have empty context when smart_context=False and no lines requested."""
-        from unittest.mock import MagicMock
-
         results = [make_search_result()]
 
         mock_expander = MagicMock()
@@ -155,8 +159,8 @@ class TestFormatJson:
                 "cocosearch.search.formatter.read_chunk_content", return_value="code"
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(sample_search_results)
 
@@ -178,8 +182,8 @@ class TestFormatJson:
                 "cocosearch.search.formatter.read_chunk_content", return_value="code"
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(results)
 
@@ -356,8 +360,8 @@ class TestFormatJsonMetadata:
                 return_value="resource {}",
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(results)
 
@@ -376,8 +380,8 @@ class TestFormatJsonMetadata:
                 "cocosearch.search.formatter.read_chunk_content", return_value="code"
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(results)
 
@@ -402,8 +406,8 @@ class TestFormatJsonMetadata:
                 "cocosearch.search.formatter.read_chunk_content", return_value="code"
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     devops_output = format_json([devops_result])
                     non_devops_output = format_json([non_devops_result])
@@ -532,8 +536,8 @@ class TestFormatJsonHybridFields:
                 "cocosearch.search.formatter.read_chunk_content", return_value="code"
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(results)
 
@@ -558,8 +562,8 @@ class TestFormatJsonHybridFields:
                 "cocosearch.search.formatter.read_chunk_content", return_value="code"
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(results)
 
@@ -584,8 +588,8 @@ class TestFormatJsonHybridFields:
                 "cocosearch.search.formatter.read_chunk_content", return_value="code"
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(results)
 
@@ -614,8 +618,8 @@ class TestFormatJsonHybridFields:
                 return_value="def test(): pass",
             ):
                 with patch(
-                    "cocosearch.search.formatter.get_context_lines",
-                    return_value=([], []),
+                    "cocosearch.search.formatter.ContextExpander",
+                    _mock_expander(),
                 ):
                     output = format_json(results)
 

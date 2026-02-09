@@ -219,6 +219,168 @@
             font-size: 13px;
         }
 
+        .action-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--accent-blue);
+            border-radius: 6px;
+            background: var(--accent-blue);
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            opacity: 0.85;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn.danger {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .status-banner {
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status-banner.visible {
+            display: block;
+        }
+
+        .status-banner.info {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .status-banner.success {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .status-banner.error {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .parse-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .parse-table th {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .parse-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .parse-table tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        .parse-table .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .status-ok { color: var(--accent-green); }
+        .status-partial { color: var(--accent-orange); }
+        .status-error { color: var(--accent-red); }
+        .status-no-grammar { color: var(--text-muted); }
+
+        .parse-details {
+            margin-top: 16px;
+        }
+
+        .parse-details summary {
+            cursor: pointer;
+            padding: 10px 0;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 14px;
+            list-style: none;
+        }
+
+        .parse-details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .parse-details summary::before {
+            content: "\25B6\00a0";
+            font-size: 11px;
+        }
+
+        .parse-details[open] summary::before {
+            content: "\25BC\00a0";
+        }
+
+        .failure-list {
+            margin-top: 8px;
+        }
+
+        .failure-list table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .failure-list th {
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .failure-list td {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border-color);
+            word-break: break-all;
+        }
+
+        .failure-list tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        .failure-list .file-path {
+            font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--text-primary);
+        }
+
+        .failure-list .error-msg {
+            color: var(--text-secondary);
+            font-size: 12px;
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         @media (max-width: 768px) {
             .chart-grid {
                 grid-template-columns: 1fr;
@@ -246,8 +408,12 @@
                     <option value="">Loading...</option>
                 </select>
                 <span id="sourcePath" style="color: var(--text-muted); font-size: 13px; margin-left: 8px;"></span>
+                <button id="reindexBtn" class="action-btn" onclick="reindex(false)">Reindex</button>
+                <button id="freshIndexBtn" class="action-btn danger" onclick="reindex(true)">Fresh Index</button>
             </div>
         </header>
+
+        <div id="statusBanner" class="status-banner"></div>
 
         <div id="warningBanner" class="warning-banner">
             <h3>Index Warnings</h3>
@@ -305,6 +471,28 @@
                     </div>
                 </div>
             </div>
+
+            <div id="parseHealthSection" class="chart-card" style="display: none;">
+                <h2>Parse Health by Language</h2>
+                <table class="parse-table">
+                    <thead>
+                        <tr>
+                            <th>Language</th>
+                            <th class="num">Files</th>
+                            <th class="num">OK</th>
+                            <th class="num">Partial</th>
+                            <th class="num">Error</th>
+                            <th class="num">No Grammar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="parseTableBody"></tbody>
+                </table>
+
+                <details class="parse-details" id="parseFailuresDetails" style="display: none;">
+                    <summary id="parseFailuresSummary">0 files with issues</summary>
+                    <div class="failure-list" id="parseFailuresList"></div>
+                </details>
+            </div>
         </div>
 
         <footer>
@@ -318,9 +506,9 @@
         let allIndexes = [];
 
         async function fetchStats(indexName = null) {
-            const url = indexName
-                ? `/api/stats?index=${encodeURIComponent(indexName)}`
-                : '/api/stats';
+            let url = indexName
+                ? `/api/stats?index=${encodeURIComponent(indexName)}&include_failures=true`
+                : '/api/stats?include_failures=true';
 
             const response = await fetch(url);
             if (!response.ok) {
@@ -561,11 +749,91 @@
             });
         }
 
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function updateParseHealthTable(parseStats) {
+            const section = document.getElementById('parseHealthSection');
+            const tbody = document.getElementById('parseTableBody');
+
+            if (!parseStats || !parseStats.by_language || Object.keys(parseStats.by_language).length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            const byLang = parseStats.by_language;
+            const entries = Object.entries(byLang).sort((a, b) => b[1].files - a[1].files);
+
+            tbody.innerHTML = entries.map(([lang, data]) => {
+                const healthPct = data.files > 0 ? (data.ok / data.files * 100) : 100;
+                let langColor = 'var(--accent-green)';
+                if (healthPct < 80) langColor = 'var(--accent-red)';
+                else if (healthPct < 95) langColor = 'var(--accent-orange)';
+
+                return `<tr>
+                    <td style="font-weight: 500; color: ${langColor}">${escapeHtml(lang)}</td>
+                    <td class="num">${data.files}</td>
+                    <td class="num status-ok">${data.ok}</td>
+                    <td class="num status-partial">${data.partial || 0}</td>
+                    <td class="num status-error">${data.error || 0}</td>
+                    <td class="num status-no-grammar">${data.no_grammar || 0}</td>
+                </tr>`;
+            }).join('');
+
+            section.style.display = 'block';
+        }
+
+        function updateParseFailures(failures) {
+            const details = document.getElementById('parseFailuresDetails');
+            const summary = document.getElementById('parseFailuresSummary');
+            const listEl = document.getElementById('parseFailuresList');
+
+            if (!failures || failures.length === 0) {
+                details.style.display = 'none';
+                return;
+            }
+
+            summary.textContent = `${failures.length} file${failures.length !== 1 ? 's' : ''} with issues`;
+
+            const statusOrder = { error: 0, partial: 1, no_grammar: 2 };
+            const sorted = [...failures].sort((a, b) =>
+                (statusOrder[a.parse_status] ?? 3) - (statusOrder[b.parse_status] ?? 3)
+            );
+
+            const statusClass = (s) => {
+                if (s === 'error') return 'status-error';
+                if (s === 'partial') return 'status-partial';
+                return 'status-no-grammar';
+            };
+
+            listEl.innerHTML = `<table>
+                <thead><tr>
+                    <th>File</th>
+                    <th>Language</th>
+                    <th>Status</th>
+                    <th>Error</th>
+                </tr></thead>
+                <tbody>${sorted.map(f => `<tr>
+                    <td class="file-path">${escapeHtml(f.file_path)}</td>
+                    <td>${escapeHtml(f.language)}</td>
+                    <td class="${statusClass(f.parse_status)}">${escapeHtml(f.parse_status)}</td>
+                    <td class="error-msg" title="${escapeHtml(f.error_message || '')}">${escapeHtml(f.error_message || '-')}</td>
+                </tr>`).join('')}</tbody>
+            </table>`;
+
+            details.style.display = 'block';
+        }
+
         function updateDashboard(stats) {
             updateSummaryCards(stats);
             updateWarnings(stats.warnings);
             updateLanguageChart(stats.languages || []);
             updateSymbolChart(stats.symbols || {});
+            updateParseHealthTable(stats.parse_stats);
+            updateParseFailures(stats.parse_failures);
         }
 
         async function loadIndexList() {
@@ -620,6 +888,90 @@
                 updateDashboard(allIndexes[indexIndex]);
             }
         });
+
+        let pollInterval = null;
+
+        function setButtonsDisabled(disabled) {
+            document.getElementById('reindexBtn').disabled = disabled;
+            document.getElementById('freshIndexBtn').disabled = disabled;
+        }
+
+        function showStatusBanner(message, type) {
+            const banner = document.getElementById('statusBanner');
+            banner.textContent = message;
+            banner.className = 'status-banner visible ' + type;
+        }
+
+        function hideStatusBanner() {
+            document.getElementById('statusBanner').className = 'status-banner';
+        }
+
+        async function reindex(fresh) {
+            if (fresh && !confirm('Fresh Index will delete and rebuild the entire index. Continue?')) {
+                return;
+            }
+
+            const select = document.getElementById('indexSelect');
+            const indexIndex = parseInt(select.value);
+            const stats = allIndexes[indexIndex];
+            if (!stats) return;
+
+            setButtonsDisabled(true);
+            const action = fresh ? 'Fresh reindex' : 'Reindex';
+            showStatusBanner(action + ' starting...', 'info');
+
+            try {
+                const resp = await fetch('/api/reindex', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({index_name: stats.name, fresh: fresh})
+                });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    showStatusBanner('Error: ' + (data.error || 'Request failed'), 'error');
+                    setButtonsDisabled(false);
+                    return;
+                }
+                showStatusBanner(data.message, 'info');
+                startPolling();
+            } catch (err) {
+                showStatusBanner('Error: ' + err.message, 'error');
+                setButtonsDisabled(false);
+            }
+        }
+
+        function startPolling() {
+            stopPolling();
+            pollInterval = setInterval(async () => {
+                try {
+                    const data = await fetchStats();
+                    allIndexes = Array.isArray(data) ? data : [data];
+
+                    const select = document.getElementById('indexSelect');
+                    const indexIndex = parseInt(select.value);
+                    if (allIndexes[indexIndex]) {
+                        updateDashboard(allIndexes[indexIndex]);
+
+                        const status = allIndexes[indexIndex].status || 'indexed';
+                        if (status !== 'indexing') {
+                            stopPolling();
+                            setButtonsDisabled(false);
+                            showStatusBanner('Indexing complete', 'success');
+                            setTimeout(hideStatusBanner, 5000);
+                        }
+                    }
+                } catch (err) {
+                    // Keep polling on transient errors
+                }
+            }, 3000);
+        }
+
+        function stopPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+        }
 
         // Initialize dashboard
         loadIndexList();

@@ -21,16 +21,15 @@ BUILTIN_MARKERS = {
 }
 
 # Required custom markers - tests must have at least one
-REQUIRED_MARKERS = {"unit", "integration"}
+REQUIRED_MARKERS = {"unit"}
 
 
 def pytest_collection_modifyitems(items):
-    """Warn if tests are missing unit/integration markers.
+    """Warn if tests are missing unit marker.
 
     This hook runs during test collection and emits warnings for any
-    test that doesn't have a @pytest.mark.unit or @pytest.mark.integration
-    marker. Tests in tests/unit/ and tests/integration/ get markers
-    auto-applied by their respective conftest.py files.
+    test that doesn't have a @pytest.mark.unit marker. Tests in
+    tests/unit/ get the marker auto-applied by conftest.py.
     """
     for item in items:
         marker_names = {mark.name for mark in item.iter_markers()}
@@ -38,19 +37,16 @@ def pytest_collection_modifyitems(items):
 
         if not custom_markers.intersection(REQUIRED_MARKERS):
             warnings.warn(
-                f"Test '{item.nodeid}' has no @pytest.mark.unit or "
-                f"@pytest.mark.integration marker",
+                f"Test '{item.nodeid}' has no @pytest.mark.unit marker",
                 UserWarning,
             )
 
 
-# Register fixtures from fixtures directory (added by subsequent plans)
+# Register fixtures from fixtures directory
 pytest_plugins = [
-    "tests.fixtures.db",  # Added by Plan 02
-    "tests.fixtures.ollama",  # Added by Plan 03
-    "tests.fixtures.data",  # Added by Plan 03
-    "tests.fixtures.containers",  # Integration: PostgreSQL testcontainer
-    "tests.fixtures.ollama_integration",  # Integration: Ollama testcontainer
+    "tests.fixtures.db",
+    "tests.fixtures.ollama",
+    "tests.fixtures.data",
 ]
 
 
