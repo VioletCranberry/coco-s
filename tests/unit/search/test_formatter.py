@@ -343,7 +343,7 @@ class TestFormatJsonMetadata:
     """Tests for metadata fields in format_json output."""
 
     def test_json_includes_metadata_fields(self, make_search_result):
-        """JSON output should include block_type, hierarchy, language_id for DevOps results."""
+        """JSON output should include block_type, hierarchy, language_id for handler results."""
         results = [
             make_search_result(
                 filename="/infra/main.tf",
@@ -371,8 +371,8 @@ class TestFormatJsonMetadata:
         assert item["hierarchy"] == "resource.aws_s3_bucket.data"
         assert item["language_id"] == "hcl"
 
-    def test_json_empty_metadata_for_non_devops(self, make_search_result):
-        """Non-DevOps results should have empty string metadata fields."""
+    def test_json_empty_metadata_for_non_handler(self, make_search_result):
+        """Non-handler results should have empty string metadata fields."""
         results = [make_search_result(filename="/test/file.py", score=0.85)]
 
         with patch("cocosearch.search.formatter.byte_to_line", return_value=1):
@@ -392,14 +392,14 @@ class TestFormatJsonMetadata:
         assert item["language_id"] == ""
 
     def test_json_metadata_consistent_shape(self, make_search_result):
-        """DevOps and non-DevOps results should have identical key sets."""
-        devops_result = make_search_result(
+        """Handler and non-handler results should have identical key sets."""
+        handler_result = make_search_result(
             filename="/infra/main.tf",
             block_type="resource",
             hierarchy="resource.aws_s3_bucket.data",
             language_id="hcl",
         )
-        non_devops_result = make_search_result(filename="/test/file.py")
+        non_handler_result = make_search_result(filename="/test/file.py")
 
         with patch("cocosearch.search.formatter.byte_to_line", return_value=1):
             with patch(
@@ -409,12 +409,12 @@ class TestFormatJsonMetadata:
                     "cocosearch.search.formatter.ContextExpander",
                     _mock_expander(),
                 ):
-                    devops_output = format_json([devops_result])
-                    non_devops_output = format_json([non_devops_result])
+                    handler_output = format_json([handler_result])
+                    non_handler_output = format_json([non_handler_result])
 
-        devops_keys = set(json.loads(devops_output)[0].keys())
-        non_devops_keys = set(json.loads(non_devops_output)[0].keys())
-        assert devops_keys == non_devops_keys
+        handler_keys = set(json.loads(handler_output)[0].keys())
+        non_handler_keys = set(json.loads(non_handler_output)[0].keys())
+        assert handler_keys == non_handler_keys
 
 
 class TestFormatPrettyAnnotation:
@@ -468,8 +468,8 @@ class TestFormatPrettyAnnotation:
         assert "[hcl]" in captured
         assert "resource" not in captured
 
-    def test_non_devops_shows_extension_language(self, make_search_result):
-        """Non-DevOps files should show extension-derived language tag."""
+    def test_non_handler_shows_extension_language(self, make_search_result):
+        """Non-handler files should show extension-derived language tag."""
         results = [make_search_result(filename="/test/file.py")]
         console, output = self._make_console()
 
@@ -506,8 +506,8 @@ class TestFormatPrettyAnnotation:
         assert "[dockerfile]" in captured
 
 
-class TestExtensionLangMapDevOps:
-    """Tests for DevOps entries in EXTENSION_LANG_MAP."""
+class TestExtensionLangMapHandlers:
+    """Tests for handler entries in EXTENSION_LANG_MAP."""
 
     def test_hcl_extensions(self):
         """HCL/Terraform extensions should map to 'hcl'."""

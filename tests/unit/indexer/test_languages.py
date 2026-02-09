@@ -13,7 +13,7 @@ from cocosearch.handlers.bash import BashHandler
 HCL_LANGUAGE = HclHandler.SEPARATOR_SPEC
 DOCKERFILE_LANGUAGE = DockerfileHandler.SEPARATOR_SPEC
 BASH_LANGUAGE = BashHandler.SEPARATOR_SPEC
-DEVOPS_CUSTOM_LANGUAGES = get_custom_languages()
+HANDLER_CUSTOM_LANGUAGES = get_custom_languages()
 
 
 class TestHclLanguage:
@@ -125,23 +125,23 @@ class TestBashLanguage:
 
 
 class TestDevopsCustomLanguages:
-    """Tests for DEVOPS_CUSTOM_LANGUAGES aggregated list."""
+    """Tests for HANDLER_CUSTOM_LANGUAGES aggregated list."""
 
     def test_contains_all_three_specs(self):
-        """DEVOPS_CUSTOM_LANGUAGES should contain exactly three specs."""
-        assert len(DEVOPS_CUSTOM_LANGUAGES) == 3
+        """HANDLER_CUSTOM_LANGUAGES should contain exactly three specs."""
+        assert len(HANDLER_CUSTOM_LANGUAGES) == 3
 
     def test_contains_hcl(self):
-        """DEVOPS_CUSTOM_LANGUAGES should contain the HCL spec."""
-        assert HCL_LANGUAGE in DEVOPS_CUSTOM_LANGUAGES
+        """HANDLER_CUSTOM_LANGUAGES should contain the HCL spec."""
+        assert HCL_LANGUAGE in HANDLER_CUSTOM_LANGUAGES
 
     def test_contains_dockerfile(self):
-        """DEVOPS_CUSTOM_LANGUAGES should contain the Dockerfile spec."""
-        assert DOCKERFILE_LANGUAGE in DEVOPS_CUSTOM_LANGUAGES
+        """HANDLER_CUSTOM_LANGUAGES should contain the Dockerfile spec."""
+        assert DOCKERFILE_LANGUAGE in HANDLER_CUSTOM_LANGUAGES
 
     def test_contains_bash(self):
-        """DEVOPS_CUSTOM_LANGUAGES should contain the Bash spec."""
-        assert BASH_LANGUAGE in DEVOPS_CUSTOM_LANGUAGES
+        """HANDLER_CUSTOM_LANGUAGES should contain the Bash spec."""
+        assert BASH_LANGUAGE in HANDLER_CUSTOM_LANGUAGES
 
 
 class TestAllSeparatorsNoLookaheads:
@@ -149,7 +149,7 @@ class TestAllSeparatorsNoLookaheads:
 
     def test_no_lookaheads_or_lookbehinds(self):
         """All separators across all languages must use standard Rust regex only."""
-        for lang in DEVOPS_CUSTOM_LANGUAGES:
+        for lang in HANDLER_CUSTOM_LANGUAGES:
             for sep in lang.separators_regex:
                 assert "(?=" not in sep, (
                     f"Lookahead (?=) found in {lang.language_name} separator: {sep}"
@@ -166,7 +166,7 @@ class TestAllSeparatorsNoLookaheads:
 
     def test_all_separators_are_valid_python_regex(self):
         """All separators should compile as valid Python regex (subset of Rust regex)."""
-        for lang in DEVOPS_CUSTOM_LANGUAGES:
+        for lang in HANDLER_CUSTOM_LANGUAGES:
             for sep in lang.separators_regex:
                 try:
                     re.compile(sep)

@@ -36,8 +36,8 @@ class TestIndexingConfig:
         assert config.exclude_patterns == []
 
 
-class TestDevOpsPatterns:
-    """Tests for DevOps file patterns in IndexingConfig."""
+class TestHandlerPatterns:
+    """Tests for handler file patterns in IndexingConfig."""
 
     def test_hcl_terraform_patterns(self):
         """Include patterns should contain HCL/Terraform file patterns."""
@@ -65,7 +65,7 @@ class TestDevOpsPatterns:
         existing = ["*.py", "*.js", "*.ts", "*.go", "*.rs", "*.java", "*.rb"]
         for pattern in existing:
             assert pattern in config.include_patterns, (
-                f"Existing pattern '{pattern}' missing after DevOps additions"
+                f"Existing pattern '{pattern}' missing after handler additions"
             )
 
 

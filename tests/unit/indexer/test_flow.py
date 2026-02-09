@@ -255,13 +255,13 @@ class TestRunIndex:
 class TestCustomLanguageIntegration:
     """Tests for custom language integration in flow module."""
 
-    def test_devops_custom_languages_importable(self):
-        """DEVOPS_CUSTOM_LANGUAGES is importable from handlers module."""
+    def test_handler_custom_languages_importable(self):
+        """HANDLER_CUSTOM_LANGUAGES is importable from handlers module."""
         from cocosearch.handlers import get_custom_languages
 
-        DEVOPS_CUSTOM_LANGUAGES = get_custom_languages()
-        assert isinstance(DEVOPS_CUSTOM_LANGUAGES, list)
-        assert len(DEVOPS_CUSTOM_LANGUAGES) == 3
+        HANDLER_CUSTOM_LANGUAGES = get_custom_languages()
+        assert isinstance(HANDLER_CUSTOM_LANGUAGES, list)
+        assert len(HANDLER_CUSTOM_LANGUAGES) == 3
 
     def test_extract_language_importable(self):
         """extract_language is importable from embedder module."""
@@ -304,20 +304,20 @@ class TestCustomLanguageIntegration:
 class TestMetadataIntegration:
     """Tests for metadata extraction integration in flow module."""
 
-    def test_extract_devops_metadata_importable_from_flow(self):
-        """flow module successfully imports extract_devops_metadata."""
+    def test_extract_chunk_metadata_importable_from_flow(self):
+        """flow module successfully imports extract_chunk_metadata."""
         import cocosearch.indexer.flow as flow_module
 
-        assert hasattr(flow_module, "extract_devops_metadata")
+        assert hasattr(flow_module, "extract_chunk_metadata")
 
-    def test_extract_devops_metadata_is_cocoindex_op(self):
-        """extract_devops_metadata is a callable that returns DevOpsMetadata."""
-        from cocosearch.handlers import extract_devops_metadata, DevOpsMetadata
+    def test_extract_chunk_metadata_is_cocoindex_op(self):
+        """extract_chunk_metadata is a callable that returns ChunkMetadata."""
+        from cocosearch.handlers import extract_chunk_metadata, ChunkMetadata
 
-        assert callable(extract_devops_metadata)
-        # Verify the function works and returns DevOpsMetadata with expected fields
-        result = extract_devops_metadata("some text", "py")
-        assert isinstance(result, DevOpsMetadata)
+        assert callable(extract_chunk_metadata)
+        # Verify the function works and returns ChunkMetadata with expected fields
+        result = extract_chunk_metadata("some text", "py")
+        assert isinstance(result, ChunkMetadata)
         assert hasattr(result, "block_type")
         assert hasattr(result, "hierarchy")
         assert hasattr(result, "language_id")
@@ -328,7 +328,7 @@ class TestMetadataIntegration:
 
         source = inspect.getsource(flow_module)
         assert "from cocosearch.handlers import" in source
-        assert "extract_devops_metadata" in source
+        assert "extract_chunk_metadata" in source
 
     def test_flow_source_has_metadata_transform(self):
         """flow module source contains the metadata transform call."""
@@ -336,7 +336,7 @@ class TestMetadataIntegration:
 
         source = inspect.getsource(flow_module)
         assert 'chunk["metadata"]' in source
-        assert "extract_devops_metadata" in source
+        assert "extract_chunk_metadata" in source
         assert 'language=file["extension"]' in source
 
     def test_flow_source_collects_metadata_fields(self):

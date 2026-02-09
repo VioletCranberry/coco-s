@@ -10,7 +10,7 @@ from cocosearch.handlers.bash import BashHandler
 
 # Local test helpers (previously from deprecated metadata module)
 @dataclass
-class DevOpsMetadata:
+class ChunkMetadata:
     """Metadata dataclass for testing."""
 
     block_type: str
@@ -18,22 +18,22 @@ class DevOpsMetadata:
     language_id: str
 
 
-def extract_hcl_metadata(text: str) -> DevOpsMetadata:
+def extract_hcl_metadata(text: str) -> ChunkMetadata:
     """Extract metadata from HCL chunk."""
     m = HclHandler().extract_metadata(text)
-    return DevOpsMetadata(**m)
+    return ChunkMetadata(**m)
 
 
-def extract_dockerfile_metadata(text: str) -> DevOpsMetadata:
+def extract_dockerfile_metadata(text: str) -> ChunkMetadata:
     """Extract metadata from Dockerfile chunk."""
     m = DockerfileHandler().extract_metadata(text)
-    return DevOpsMetadata(**m)
+    return ChunkMetadata(**m)
 
 
-def extract_bash_metadata(text: str) -> DevOpsMetadata:
+def extract_bash_metadata(text: str) -> ChunkMetadata:
     """Extract metadata from Bash chunk."""
     m = BashHandler().extract_metadata(text)
-    return DevOpsMetadata(**m)
+    return ChunkMetadata(**m)
 
 
 def _strip_leading_comments(text: str, pattern: re.Pattern) -> str:
@@ -73,30 +73,30 @@ _LANGUAGE_ID_MAP = {
     "shell": "bash",
 }
 
-_EMPTY_METADATA = DevOpsMetadata(block_type="", hierarchy="", language_id="")
+_EMPTY_METADATA = ChunkMetadata(block_type="", hierarchy="", language_id="")
 
 
-def _dispatch(text: str, language: str) -> DevOpsMetadata:
+def _dispatch(text: str, language: str) -> ChunkMetadata:
     """Replicate dispatch logic for testing without CocoIndex runtime."""
     extractor = _LANGUAGE_DISPATCH.get(language)
     if extractor is None:
         return _EMPTY_METADATA
     metadata = extractor(text)
-    return DevOpsMetadata(
+    return ChunkMetadata(
         block_type=metadata.block_type,
         hierarchy=metadata.hierarchy,
         language_id=_LANGUAGE_ID_MAP[language],
     )
 
 
-class TestDevOpsMetadata:
-    """Tests for DevOpsMetadata dataclass."""
+class TestChunkMetadata:
+    """Tests for ChunkMetadata dataclass."""
 
     def test_dataclass_fields(self):
-        """DevOpsMetadata has exactly 3 fields: block_type, hierarchy, language_id."""
+        """ChunkMetadata has exactly 3 fields: block_type, hierarchy, language_id."""
         import dataclasses
 
-        fields = [f.name for f in dataclasses.fields(DevOpsMetadata)]
+        fields = [f.name for f in dataclasses.fields(ChunkMetadata)]
         assert fields == ["block_type", "hierarchy", "language_id"]
 
     def test_empty_metadata_constant(self):
@@ -397,7 +397,7 @@ class TestLanguageDispatchMaps:
         assert _LANGUAGE_ID_MAP["shell"] == "bash"
 
     def test_unknown_language_not_in_dispatch(self):
-        """Non-DevOps languages are not in dispatch map."""
+        """Non-handler languages are not in dispatch map."""
         for lang in ("py", "js", ""):
             assert lang not in _LANGUAGE_DISPATCH
 
@@ -406,7 +406,7 @@ class TestExtractDevopsMetadataDispatch:
     """Tests for dispatch logic using _dispatch helper (avoids CocoIndex runtime)."""
 
     def test_python_file_returns_empty_strings(self):
-        """Non-DevOps language returns all empty strings."""
+        """Non-handler language returns all empty strings."""
         m = _dispatch("def foo():\n    pass", "py")
         assert m.block_type == ""
         assert m.hierarchy == ""
@@ -433,8 +433,8 @@ class TestExtractDevopsMetadataDispatch:
         assert m.hierarchy == "function:deploy_app"
         assert m.language_id == "bash"
 
-    def test_devops_file_always_has_language_id(self):
-        """DevOps file with unrecognized content still returns language_id."""
+    def test_handler_file_always_has_language_id(self):
+        """Handler file with unrecognized content still returns language_id."""
         m = _dispatch("some random content", "hcl")
         assert m.block_type == ""
         assert m.hierarchy == ""

@@ -2,7 +2,7 @@
 
 Tests search query functionality including SearchResult dataclass,
 search function with mocked database and embedding calls,
-DevOps language filtering, alias resolution, and graceful degradation.
+handler language filtering, alias resolution, and graceful degradation.
 """
 
 from unittest.mock import patch
@@ -120,8 +120,8 @@ class TestValidateLanguageFilter:
         """Whitespace around language names should be stripped."""
         assert validate_language_filter("hcl , bash") == ["hcl", "bash"]
 
-    def test_devops_languages(self):
-        """DevOps canonical names should be accepted."""
+    def test_handler_languages(self):
+        """Handler canonical names should be accepted."""
         assert validate_language_filter("hcl") == ["hcl"]
         assert validate_language_filter("dockerfile") == ["dockerfile"]
         assert validate_language_filter("bash") == ["bash"]
@@ -304,8 +304,8 @@ class TestSearch:
         assert results[0].language_id == "hcl"
 
 
-class TestDevOpsLanguageFilter:
-    """Tests for DevOps language filtering via language_id column."""
+class TestHandlerLanguageFilter:
+    """Tests for handler language filtering via language_id column."""
 
     def test_hcl_filter_uses_language_id(self, mock_code_to_embedding, mock_db_pool):
         """HCL filter should use language_id column, not filename LIKE."""

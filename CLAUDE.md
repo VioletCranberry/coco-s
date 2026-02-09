@@ -68,7 +68,7 @@ uv run cocosearch mcp --project-from-cwd
 - **`search/db.py`** — PostgreSQL connection pool (singleton) and query execution
 - **`config/`** — YAML config with 4-level precedence resolution (CLI > env > file > defaults), `${VAR}` substitution
 - **`management/`** — Index lifecycle: discovery, stats, clearing, git-based naming, metadata
-- **`handlers/`** — Language-specific chunking for DevOps files (HCL, Dockerfile, Bash) with autodiscovery registry
+- **`handlers/`** — Language-specific chunking (HCL, Dockerfile, Bash) with autodiscovery registry
 - **`dashboard/`** — Terminal (Rich) and web (Chart.js) dashboards
 
 **Data flow:** Files → Tree-sitter parse → symbol extraction → chunking → Ollama embeddings → PostgreSQL (pgvector). Search queries → embedding → hybrid RRF (vector similarity + tsvector keyword) → context expansion → results.

@@ -6,7 +6,7 @@ from cocosearch.indexer.embedder import (
     extract_extension,
     extract_language,
 )
-from cocosearch.handlers import extract_devops_metadata
+from cocosearch.handlers import extract_chunk_metadata
 from cocosearch.indexer.file_filter import (
     DEFAULT_EXCLUDES,
     build_exclude_patterns,
@@ -22,7 +22,7 @@ __all__ = [
     "build_exclude_patterns",
     "code_to_embedding",
     "create_code_index_flow",
-    "extract_devops_metadata",
+    "extract_chunk_metadata",
     "extract_extension",
     "extract_language",
     "load_config",

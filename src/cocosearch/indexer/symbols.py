@@ -15,6 +15,8 @@ Supported languages:
 - C: functions, structs, enums, typedefs
 - C++: functions, classes, structs, namespaces, methods
 - PHP: functions, classes, interfaces, traits, methods
+- HCL: blocks (resource, variable, data, module, locals, output, provider)
+- Terraform: blocks (same as HCL — identical AST structure)
 
 Features:
 - Query-based extraction using external .scm files
@@ -85,6 +87,10 @@ LANGUAGE_MAP = {
     "sh": "bash",
     "bash": "bash",
     "zsh": "bash",
+    # HCL / Terraform
+    "tf": "terraform",
+    "hcl": "hcl",
+    "tfvars": "hcl",
 }
 
 # ============================================================================
@@ -193,6 +199,7 @@ def _map_symbol_type(raw_type: str) -> str:
         "module": "class",
         "namespace": "class",
         "type": "interface",
+        "block": "class",
     }
     return mapping.get(raw_type, "function")
 
@@ -255,6 +262,19 @@ def _build_qualified_name(node, name: str, chunk_text: str, language: str) -> st
                                 receiver_type = _get_node_text(chunk_text, type_child)
                                 return f"{receiver_type}.{name}"
                 break
+
+    # HCL/Terraform: extract labels from string_lit children of the block node
+    if language in ("hcl", "terraform"):
+        labels = []
+        for child in node.children:
+            if child.type == "string_lit":
+                for sub in child.children:
+                    if sub.type == "template_literal":
+                        labels.append(_get_node_text(chunk_text, sub))
+                        break
+        if labels:
+            return ".".join(labels)
+        return name  # fallback to identifier (e.g., "locals")
 
     container_types = {
         "python": ["class_definition"],

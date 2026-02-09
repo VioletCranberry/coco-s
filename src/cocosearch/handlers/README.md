@@ -99,7 +99,7 @@ Handlers are discovered automatically at module import time by scanning `handler
 ## Public API
 
 ```python
-from cocosearch.handlers import get_handler, get_custom_languages, extract_devops_metadata
+from cocosearch.handlers import get_handler, get_custom_languages, extract_chunk_metadata
 
 # Get handler for file extension
 handler = get_handler('.tf')  # Returns HclHandler
@@ -109,7 +109,7 @@ handler = get_handler('.unknown')  # Returns TextHandler (fallback)
 specs = get_custom_languages()  # Returns [HCL_SPEC, DOCKERFILE_SPEC, BASH_SPEC]
 
 # Extract metadata from chunk (CocoIndex transform)
-metadata = extract_devops_metadata(text="resource \"aws_s3_bucket\" \"data\" {", language_id="tf")
+metadata = extract_chunk_metadata(text="resource \"aws_s3_bucket\" \"data\" {", language_id="tf")
 # Returns: {"block_type": "resource", "hierarchy": "resource.aws_s3_bucket.data", "language_id": "hcl"}
 ```
 

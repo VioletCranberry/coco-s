@@ -1,10 +1,22 @@
 # Coco-s
 
-Coco[S]earch is a local-first hybrid semantic code search tool powered by [CocoIndex](https://github.com/cocoindex-io/cocoindex) and [Tree-sitter](https://tree-sitter.github.io/tree-sitter/). It indexes codebases into PostgreSQL with pgvector embeddings (via Ollama) and provides search through CLI, MCP server, or interactive REPL. No external APIs — everything runs locally. Incremental updates by default. `.gitignore` is respected.
+Coco[-S]earch is a local-first hybrid semantic code search tool powered by [CocoIndex](https://github.com/cocoindex-io/cocoindex) and [Tree-sitter](https://tree-sitter.github.io/tree-sitter/). It indexes codebases into PostgreSQL with pgvector embeddings (via Ollama) and provides search through CLI, MCP server, or interactive REPL. No external APIs — everything runs locally. Incremental updates by default. `.gitignore` is respected.
 
 ## Disclaimer
 
 This is a personal initiative built using [GSD](https://github.com/glittercowboy/get-shit-done), with manual refinements. It was designed as a local-first, private solution to accelerate self-onboarding and explore spec-driven development. The project features both a Command Line Interface (CLI) and MCP tools, alongside dashboards (TUI/WEB), API for quick status checks and useful [Claude SKILLS](https://code.claude.com/docs/en/skills).
+
+## Where CocoSearch MCP wins (fewer tokens, fewer round-trips)
+
+For codebases of meaningful size, CocoSearch reduces the number of MCP tool calls needed to find relevant code — often from 5-15 iterative grep/read cycles down to 1-2 semantic searches. This means fewer round-trips, less irrelevant content in the context window, and lower token consumption for exploratory and intent-based queries.
+
+- **Exploratory/semantic queries**: "how does authentication work", "where is error handling done", "find the caching logic".
+  - Native approach: Claude does 5-15 iterative grep/glob/read cycles, each adding results to context. Lots of trial-and-error, irrelevant matches, and full-file reads.
+  - CocoSearch: 1 search_code call returns ranked, pre-chunked results with smart context expansion to function/class boundaries. Dramatically fewer tokens in context.
+- **Identifier search with fuzzy intent**: "find the function that handles user signup".
+  - Native grep requires Claude to guess the exact name (grep "signup", grep "register", grep "create_user"...). Each miss costs a round-trip + tokens.
+  - CocoSearch's hybrid RRF (vector + keyword) handles this in 1 call.
+- **Filtered searches**: language/symbol type/symbol name filtering is built-in. Native tools require Claude to manually assemble glob patterns and filter results.
 
 ## Useful Documentation
 
@@ -15,6 +27,7 @@ This is a personal initiative built using [GSD](https://github.com/glittercowboy
 - [MCP Tools Reference](./docs/mcp-tools.md)
 - [CLI Reference](./docs/cli-reference.md)
 - [Retrieval Logic](./docs/retrieval.md)
+- [Adding Languages](./docs/adding-languages.md)
 
 ## Components
 
@@ -67,10 +80,10 @@ done
 
 ## Supported Languages
 
-CocoSearch indexes 31 programming languages via Tree-sitter. Symbol extraction (for `--symbol-type` and `--symbol-name` filtering) is available for 10 languages.
+CocoSearch indexes 30 programming languages via Tree-sitter. Symbol extraction (for `--symbol-type` and `--symbol-name` filtering) is available for 12 languages.
 
-- **Full Support (Symbol-Aware)**: Python, JavaScript, TypeScript, Go, Rust, Java, C, C++, Ruby, PHP. All features: hybrid search, symbol filtering, smart context expansion. Symbol types extracted: `function`, `class`, `method`, `interface`.
-- **Basic Support**: C#, CSS, Fortran, HTML, JSON, Kotlin, Markdown, Pascal, R, Scala, Shell, Solidity, SQL, Swift, TOML, XML, YAML, Bash, Dockerfile, HCL, and more. Features: hybrid search, semantic + keyword search.
+- **Full Support (Symbol-Aware)**: Python, JavaScript, TypeScript, Go, Rust, Java, C, C++, Ruby, PHP, HCL, Bash. All features: hybrid search, symbol filtering, smart context expansion. Symbol types extracted: `function`, `class`, `method`, `interface`.
+- **Basic Support**: C#, CSS, Fortran, HTML, JSON, Kotlin, Markdown, Pascal, R, Scala, Solidity, SQL, Swift, TOML, XML, YAML, Dockerfile, and more. Features: hybrid search, semantic + keyword search.
 
 ```bash
 uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch languages
@@ -99,7 +112,6 @@ uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch languages
 │ Ruby       │ .rb                         │    ✗    │
 │ Rust       │ .rs                         │    ✓    │
 │ Scala      │ .scala                      │    ✗    │
-│ Shell      │ .sh, .bash, .zsh            │    ✗    │
 │ Solidity   │ .sol                        │    ✗    │
 │ SQL        │ .sql                        │    ✗    │
 │ Swift      │ .swift                      │    ✗    │
@@ -107,9 +119,12 @@ uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch languages
 │ Typescript │ .ts, .tsx, .mts, .cts       │    ✓    │
 │ XML        │ .xml                        │    ✗    │
 │ YAML       │ .yaml, .yml                 │    ✗    │
+│ Bash       │ .sh, .bash, .zsh            │    ✓    │
 │ Dockerfile │ Dockerfile                  │    ✗    │
-│ HCL        │ .hcl                        │    ✗    │
+│ HCL        │ .tf, .hcl, .tfvars          │    ✓    │
 └────────────┴─────────────────────────────┴─────────┘
+
+Symbol-aware languages support --symbol-type and --symbol-name filtering.
 ```
 
 ## Features
@@ -172,10 +187,8 @@ Parse health: 100.0% clean (125/125 files)
 │ yml      │     1 │   0 │       0 │     0 │          0 │
 └──────────┴───────┴─────┴─────────┴───────┴────────────┘
 
-
 # View index stats with parse health live
 uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch stats --live
-
 ```
 
 For the full list of commands and flags, see [CLI Reference](./docs/cli-reference.md).

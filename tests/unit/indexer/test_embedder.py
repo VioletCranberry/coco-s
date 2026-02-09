@@ -142,14 +142,14 @@ class TestExtractLanguage:
 
         assert extract_language("build.bash") == "bash"
 
-    def test_non_devops_python(self):
-        """Routes .py files by extension (non-DevOps, unchanged)."""
+    def test_non_handler_python(self):
+        """Routes .py files by extension (non-handler, unchanged)."""
         from cocosearch.indexer.embedder import extract_language
 
         assert extract_language("test.py") == "py"
 
-    def test_non_devops_javascript(self):
-        """Routes .js files by extension (non-DevOps, unchanged)."""
+    def test_non_handler_javascript(self):
+        """Routes .js files by extension (non-handler, unchanged)."""
         from cocosearch.indexer.embedder import extract_language
 
         assert extract_language("app.js") == "js"

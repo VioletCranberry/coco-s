@@ -45,7 +45,6 @@ from cocosearch.management import (
 from cocosearch.search import search
 from cocosearch.search.formatter import format_json, format_pretty
 from cocosearch.search.query import (
-    DEVOPS_LANGUAGES,
     LANGUAGE_EXTENSIONS,
     SYMBOL_AWARE_LANGUAGES,
 )
@@ -979,8 +978,7 @@ def languages_command(args: argparse.Namespace) -> int:
     """
     console = Console()
 
-    # Build language data from LANGUAGE_EXTENSIONS and DEVOPS_LANGUAGES
-    # Combine all sources into unified list
+    # Build language data from LANGUAGE_EXTENSIONS and handler registry
     languages = []
 
     # Standard languages from LANGUAGE_EXTENSIONS
@@ -1003,15 +1001,20 @@ def languages_command(args: argparse.Namespace) -> int:
             }
         )
 
-    # DevOps languages
-    devops_display = {"hcl": "HCL", "dockerfile": "Dockerfile", "bash": "Bash"}
-    for lang in sorted(DEVOPS_LANGUAGES.keys()):
-        ext_display = f".{lang}" if lang != "dockerfile" else "Dockerfile"
+    # Handler languages (derived from handler registry)
+    from cocosearch.handlers import get_registered_handlers
+
+    display_names = {"hcl": "HCL", "dockerfile": "Dockerfile", "bash": "Bash"}
+    display_exts = {"dockerfile": "Dockerfile"}
+    for handler in sorted(
+        get_registered_handlers(), key=lambda h: h.SEPARATOR_SPEC.language_name
+    ):
+        lang = handler.SEPARATOR_SPEC.language_name
         languages.append(
             {
-                "name": devops_display.get(lang, lang.title()),
-                "extensions": ext_display,
-                "symbols": False,
+                "name": display_names.get(lang, lang.title()),
+                "extensions": display_exts.get(lang, ", ".join(handler.EXTENSIONS)),
+                "symbols": lang in SYMBOL_AWARE_LANGUAGES,
             }
         )
 

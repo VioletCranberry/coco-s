@@ -33,6 +33,9 @@ Rust:
 - Traits (mapped to "interface")
 - Enums (mapped to "class")
 
+Bash:
+- Function definitions (POSIX, ksh, hybrid styles)
+
 Edge cases (no symbols, parse errors, multiple symbols, unsupported languages)
 """
 
@@ -1286,6 +1289,155 @@ class Calculator {
 
 
 # ============================================================================
+# HCL Symbol Extraction Tests
+# ============================================================================
+
+
+@pytest.mark.unit
+class TestHclSymbols:
+    """Test HCL symbol extraction (via 'hcl' language key)."""
+
+    def test_resource_block(self):
+        """Extract resource block with two labels."""
+        code = 'resource "aws_s3_bucket" "data" {\n  bucket = "my-bucket"\n}'
+        result = extract_symbol_metadata(code, "hcl")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "aws_s3_bucket.data"
+        assert result.symbol_signature == 'resource "aws_s3_bucket" "data"'
+
+    def test_variable_block(self):
+        """Extract variable block with one label."""
+        code = 'variable "region" {\n  default = "us-east-1"\n}'
+        result = extract_symbol_metadata(code, "hcl")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "region"
+        assert result.symbol_signature == 'variable "region"'
+
+    def test_data_block(self):
+        """Extract data block with two labels."""
+        code = 'data "aws_ami" "ubuntu" {\n  most_recent = true\n}'
+        result = extract_symbol_metadata(code, "hcl")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "aws_ami.ubuntu"
+        assert result.symbol_signature == 'data "aws_ami" "ubuntu"'
+
+    def test_module_block(self):
+        """Extract module block with one label."""
+        code = 'module "vpc" {\n  source = "./modules/vpc"\n}'
+        result = extract_symbol_metadata(code, "hcl")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "vpc"
+        assert result.symbol_signature == 'module "vpc"'
+
+    def test_locals_block(self):
+        """Extract locals block (no labels, falls back to identifier)."""
+        code = 'locals {\n  name = "test"\n}'
+        result = extract_symbol_metadata(code, "hcl")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "locals"
+        assert result.symbol_signature == "locals"
+
+    def test_output_block(self):
+        """Extract output block."""
+        code = 'output "bucket_arn" {\n  value = aws_s3_bucket.data.arn\n}'
+        result = extract_symbol_metadata(code, "hcl")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "bucket_arn"
+        assert result.symbol_signature == 'output "bucket_arn"'
+
+    def test_provider_block(self):
+        """Extract provider block."""
+        code = 'provider "aws" {\n  region = "us-east-1"\n}'
+        result = extract_symbol_metadata(code, "hcl")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "aws"
+        assert result.symbol_signature == 'provider "aws"'
+
+    def test_tfvars_extension(self):
+        """tfvars extension uses HCL extractor."""
+        code = 'variable "env" {\n  default = "prod"\n}'
+        result = extract_symbol_metadata(code, "tfvars")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "env"
+
+    def test_nested_block_returns_outer(self):
+        """Nested blocks: first (outer) block is returned."""
+        code = 'resource "aws_instance" "web" {\n  provisioner "local-exec" {\n    command = "echo hello"\n  }\n}'
+        result = extract_symbol_metadata(code, "hcl")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "aws_instance.web"
+
+    def test_empty_input(self):
+        """Empty HCL returns NULL fields."""
+        result = extract_symbol_metadata("", "hcl")
+
+        assert result.symbol_type is None
+        assert result.symbol_name is None
+        assert result.symbol_signature is None
+
+    def test_comments_only(self):
+        """HCL with only comments returns NULL fields."""
+        code = "# This is a comment\n// Another comment\n/* Block comment */"
+        result = extract_symbol_metadata(code, "hcl")
+
+        assert result.symbol_type is None
+
+
+# ============================================================================
+# Terraform Symbol Extraction Tests
+# ============================================================================
+
+
+@pytest.mark.unit
+class TestTerraformSymbols:
+    """Test Terraform symbol extraction (via 'tf' language key)."""
+
+    def test_resource_block(self):
+        """Extract Terraform resource block."""
+        code = (
+            'resource "aws_lambda_function" "handler" {\n  function_name = "my-func"\n}'
+        )
+        result = extract_symbol_metadata(code, "tf")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "aws_lambda_function.handler"
+        assert result.symbol_signature == 'resource "aws_lambda_function" "handler"'
+
+    def test_variable_block(self):
+        """Extract Terraform variable block."""
+        code = 'variable "instance_type" {\n  default = "t3.micro"\n}'
+        result = extract_symbol_metadata(code, "tf")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "instance_type"
+
+    def test_locals_block(self):
+        """Extract Terraform locals block."""
+        code = 'locals {\n  env = "prod"\n}'
+        result = extract_symbol_metadata(code, "tf")
+
+        assert result.symbol_type == "class"
+        assert result.symbol_name == "locals"
+
+    def test_empty_input(self):
+        """Empty Terraform returns NULL fields."""
+        result = extract_symbol_metadata("", "tf")
+
+        assert result.symbol_type is None
+        assert result.symbol_name is None
+        assert result.symbol_signature is None
+
+
+# ============================================================================
 # Language Map Tests
 # ============================================================================
 
@@ -1295,8 +1447,8 @@ class TestLanguageMap:
     """Test language extension mapping."""
 
     def test_language_map_count(self):
-        """LANGUAGE_MAP contains all 23 extension mappings."""
-        assert len(LANGUAGE_MAP) == 23
+        """LANGUAGE_MAP contains all 29 extension mappings."""
+        assert len(LANGUAGE_MAP) == 29
 
     def test_javascript_extensions(self):
         """JavaScript extensions map correctly."""
@@ -1342,7 +1494,64 @@ class TestLanguageMap:
         """PHP extension maps correctly."""
         assert LANGUAGE_MAP["php"] == "php"
 
+    def test_hcl_extensions(self):
+        """HCL/Terraform extensions map correctly."""
+        assert LANGUAGE_MAP["tf"] == "terraform"
+        assert LANGUAGE_MAP["hcl"] == "hcl"
+        assert LANGUAGE_MAP["tfvars"] == "hcl"
+
+    def test_bash_extensions(self):
+        """Bash extensions map correctly."""
+        assert LANGUAGE_MAP["sh"] == "bash"
+        assert LANGUAGE_MAP["bash"] == "bash"
+        assert LANGUAGE_MAP["zsh"] == "bash"
+
     def test_unsupported_extension(self):
         """Unsupported extension returns None."""
         assert LANGUAGE_MAP.get("swift") is None
         assert LANGUAGE_MAP.get("kt") is None
+
+
+class TestBashSymbols:
+    """Test Bash symbol extraction."""
+
+    def test_posix_function(self):
+        """POSIX style: name() { ... }"""
+        code = "my_function() {\n    echo hello\n}"
+        result = extract_symbol_metadata(code, "sh")
+
+        assert result.symbol_type == "function"
+        assert result.symbol_name == "my_function"
+
+    def test_ksh_function(self):
+        """ksh style: function name { ... }"""
+        code = "function deploy {\n    echo deploying\n}"
+        result = extract_symbol_metadata(code, "bash")
+
+        assert result.symbol_type == "function"
+        assert result.symbol_name == "deploy"
+
+    def test_hybrid_function(self):
+        """Hybrid style: function name() { ... }"""
+        code = "function setup() {\n    echo setup\n}"
+        result = extract_symbol_metadata(code, "zsh")
+
+        assert result.symbol_type == "function"
+        assert result.symbol_name == "setup"
+
+    def test_non_function_code(self):
+        """Non-function code returns None fields."""
+        code = "echo hello world\nls -la"
+        result = extract_symbol_metadata(code, "sh")
+
+        assert result.symbol_type is None
+        assert result.symbol_name is None
+
+    def test_function_with_body(self):
+        """Function with multiline body."""
+        code = "cleanup() {\n    rm -rf /tmp/build\n    echo done\n}"
+        result = extract_symbol_metadata(code, "sh")
+
+        assert result.symbol_type == "function"
+        assert result.symbol_name == "cleanup"
+        assert "cleanup()" in result.symbol_signature

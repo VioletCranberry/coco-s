@@ -193,7 +193,7 @@ def _get_tree_sitter_language(filepath: str) -> str | None:
 def _get_display_language(result: SearchResult, filepath: str) -> str:
     """Determine the display language for a search result.
 
-    If the result has a language_id (DevOps file), use that directly.
+    If the result has a language_id (handler-based file), use that directly.
     Otherwise, derive from file extension using EXTENSION_LANG_MAP.
 
     Args:

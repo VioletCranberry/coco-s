@@ -108,12 +108,12 @@ class TestGetHandler:
         assert isinstance(handler, TextHandler)
 
     def test_get_handler_py_returns_text_handler(self):
-        """get_handler('.py') should return TextHandler (not a DevOps language)."""
+        """get_handler('.py') should return TextHandler (not a handler language)."""
         handler = get_handler(".py")
         assert isinstance(handler, TextHandler)
 
     def test_get_handler_js_returns_text_handler(self):
-        """get_handler('.js') should return TextHandler (not a DevOps language)."""
+        """get_handler('.js') should return TextHandler (not a handler language)."""
         handler = get_handler(".js")
         assert isinstance(handler, TextHandler)
 

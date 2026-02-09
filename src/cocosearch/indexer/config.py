@@ -53,15 +53,15 @@ class IndexingConfig(BaseModel):
         "*.xml",
         "*.yaml",
         "*.yml",
-        # DevOps files (HCL/Terraform)
+        # Handler files (HCL/Terraform)
         "*.tf",
         "*.hcl",
         "*.tfvars",
-        # DevOps files (Dockerfile)
+        # Handler files (Dockerfile)
         "Dockerfile",
         "Dockerfile.*",
         "Containerfile",
-        # DevOps files (Bash/Shell)
+        # Handler files (Bash/Shell)
         "*.sh",
         "*.bash",
     ]

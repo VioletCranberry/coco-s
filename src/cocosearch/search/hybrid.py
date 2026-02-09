@@ -90,9 +90,9 @@ class VectorResult:
         start_byte: Start byte offset of the chunk in the file.
         end_byte: End byte offset of the chunk in the file.
         score: Cosine similarity score (0-1, higher = more similar).
-        block_type: DevOps block type (e.g., "resource", "FROM", "function").
-        hierarchy: DevOps hierarchy path (e.g., "resource.aws_s3_bucket.data").
-        language_id: DevOps language identifier (e.g., "hcl", "dockerfile", "bash").
+        block_type: Handler block type (e.g., "resource", "FROM", "function").
+        hierarchy: Handler hierarchy path (e.g., "resource.aws_s3_bucket.data").
+        language_id: Handler language identifier (e.g., "hcl", "dockerfile", "bash").
         symbol_type: Symbol type ("function", "class", "method", "interface", or None).
         symbol_name: Symbol name (e.g., "process_data", or None).
         symbol_signature: Symbol signature (e.g., "def process_data(items: list)", or None).
@@ -122,9 +122,9 @@ class HybridSearchResult:
         match_type: Source of match - "semantic", "keyword", or "both".
         vector_score: Original cosine similarity (None if keyword-only).
         keyword_score: ts_rank score (None if semantic-only).
-        block_type: DevOps block type (from vector result if available).
-        hierarchy: DevOps hierarchy path (from vector result if available).
-        language_id: DevOps language identifier (from vector result if available).
+        block_type: Handler block type (from vector result if available).
+        hierarchy: Handler hierarchy path (from vector result if available).
+        language_id: Handler language identifier (from vector result if available).
         symbol_type: Symbol type ("function", "class", "method", "interface", or None).
         symbol_name: Symbol name (e.g., "process_data", or None).
         symbol_signature: Symbol signature (e.g., "def process_data(items: list)", or None).

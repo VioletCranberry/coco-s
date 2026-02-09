@@ -19,7 +19,7 @@ from cocosearch.indexer.config import IndexingConfig
 from cocosearch.indexer.preflight import check_infrastructure
 from cocosearch.indexer.embedder import code_to_embedding, extract_language
 from cocosearch.indexer.tsvector import text_to_tsvector_sql
-from cocosearch.handlers import get_custom_languages, extract_devops_metadata
+from cocosearch.handlers import get_custom_languages, extract_chunk_metadata
 from cocosearch.indexer.file_filter import build_exclude_patterns
 from cocosearch.indexer.symbols import extract_symbol_metadata
 from cocosearch.indexer.schema_migration import (
@@ -78,7 +78,7 @@ def create_code_index_flow(
             # Note: field is still called "extension" to minimize downstream changes
             file["extension"] = file["filename"].transform(extract_language)
 
-            # Chunk using Tree-sitter + custom DevOps languages (SplitRecursively)
+            # Chunk using Tree-sitter + custom handler languages (SplitRecursively)
             file["chunks"] = file["content"].transform(
                 cocoindex.functions.SplitRecursively(
                     custom_languages=get_custom_languages(),
@@ -93,9 +93,9 @@ def create_code_index_flow(
                 # Generate embedding via Ollama using shared transform
                 chunk["embedding"] = chunk["text"].call(code_to_embedding)
 
-                # Extract DevOps metadata (block_type, hierarchy, language_id)
+                # Extract Handler metadata (block_type, hierarchy, language_id)
                 chunk["metadata"] = chunk["text"].transform(
-                    extract_devops_metadata,
+                    extract_chunk_metadata,
                     language_id=file["extension"],
                 )
 

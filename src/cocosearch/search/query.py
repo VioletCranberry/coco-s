@@ -31,9 +31,9 @@ class SearchResult:
         start_byte: Start byte offset of the chunk in the file.
         end_byte: End byte offset of the chunk in the file.
         score: Similarity score (0-1, higher = more similar).
-        block_type: DevOps block type (e.g., "resource", "FROM", "function").
-        hierarchy: DevOps hierarchy path (e.g., "resource.aws_s3_bucket.data").
-        language_id: DevOps language identifier (e.g., "hcl", "dockerfile", "bash").
+        block_type: Handler block type (e.g., "resource", "FROM", "function").
+        hierarchy: Handler hierarchy path (e.g., "resource.aws_s3_bucket.data").
+        language_id: Handler language identifier (e.g., "hcl", "dockerfile", "bash").
         match_type: Source of match for hybrid search ("semantic", "keyword", "both", or "" for vector-only).
         vector_score: Original vector similarity score (for hybrid search breakdown).
         keyword_score: Keyword/ts_rank score (for hybrid search breakdown).
@@ -81,7 +81,6 @@ LANGUAGE_EXTENSIONS = {
     "ruby": [".rb"],
     "rust": [".rs"],
     "scala": [".scala"],
-    "shell": [".sh", ".bash", ".zsh"],
     "solidity": [".sol"],
     "sql": [".sql"],
     "swift": [".swift"],
@@ -92,10 +91,18 @@ LANGUAGE_EXTENSIONS = {
 }
 
 # Symbol-aware languages (support symbol extraction via tree-sitter)
-SYMBOL_AWARE_LANGUAGES = {"python", "javascript", "typescript", "go", "rust"}
+SYMBOL_AWARE_LANGUAGES = {
+    "python",
+    "javascript",
+    "typescript",
+    "go",
+    "rust",
+    "hcl",
+    "bash",
+}
 
-# DevOps language canonical names mapped to language_id values in the database
-DEVOPS_LANGUAGES = {
+# Handler language canonical names mapped to language_id values in the database
+HANDLER_LANGUAGES = {
     "hcl": "hcl",
     "dockerfile": "dockerfile",
     "bash": "bash",
@@ -110,7 +117,7 @@ LANGUAGE_ALIASES = {
 
 # Combined set of all recognized language names for validation/suggestions.
 # Alias keys are NOT included -- they are resolved before validation.
-ALL_LANGUAGES = set(LANGUAGE_EXTENSIONS.keys()) | set(DEVOPS_LANGUAGES.keys())
+ALL_LANGUAGES = set(LANGUAGE_EXTENSIONS.keys()) | set(HANDLER_LANGUAGES.keys())
 
 # Module-level flag for hybrid search column availability (pre-v1.7 graceful degradation)
 _has_content_text_column = True
@@ -348,10 +355,10 @@ def search(
     if validated_languages:
         lang_conditions = []
         for lang in validated_languages:
-            if lang in DEVOPS_LANGUAGES:
-                # DevOps language: filter by language_id column
+            if lang in HANDLER_LANGUAGES:
+                # Handler language: filter by language_id column
                 lang_conditions.append("language_id = %s")
-                filter_params.append(DEVOPS_LANGUAGES[lang])
+                filter_params.append(HANDLER_LANGUAGES[lang])
             elif lang in LANGUAGE_EXTENSIONS:
                 # Extension-based language: filter by filename LIKE
                 extensions = get_extension_patterns(lang)

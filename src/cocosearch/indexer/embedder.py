@@ -31,7 +31,7 @@ def extract_language(filename: str) -> str:
 
     Checks filename patterns first (for extensionless files like Dockerfile),
     then falls back to extension-based detection. This ensures correct
-    language routing for DevOps files that use non-standard naming.
+    language routing for handler-based files that use non-standard naming.
 
     Args:
         filename: File name or path.

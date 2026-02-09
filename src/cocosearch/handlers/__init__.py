@@ -8,7 +8,7 @@ Each handler provides:
 - SEPARATOR_SPEC: CocoIndex CustomLanguageSpec for chunking
 - extract_metadata(text): Extract structured metadata from chunks
 
-The extract_devops_metadata() function is a CocoIndex transform that
+The extract_chunk_metadata() function is a CocoIndex transform that
 dispatches to the appropriate handler based on language_id.
 """
 
@@ -46,8 +46,8 @@ class Chunk:
 
 
 @dataclasses.dataclass
-class DevOpsMetadata:
-    """Metadata extracted from a DevOps code chunk."""
+class ChunkMetadata:
+    """Metadata extracted from a code chunk."""
 
     block_type: str
     hierarchy: str
@@ -168,6 +168,22 @@ def get_handler(extension: str) -> LanguageHandler:
     return _HANDLER_REGISTRY.get(extension, TextHandler())
 
 
+def get_registered_handlers() -> list[LanguageHandler]:
+    """Get unique registered handlers (excluding TextHandler fallback).
+
+    Returns:
+        List of unique handler instances discovered from handlers/*.py
+    """
+    seen = set()
+    handlers = []
+    for handler in _HANDLER_REGISTRY.values():
+        handler_id = id(handler)
+        if handler_id not in seen:
+            seen.add(handler_id)
+            handlers.append(handler)
+    return handlers
+
+
 def get_custom_languages() -> list[cocoindex.functions.CustomLanguageSpec]:
     """Get all CustomLanguageSpec from registered handlers.
 
@@ -185,7 +201,7 @@ def get_custom_languages() -> list[cocoindex.functions.CustomLanguageSpec]:
 
 
 @cocoindex.op.function()
-def extract_devops_metadata(text: str, language_id: str) -> DevOpsMetadata:
+def extract_chunk_metadata(text: str, language_id: str) -> ChunkMetadata:
     """Extract metadata from code chunk using appropriate handler.
 
     This is a CocoIndex transform function that dispatches to the
@@ -196,36 +212,24 @@ def extract_devops_metadata(text: str, language_id: str) -> DevOpsMetadata:
         language_id: Language identifier (e.g., "tf", "dockerfile", "sh")
 
     Returns:
-        DevOpsMetadata with fields: block_type, hierarchy, language_id
+        ChunkMetadata with fields: block_type, hierarchy, language_id
     """
-    # Map language_id to extension (handlers register by extension)
-    # This is a simple mapping - could be enhanced if needed
-    extension_map = {
-        "hcl": ".hcl",
-        "tf": ".tf",
-        "tfvars": ".tfvars",
-        "dockerfile": ".dockerfile",
-        "sh": ".sh",
-        "bash": ".bash",
-        "zsh": ".zsh",
-        "shell": ".sh",
-    }
-
-    extension = extension_map.get(language_id, f".{language_id}")
+    extension = f".{language_id}"
     handler = get_handler(extension)
     metadata = handler.extract_metadata(text)
-    # Preserve original language_id when handler returns empty (non-DevOps files)
+    # Preserve original language_id when handler returns empty (files without a handler)
     if not metadata.get("language_id"):
         metadata["language_id"] = language_id
-    return DevOpsMetadata(**metadata)
+    return ChunkMetadata(**metadata)
 
 
 __all__ = [
     "LanguageHandler",
     "ChunkConfig",
     "Chunk",
-    "DevOpsMetadata",
+    "ChunkMetadata",
     "get_handler",
+    "get_registered_handlers",
     "get_custom_languages",
-    "extract_devops_metadata",
+    "extract_chunk_metadata",
 ]

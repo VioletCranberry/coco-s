@@ -60,8 +60,8 @@ class TestFlowContentText:
             "location=",  # Chunk location within file
             "embedding=",  # Vector for semantic search
             "content_text=",  # Text for keyword search (v1.7)
-            "block_type=",  # DevOps metadata
-            "hierarchy=",  # DevOps metadata
+            "block_type=",  # Handler metadata
+            "hierarchy=",  # Handler metadata
             "language_id=",  # Language classification
         ]
 

@@ -163,10 +163,10 @@ class TestSearchCodeMetadata:
         assert item["language_id"] == "hcl"
 
     @pytest.mark.asyncio
-    async def test_response_empty_metadata_for_non_devops(
+    async def test_response_empty_metadata_for_non_handler(
         self, mock_code_to_embedding, mock_db_pool
     ):
-        """Non-DevOps results should have empty string metadata fields."""
+        """Non-handler results should have empty string metadata fields."""
         pool, cursor, _conn = mock_db_pool(
             results=[
                 ("/test/file.py", 0, 100, 0.85, "", "", ""),
