@@ -101,7 +101,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
         thread.start()
 
         action = "Fresh reindex" if fresh else "Reindex"
-        self._json_response({"success": True, "message": f"{action} started for '{index_name}'"})
+        self._json_response(
+            {"success": True, "message": f"{action} started for '{index_name}'"}
+        )
 
     def _serve_dashboard(self):
         from cocosearch.dashboard.web import get_dashboard_html

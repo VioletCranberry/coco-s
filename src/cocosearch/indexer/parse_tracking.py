@@ -22,10 +22,29 @@ logger = logging.getLogger(__name__)
 
 # Extensions that are indexed as plain text — no tree-sitter grammar exists
 # or parse health is meaningless. Excluded from parse tracking entirely.
-_SKIP_PARSE_EXTENSIONS = frozenset({
-    "md", "mdx", "txt", "rst", "csv", "json", "yaml", "yml", "toml", "xml",
-    "html", "css", "svg", "lock", "ini", "cfg", "conf", "env", "properties",
-})
+_SKIP_PARSE_EXTENSIONS = frozenset(
+    {
+        "md",
+        "mdx",
+        "txt",
+        "rst",
+        "csv",
+        "json",
+        "yaml",
+        "yml",
+        "toml",
+        "xml",
+        "html",
+        "css",
+        "svg",
+        "lock",
+        "ini",
+        "cfg",
+        "conf",
+        "env",
+        "properties",
+    }
+)
 
 
 def detect_parse_status(file_content: str, language_ext: str) -> tuple[str, str | None]:

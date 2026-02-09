@@ -205,7 +205,9 @@ async def api_reindex(request):
     thread.start()
 
     action = "Fresh reindex" if fresh else "Reindex"
-    return JSONResponse({"success": True, "message": f"{action} started for '{index_name}'"})
+    return JSONResponse(
+        {"success": True, "message": f"{action} started for '{index_name}'"}
+    )
 
 
 def _get_treesitter_language(ext: str) -> str | None:
