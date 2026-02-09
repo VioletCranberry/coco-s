@@ -136,15 +136,19 @@ def format_details_panel(stats: IndexStats) -> Panel:
         by_lang = stats.parse_stats["by_language"]
         # Tracked languages first, then skipped
         tracked = sorted(
-            [(l, d) for l, d in by_lang.items() if not d.get("skipped")],
+            [(lang, d) for lang, d in by_lang.items() if not d.get("skipped")],
             key=lambda x: -x[1]["files"],
         )
         skipped = sorted(
-            [(l, d) for l, d in by_lang.items() if d.get("skipped")],
+            [(lang, d) for lang, d in by_lang.items() if d.get("skipped")],
             key=lambda x: -x[1]["files"],
         )
         for lang, data in tracked:
-            issues = data.get("partial", 0) + data.get("error", 0) + data.get("no_grammar", 0)
+            issues = (
+                data.get("partial", 0)
+                + data.get("error", 0)
+                + data.get("no_grammar", 0)
+            )
             pct = (data["ok"] / data["files"] * 100) if data["files"] > 0 else 100
             color = "green" if pct >= 95 else "yellow" if pct >= 80 else "red"
             parse_table.add_row(

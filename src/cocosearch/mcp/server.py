@@ -184,6 +184,7 @@ async def api_reindex(request):
         pass
 
     def _run():
+        failed = False
         try:
             cocoindex.init()
             run_index(
@@ -194,10 +195,11 @@ async def api_reindex(request):
             )
             register_index_path(index_name, source_path)
         except Exception as exc:
+            failed = True
             logger.error(f"Background reindex failed: {exc}")
         finally:
             try:
-                set_index_status(index_name, "indexed")
+                set_index_status(index_name, "error" if failed else "indexed")
             except Exception:
                 pass
 
@@ -291,6 +293,7 @@ async def api_index(request):
         logger.warning(f"Metadata registration failed: {e}")
 
     def _run():
+        failed = False
         try:
             cocoindex.init()
             run_index(
@@ -300,10 +303,11 @@ async def api_index(request):
             )
             register_index_path(index_name, project_path)
         except Exception as exc:
+            failed = True
             logger.error(f"Background indexing failed: {exc}")
         finally:
             try:
-                set_index_status(index_name, "indexed")
+                set_index_status(index_name, "error" if failed else "indexed")
             except Exception:
                 pass
 
@@ -742,11 +746,21 @@ def index_codebase(
             pass  # Best-effort — don't block indexing on metadata failures
 
         # Run indexing with default config
-        update_info = run_index(
-            index_name=index_name,
-            codebase_path=path,
-            config=IndexingConfig(),
-        )
+        indexing_failed = False
+        try:
+            update_info = run_index(
+                index_name=index_name,
+                codebase_path=path,
+                config=IndexingConfig(),
+            )
+        except Exception:
+            indexing_failed = True
+            raise
+        finally:
+            try:
+                set_index_status(index_name, "error" if indexing_failed else "indexed")
+            except Exception:
+                pass
 
         # Register path-to-index mapping (enables collision detection)
         try:

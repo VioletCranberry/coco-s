@@ -84,6 +84,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             pass
 
         def _run():
+            failed = False
             try:
                 cocoindex.init()
                 run_index(
@@ -94,10 +95,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 )
                 register_index_path(index_name, source_path)
             except Exception as exc:
+                failed = True
                 logger.error(f"Background reindex failed: {exc}")
             finally:
                 try:
-                    set_index_status(index_name, "indexed")
+                    set_index_status(index_name, "error" if failed else "indexed")
                 except Exception:
                     pass
 
@@ -202,6 +204,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             pass
 
         def _run():
+            failed = False
             try:
                 cocoindex.init()
                 run_index(
@@ -211,10 +214,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 )
                 register_index_path(index_name, project_path)
             except Exception as exc:
+                failed = True
                 logger.error(f"Background indexing failed: {exc}")
             finally:
                 try:
-                    set_index_status(index_name, "indexed")
+                    set_index_status(index_name, "error" if failed else "indexed")
                 except Exception:
                     pass
 

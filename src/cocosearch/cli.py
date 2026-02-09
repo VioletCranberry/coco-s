@@ -209,6 +209,7 @@ def index_command(args: argparse.Namespace) -> int:
         pass  # Best-effort — don't block indexing on metadata failures
 
     # Run indexing with progress display
+    indexing_failed = False
     try:
         with IndexingProgress(console) as progress:
             if args.fresh:
@@ -257,8 +258,15 @@ def index_command(args: argparse.Namespace) -> int:
         return 0
 
     except Exception as e:
+        indexing_failed = True
         console.print(f"[bold red]Error:[/bold red] Indexing failed: {e}")
         return 1
+
+    finally:
+        try:
+            set_index_status(index_name, "error" if indexing_failed else "indexed")
+        except Exception:
+            pass
 
 
 def parse_query_filters(query: str) -> tuple[str, str | None]:
