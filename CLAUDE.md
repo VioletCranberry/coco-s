@@ -76,7 +76,7 @@ uv run cocosearch mcp --project-from-cwd
 **Key patterns:**
 
 - Singleton DB connection pool via `search.db` — reset between tests with `reset_db_pool()` autouse fixture in `tests/conftest.py`
-- Handler autodiscovery: any `handlers/*.py` (not prefixed with `_`) implementing `LanguageHandler` protocol is auto-registered. Grammar handlers in `handlers/grammars/*.py` are also autodiscovered. Total custom language specs: 11 (5 language + 6 grammar) — update `test_languages.py` and `test_flow.py` count assertions when adding handlers
+- Handler autodiscovery: any `handlers/*.py` (not prefixed with `_`) implementing `LanguageHandler` protocol is auto-registered. Grammar handlers in `handlers/grammars/*.py` are also autodiscovered. Total custom language specs: 12 (6 language + 6 grammar) — update `test_languages.py` and `test_flow.py` count assertions when adding handlers
 - CocoIndex framework orchestrates the indexing pipeline in `indexer/flow.py`
 - **CocoIndex table naming:** `codeindex_{index_name}__{index_name}_chunks` (flow name `CodeIndex_{name}` is lowercased by CocoIndex). Parse results go to `cocosearch_parse_results_{index_name}`.
 - Parse status categories: `ok`, `partial`, `error`, `no_grammar`. Text-only formats (md, yaml, json, etc.) are skipped from parse tracking entirely via `_SKIP_PARSE_EXTENSIONS` in `indexer/parse_tracking.py`.

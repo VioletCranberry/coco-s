@@ -81,6 +81,7 @@ LANGUAGE_EXTENSIONS = {
     "ruby": [".rb"],
     "rust": [".rs"],
     "scala": [".scala"],
+    "groovy": [".groovy", ".gradle"],
     "solidity": [".sol"],
     "sql": [".sql"],
     "swift": [".swift"],

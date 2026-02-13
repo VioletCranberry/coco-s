@@ -13,9 +13,9 @@
 
 Coco[-S]earch is a local-first hybrid semantic code search tool. It combines vector similarity and keyword matching (via RRF fusion) to find code by meaning, not just text. Powered by [CocoIndex](https://github.com/cocoindex-io/cocoindex) for indexing, [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) for syntax-aware chunking and symbol extraction, PostgreSQL with pgvector for storage, and Ollama for local embeddings. No external APIs — everything runs on your machine.
 
-Available as a CLI, MCP server, or interactive REPL. Incremental indexing, `.gitignore`-aware. Supports 30+ languages with symbol-level filtering for 14+, plus domain-specific grammars for structured config files.
+Available as a CLI, MCP server, or interactive REPL. Incremental indexing, `.gitignore`-aware. Supports 31+ languages with symbol-level filtering for 14+, plus domain-specific grammars for structured config files.
 
-[Supported Languages (30+)](#supported-languages) | [Supported Grammars](#supported-grammars)
+[Supported Languages (31+)](#supported-languages) | [Supported Grammars](#supported-grammars)
 
 ## Disclaimer
 
@@ -146,7 +146,7 @@ done
 
 ## Supported Languages
 
-CocoSearch indexes 30 programming languages. Symbol-aware languages (✓) support `--symbol-type` and `--symbol-name` filtering.
+CocoSearch indexes 31 programming languages. Symbol-aware languages (✓) support `--symbol-type` and `--symbol-name` filtering.
 
 ```
 ┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┓
@@ -159,6 +159,7 @@ CocoSearch indexes 30 programming languages. Symbol-aware languages (✓) suppor
 │ DTD        │ .dtd                        │    ✗    │
 │ Fortran    │ .f, .f90, .f95, .f03        │    ✗    │
 │ Go         │ .go                         │    ✓    │
+│ Groovy     │ .groovy, .gradle            │    ✗    │
 │ HTML       │ .html, .htm                 │    ✗    │
 │ Java       │ .java                       │    ✓    │
 │ Javascript │ .js, .mjs, .cjs, .jsx       │    ✓    │
@@ -191,7 +192,7 @@ CocoSearch indexes 30 programming languages. Symbol-aware languages (✓) suppor
 Chunking strategy depends on the language:
 
 - **Tree-sitter chunking (~20 languages)**: CocoIndex's `SplitRecursively` uses Tree-sitter internally to split at syntax-aware boundaries (function/class edges). Covers Python, JavaScript, TypeScript, Go, Rust, Java, C, C++, C#, Ruby, PHP, and others in CocoIndex's [built-in list](https://cocoindex.io/docs/ops/functions#supported-languages).
-- **Custom handler chunking (5 languages)**: HCL, Dockerfile, Bash, Go Template, and Scala use regex-based `CustomLanguageSpec` separators tuned for their syntax — no Tree-sitter grammar available for these in CocoIndex.
+- **Custom handler chunking (6 languages)**: HCL, Dockerfile, Bash, Go Template, Scala, and Groovy use regex-based `CustomLanguageSpec` separators tuned for their syntax — no Tree-sitter grammar available for these in CocoIndex.
 - **Text fallback**: Languages not recognized by either tier (Markdown, JSON, YAML, TOML, etc.) are split on blank lines and whitespace boundaries.
 
 In short: CocoIndex's Tree-sitter tells you _where to cut_; the `.scm` files tell you _what's inside each piece_.

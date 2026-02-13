@@ -44,6 +44,8 @@ class IndexingConfig(BaseModel):
         "*.rb",
         "*.rs",
         "*.scala",
+        "*.groovy",
+        "*.gradle",
         "*.sol",
         "*.sql",
         "*.swift",

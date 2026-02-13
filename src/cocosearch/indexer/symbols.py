@@ -94,6 +94,9 @@ LANGUAGE_MAP = {
     "tfvars": "hcl",
     # Scala
     "scala": "scala",
+    # Groovy
+    "groovy": "groovy",
+    "gradle": "groovy",
     # CSS
     "css": "css",
     "scss": "css",
