@@ -67,27 +67,26 @@ def code_to_embedding(
 ) -> cocoindex.DataSlice[list[float]]:
     """Shared embedding function for indexing and querying.
 
-    Uses Ollama with nomic-embed-text model to generate 768-dimensional
-    embeddings. This function should be used by both the indexing flow
-    and search queries to ensure consistent embeddings.
+    Uses Ollama to generate embeddings. This function should be used by both
+    the indexing flow and search queries to ensure consistent embeddings.
 
-    Reads COCOSEARCH_OLLAMA_URL environment variable to determine Ollama server address.
-    Defaults to None (which uses CocoIndex default: http://localhost:11434).
+    Environment variables:
+        COCOSEARCH_OLLAMA_URL: Ollama server address (default: http://localhost:11434).
+        COCOSEARCH_EMBEDDING_MODEL: Embedding model name (default: nomic-embed-text).
 
     Args:
         text: Text to embed.
 
     Returns:
-        768-dimensional embedding vector.
+        Embedding vector.
     """
-    # Read Ollama URL from environment
-    # If not set, EmbedText will use its default (localhost:11434)
     ollama_url = os.environ.get("COCOSEARCH_OLLAMA_URL")
+    model = os.environ.get("COCOSEARCH_EMBEDDING_MODEL", "nomic-embed-text")
 
     return text.transform(
         cocoindex.functions.EmbedText(
             api_type=cocoindex.LlmApiType.OLLAMA,
-            model="nomic-embed-text",
+            model=model,
             address=ollama_url,
         )
     )

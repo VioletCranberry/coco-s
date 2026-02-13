@@ -251,6 +251,156 @@ class TestRunIndex:
 
         mock_init.assert_called_once()
 
+    def test_skips_parse_tracking_when_no_changes(self, tmp_path):
+        """Skips parse tracking when flow.update() reports zero changes."""
+        from cocosearch.indexer.flow import run_index
+
+        (tmp_path / "test.py").write_text("def hello(): pass")
+
+        mock_update_info = MagicMock()
+        mock_update_info.stats = {
+            "files": {"num_insertions": 0, "num_deletions": 0, "num_updates": 0}
+        }
+
+        mock_flow = MagicMock()
+        mock_flow.update.return_value = mock_update_info
+
+        mock_conn = MagicMock()
+
+        with patch("cocosearch.indexer.flow.cocoindex.init"):
+            with patch(
+                "cocosearch.indexer.flow.create_code_index_flow",
+                return_value=mock_flow,
+            ):
+                with patch(
+                    "cocosearch.indexer.flow.psycopg.connect",
+                    return_value=mock_conn,
+                ):
+                    with patch("cocosearch.indexer.flow.ensure_symbol_columns"):
+                        with patch(
+                            "cocosearch.indexer.flow.track_parse_results"
+                        ) as mock_track:
+                            run_index(
+                                index_name="testindex",
+                                codebase_path=str(tmp_path),
+                            )
+
+        mock_track.assert_not_called()
+
+    def test_skips_cache_invalidation_when_no_changes(self, tmp_path):
+        """Skips cache invalidation when flow.update() reports zero changes."""
+        from cocosearch.indexer.flow import run_index
+
+        (tmp_path / "test.py").write_text("def hello(): pass")
+
+        mock_update_info = MagicMock()
+        mock_update_info.stats = {
+            "files": {"num_insertions": 0, "num_deletions": 0, "num_updates": 0}
+        }
+
+        mock_flow = MagicMock()
+        mock_flow.update.return_value = mock_update_info
+
+        mock_conn = MagicMock()
+
+        with patch("cocosearch.indexer.flow.cocoindex.init"):
+            with patch(
+                "cocosearch.indexer.flow.create_code_index_flow",
+                return_value=mock_flow,
+            ):
+                with patch(
+                    "cocosearch.indexer.flow.psycopg.connect",
+                    return_value=mock_conn,
+                ):
+                    with patch("cocosearch.indexer.flow.ensure_symbol_columns"):
+                        with patch(
+                            "cocosearch.indexer.flow.invalidate_index_cache"
+                        ) as mock_invalidate:
+                            run_index(
+                                index_name="testindex",
+                                codebase_path=str(tmp_path),
+                            )
+
+        mock_invalidate.assert_not_called()
+
+    def test_runs_both_when_changes_detected(self, tmp_path):
+        """Runs parse tracking and cache invalidation when changes are detected."""
+        from cocosearch.indexer.flow import run_index
+
+        (tmp_path / "test.py").write_text("def hello(): pass")
+
+        mock_update_info = MagicMock()
+        mock_update_info.stats = {
+            "files": {"num_insertions": 5, "num_deletions": 0, "num_updates": 0}
+        }
+
+        mock_flow = MagicMock()
+        mock_flow.update.return_value = mock_update_info
+
+        mock_conn = MagicMock()
+
+        with patch("cocosearch.indexer.flow.cocoindex.init"):
+            with patch(
+                "cocosearch.indexer.flow.create_code_index_flow",
+                return_value=mock_flow,
+            ):
+                with patch(
+                    "cocosearch.indexer.flow.psycopg.connect",
+                    return_value=mock_conn,
+                ):
+                    with patch("cocosearch.indexer.flow.ensure_symbol_columns"):
+                        with patch(
+                            "cocosearch.indexer.flow.track_parse_results"
+                        ) as mock_track:
+                            with patch(
+                                "cocosearch.indexer.flow.invalidate_index_cache"
+                            ) as mock_invalidate:
+                                run_index(
+                                    index_name="testindex",
+                                    codebase_path=str(tmp_path),
+                                )
+
+        mock_track.assert_called_once()
+        mock_invalidate.assert_called_once()
+
+    def test_conservative_default_when_stats_unavailable(self, tmp_path):
+        """Runs both when update_info has no stats attribute (conservative default)."""
+        from cocosearch.indexer.flow import run_index
+
+        (tmp_path / "test.py").write_text("def hello(): pass")
+
+        # MagicMock with spec=object so hasattr(update_info, "stats") is False
+        mock_update_info = MagicMock(spec=object)
+
+        mock_flow = MagicMock()
+        mock_flow.update.return_value = mock_update_info
+
+        mock_conn = MagicMock()
+
+        with patch("cocosearch.indexer.flow.cocoindex.init"):
+            with patch(
+                "cocosearch.indexer.flow.create_code_index_flow",
+                return_value=mock_flow,
+            ):
+                with patch(
+                    "cocosearch.indexer.flow.psycopg.connect",
+                    return_value=mock_conn,
+                ):
+                    with patch("cocosearch.indexer.flow.ensure_symbol_columns"):
+                        with patch(
+                            "cocosearch.indexer.flow.track_parse_results"
+                        ) as mock_track:
+                            with patch(
+                                "cocosearch.indexer.flow.invalidate_index_cache"
+                            ) as mock_invalidate:
+                                run_index(
+                                    index_name="testindex",
+                                    codebase_path=str(tmp_path),
+                                )
+
+        mock_track.assert_called_once()
+        mock_invalidate.assert_called_once()
+
 
 class TestCustomLanguageIntegration:
     """Tests for custom language integration in flow module."""

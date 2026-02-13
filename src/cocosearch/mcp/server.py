@@ -129,6 +129,13 @@ async def api_stats(request) -> JSONResponse:
                 active = _active_indexing.get(index_name)
             if active is not None and active.is_alive():
                 result["status"] = "indexing"
+                # Correct DB so CLI reads consistent status (also refreshes updated_at
+                # to prevent auto_recover_stale_indexing from misfiring)
+                if stats.status != "indexing":
+                    try:
+                        set_index_status(index_name, "indexing")
+                    except Exception:
+                        pass
             if include_failures:
                 result["parse_failures"] = get_parse_failures(index_name)
             return JSONResponse(
@@ -149,6 +156,12 @@ async def api_stats(request) -> JSONResponse:
                     active = _active_indexing.get(idx["name"])
                 if active is not None and active.is_alive():
                     result["status"] = "indexing"
+                    # Correct DB so CLI reads consistent status
+                    if stats.status != "indexing":
+                        try:
+                            set_index_status(idx["name"], "indexing")
+                        except Exception:
+                            pass
                 if include_failures:
                     result["parse_failures"] = get_parse_failures(idx["name"])
                 all_stats.append(result)
@@ -184,6 +197,12 @@ async def api_stats_single(request) -> JSONResponse:
             active = _active_indexing.get(index_name)
         if active is not None and active.is_alive():
             result["status"] = "indexing"
+            # Correct DB so CLI reads consistent status
+            if stats.status != "indexing":
+                try:
+                    set_index_status(index_name, "indexing")
+                except Exception:
+                    pass
         if include_failures:
             result["parse_failures"] = get_parse_failures(index_name)
         return JSONResponse(
@@ -257,9 +276,9 @@ async def api_reindex(request) -> JSONResponse:
                 _active_indexing.pop(index_name, None)
 
     thread = threading.Thread(target=_run, daemon=True)
-    thread.start()
     with _indexing_lock:
         _active_indexing[index_name] = thread
+    thread.start()
 
     action = "Fresh reindex" if fresh else "Reindex"
     return JSONResponse(
@@ -380,9 +399,9 @@ async def api_index(request) -> JSONResponse:
                 _active_indexing.pop(index_name, None)
 
     thread = threading.Thread(target=_run, daemon=True)
-    thread.start()
     with _indexing_lock:
         _active_indexing[index_name] = thread
+    thread.start()
 
     return JSONResponse(
         {
@@ -749,6 +768,10 @@ async def search_code(
             "searching": str(root_path),
             "index_name": index_name,
         }
+        # Include last_indexed_at so LLM clients know when the index was built
+        metadata = get_index_metadata(index_name)
+        if metadata and metadata.get("updated_at"):
+            search_header["last_indexed_at"] = str(metadata["updated_at"])
         output.append(search_header)
 
     # Convert results to dicts with line numbers, content, and context

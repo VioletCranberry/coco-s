@@ -533,6 +533,18 @@ def list_command(args: argparse.Namespace) -> int:
         console.print("  cocosearch index <path>")
         return 0
 
+    # Fetch metadata for each index (best-effort)
+    from cocosearch.management.metadata import get_index_metadata
+
+    metadata_map: dict[str, dict] = {}
+    for idx in indexes:
+        try:
+            meta = get_index_metadata(idx["name"])
+            if meta:
+                metadata_map[idx["name"]] = meta
+        except Exception:
+            pass
+
     if args.pretty:
         from rich.table import Table
 
@@ -542,12 +554,32 @@ def list_command(args: argparse.Namespace) -> int:
             table = Table(title="Indexes")
             table.add_column("Name", style="cyan")
             table.add_column("Table", style="dim")
+            table.add_column("Branch", style="green")
+            table.add_column("Status", style="dim")
 
             for idx in indexes:
-                table.add_row(idx["name"], idx["table_name"])
+                meta = metadata_map.get(idx["name"])
+                branch_display = "-"
+                status_display = "-"
+                if meta:
+                    if meta.get("branch"):
+                        branch_display = meta["branch"]
+                        if meta.get("commit_hash"):
+                            branch_display += f" ({meta['commit_hash']})"
+                    status_display = (meta.get("status") or "-").title()
+                table.add_row(
+                    idx["name"], idx["table_name"], branch_display, status_display
+                )
 
             console.print(table)
     else:
+        # Enrich JSON output with metadata
+        for idx in indexes:
+            meta = metadata_map.get(idx["name"])
+            if meta:
+                idx["branch"] = meta.get("branch")
+                idx["commit_hash"] = meta.get("commit_hash")
+                idx["status"] = meta.get("status")
         print(json.dumps(indexes, indent=2))
 
     return 0
@@ -600,6 +632,37 @@ def format_language_table(languages: list[dict], console_width: int = 80) -> "Ta
         bar = Bar(size=30, begin=0, end=ratio * 30)
         table.add_row(
             lang["language"], str(lang["file_count"]), str(lang["chunk_count"]), bar
+        )
+    return table
+
+
+def format_grammar_table(grammars: list[dict]) -> "Table":
+    """Format grammar distribution table.
+
+    Args:
+        grammars: List of grammar stats dicts from get_grammar_stats().
+
+    Returns:
+        Rich Table with grammar distribution.
+    """
+    from rich.table import Table
+
+    table = Table(title="Grammar Distribution", show_header=True)
+    table.add_column("Grammar", style="cyan", width=20)
+    table.add_column("Base Language", style="dim", width=14)
+    table.add_column("Files", justify="right", width=6)
+    table.add_column("Chunks", justify="right", width=8)
+    table.add_column("Recognition %", justify="right", width=14)
+
+    for g in grammars:
+        pct = g.get("recognition_pct", 0.0)
+        pct_style = "green" if pct >= 90 else "yellow" if pct >= 70 else "red"
+        table.add_row(
+            g["grammar_name"],
+            g["base_language"],
+            str(g["file_count"]),
+            str(g["chunk_count"]),
+            f"[{pct_style}]{pct}%[/{pct_style}]",
         )
     return table
 
@@ -845,10 +908,10 @@ def stats_command(args: argparse.Namespace) -> int:
 
                     # Timestamps
                     if stats.created_at:
-                        created_str = stats.created_at.strftime("%Y-%m-%d")
+                        created_str = stats.created_at.strftime("%Y-%m-%d %H:%M")
                         console.print(f"[dim]Created: {created_str}[/dim]")
                     if stats.updated_at:
-                        updated_str = stats.updated_at.strftime("%Y-%m-%d")
+                        updated_str = stats.updated_at.strftime("%Y-%m-%d %H:%M")
                         days_ago = (
                             f"{stats.staleness_days} days ago"
                             if stats.staleness_days >= 0
@@ -864,8 +927,14 @@ def stats_command(args: argparse.Namespace) -> int:
                         lang_table = format_language_table(stats.languages)
                         console.print(lang_table)
 
-                    # Symbol statistics (verbose mode only)
-                    if args.verbose and stats.symbols:
+                    # Grammar distribution
+                    if stats.grammars:
+                        console.print()
+                        grammar_table = format_grammar_table(stats.grammars)
+                        console.print(grammar_table)
+
+                    # Symbol statistics
+                    if stats.symbols:
                         console.print()
                         symbol_table = format_symbol_table(stats.symbols)
                         if symbol_table:
@@ -935,10 +1004,10 @@ def stats_command(args: argparse.Namespace) -> int:
 
         # Timestamps
         if stats.created_at:
-            created_str = stats.created_at.strftime("%Y-%m-%d")
+            created_str = stats.created_at.strftime("%Y-%m-%d %H:%M")
             console.print(f"[dim]Created: {created_str}[/dim]")
         if stats.updated_at:
-            updated_str = stats.updated_at.strftime("%Y-%m-%d")
+            updated_str = stats.updated_at.strftime("%Y-%m-%d %H:%M")
             days_ago = (
                 f"{stats.staleness_days} days ago"
                 if stats.staleness_days >= 0
@@ -952,16 +1021,18 @@ def stats_command(args: argparse.Namespace) -> int:
             lang_table = format_language_table(stats.languages)
             console.print(lang_table)
 
-        # Symbol statistics (verbose mode only)
-        if args.verbose and stats.symbols:
+        # Grammar distribution
+        if stats.grammars:
+            console.print()
+            grammar_table = format_grammar_table(stats.grammars)
+            console.print(grammar_table)
+
+        # Symbol statistics
+        if stats.symbols:
             console.print()
             symbol_table = format_symbol_table(stats.symbols)
             if symbol_table:
                 console.print(symbol_table)
-        elif args.verbose and not stats.symbols:
-            console.print(
-                "\n[dim]No symbol statistics available (requires v1.7+ index with symbol extraction)[/dim]"
-            )
 
         # Parse health (always shown if available)
         if stats.parse_stats:
@@ -1319,14 +1390,14 @@ def config_path_command(args: argparse.Namespace) -> int:
 def config_check_command(args: argparse.Namespace) -> int:
     """Execute the config check command.
 
-    Validates environment variables without connecting to services.
-    Lightweight check for troubleshooting and CI/CD validation.
+    Validates environment variables and checks connectivity to
+    PostgreSQL, Ollama, and the embedding model.
 
     Args:
         args: Parsed command-line arguments.
 
     Returns:
-        Exit code (0 for valid, 1 for errors).
+        Exit code (0 if all checks pass, 1 if any fail).
     """
     from rich.table import Table
 
@@ -1334,6 +1405,12 @@ def config_check_command(args: argparse.Namespace) -> int:
         mask_password,
         validate_required_env_vars,
         DEFAULT_DATABASE_URL,
+    )
+    from cocosearch.indexer.preflight import (
+        check_postgres,
+        check_ollama,
+        check_ollama_model,
+        DEFAULT_OLLAMA_URL,
     )
 
     console = Console()
@@ -1358,29 +1435,95 @@ def config_check_command(args: argparse.Namespace) -> int:
     table.add_column("Source", style="dim")
 
     # DATABASE_URL (has default)
-    db_url_env = os.getenv("COCOSEARCH_DATABASE_URL")
-    if db_url_env:
-        table.add_row(
-            "COCOSEARCH_DATABASE_URL", mask_password(db_url_env), "environment"
-        )
-    else:
-        table.add_row(
-            "COCOSEARCH_DATABASE_URL", mask_password(DEFAULT_DATABASE_URL), "default"
-        )
+    db_url = os.getenv("COCOSEARCH_DATABASE_URL", DEFAULT_DATABASE_URL)
+    db_url_source = "environment" if os.getenv("COCOSEARCH_DATABASE_URL") else "default"
+    table.add_row("COCOSEARCH_DATABASE_URL", mask_password(db_url), db_url_source)
 
     # OLLAMA_URL (optional with default)
-    ollama_url = os.getenv("COCOSEARCH_OLLAMA_URL")
-    if ollama_url:
-        table.add_row("COCOSEARCH_OLLAMA_URL", ollama_url, "environment")
-    else:
-        table.add_row("COCOSEARCH_OLLAMA_URL", "http://localhost:11434", "default")
+    ollama_url = os.getenv("COCOSEARCH_OLLAMA_URL", DEFAULT_OLLAMA_URL)
+    ollama_url_source = (
+        "environment" if os.getenv("COCOSEARCH_OLLAMA_URL") else "default"
+    )
+    table.add_row("COCOSEARCH_OLLAMA_URL", ollama_url, ollama_url_source)
+
+    # EMBEDDING_MODEL (optional with default)
+    embedding_model = os.getenv("COCOSEARCH_EMBEDDING_MODEL", "nomic-embed-text")
+    embedding_model_source = (
+        "environment" if os.getenv("COCOSEARCH_EMBEDDING_MODEL") else "default"
+    )
+    table.add_row("COCOSEARCH_EMBEDDING_MODEL", embedding_model, embedding_model_source)
 
     console.print(table)
+    console.print()
+
+    # Connectivity checks
+    conn_table = Table(title="Connectivity")
+    conn_table.add_column("Service", style="cyan")
+    conn_table.add_column("Status", style="white")
+    conn_table.add_column("Details", style="dim")
+
+    has_failure = False
+    ollama_reachable = False
+
+    # PostgreSQL
+    try:
+        check_postgres(db_url)
+        conn_table.add_row("PostgreSQL", "[green]✓ connected[/green]", "")
+    except ConnectionError:
+        has_failure = True
+        conn_table.add_row(
+            "PostgreSQL",
+            "[red]✗ unreachable[/red]",
+            "Run: docker compose up -d",
+        )
+
+    # Ollama
+    try:
+        check_ollama(ollama_url)
+        conn_table.add_row("Ollama", "[green]✓ connected[/green]", "")
+        ollama_reachable = True
+    except ConnectionError:
+        has_failure = True
+        conn_table.add_row(
+            "Ollama",
+            "[red]✗ unreachable[/red]",
+            "Run: docker compose up -d",
+        )
+
+    # Embedding model
+    if ollama_reachable:
+        try:
+            check_ollama_model(ollama_url, embedding_model)
+            conn_table.add_row(
+                f"Model ({embedding_model})",
+                "[green]✓ available[/green]",
+                "",
+            )
+        except ConnectionError:
+            has_failure = True
+            conn_table.add_row(
+                f"Model ({embedding_model})",
+                "[red]✗ not found[/red]",
+                f"Run: ollama pull {embedding_model}",
+            )
+    else:
+        conn_table.add_row(
+            f"Model ({embedding_model})",
+            "[dim]- skipped[/dim]",
+            "Ollama is unreachable",
+        )
+
+    console.print(conn_table)
+
+    if has_failure:
+        return 1
+
+    console.print("\n[green]All checks passed[/green]")
     return 0
 
 
-def serve_dashboard_command(args: argparse.Namespace) -> int:
-    """Execute the serve-dashboard command.
+def dashboard_command(args: argparse.Namespace) -> int:
+    """Execute the dashboard command.
 
     Starts a minimal HTTP server serving the web dashboard and API.
 
@@ -1396,10 +1539,24 @@ def serve_dashboard_command(args: argparse.Namespace) -> int:
     from cocosearch.mcp import run_server
 
     console = Console()
+
+    # Resolve port: CLI > env > default
+    if args.port is not None:
+        port = args.port
+    else:
+        port_env = os.getenv("COCOSEARCH_DASHBOARD_PORT", "8080")
+        try:
+            port = int(port_env)
+        except ValueError:
+            console.print(
+                f"[red]Error: Invalid port in COCOSEARCH_DASHBOARD_PORT: '{port_env}'[/red]"
+            )
+            return 1
+
     console.print("[bold]Starting CocoSearch Dashboard[/bold]")
-    dashboard_url = f"http://{args.host}:{args.port}/dashboard"
+    dashboard_url = f"http://{args.host}:{port}/dashboard"
     console.print(f"  Dashboard: {dashboard_url}")
-    console.print(f"  API: http://{args.host}:{args.port}/api/stats")
+    console.print(f"  API: http://{args.host}:{port}/api/stats")
     console.print()
     console.print("[dim]Press Ctrl+C to stop[/dim]")
 
@@ -1412,7 +1569,7 @@ def serve_dashboard_command(args: argparse.Namespace) -> int:
 
     # Use MCP server with SSE transport (provides HTTP routes)
     try:
-        run_server(transport="sse", host=args.host, port=args.port)
+        run_server(transport="sse", host=args.host, port=port)
         return 0
     except KeyboardInterrupt:
         console.print("\n[dim]Dashboard stopped[/dim]")
@@ -1618,12 +1775,6 @@ def main() -> None:
         help="Human-readable output (default: JSON)",
     )
     stats_parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Show symbol type breakdown (verbose mode)",
-    )
-    stats_parser.add_argument(
         "--json",
         action="store_true",
         help="Output machine-readable JSON (replaces --pretty inversion)",
@@ -1766,24 +1917,24 @@ def main() -> None:
     # Config check subcommand
     config_subparsers.add_parser(
         "check",
-        help="Validate environment variables",
-        description="Validate required environment variables without connecting to services.",
+        help="Validate environment and check service connectivity",
+        description="Validate environment variables and check connectivity to PostgreSQL, Ollama, and the embedding model.",
     )
 
-    # Serve-dashboard subcommand
-    serve_parser = subparsers.add_parser(
-        "serve-dashboard",
+    # Dashboard subcommand
+    dashboard_parser = subparsers.add_parser(
+        "dashboard",
         help="Start standalone web dashboard server",
         description="Start a web server to view the stats dashboard in a browser.",
     )
-    serve_parser.add_argument(
+    dashboard_parser.add_argument(
         "--port",
         "-p",
         type=int,
-        default=8080,
-        help="Port to serve dashboard on (default: 8080)",
+        default=None,
+        help="Port to serve dashboard on (default: 8080). [env: COCOSEARCH_DASHBOARD_PORT]",
     )
-    serve_parser.add_argument(
+    dashboard_parser.add_argument(
         "--host",
         default="127.0.0.1",
         help="Host to bind to (default: 127.0.0.1)",
@@ -1801,7 +1952,7 @@ def main() -> None:
         "init",
         "mcp",
         "config",
-        "serve-dashboard",
+        "dashboard",
         "-h",
         "--help",
     )
@@ -1851,7 +2002,7 @@ def main() -> None:
         "clear": clear_command,
         "init": init_command,
         "mcp": mcp_command,
-        "serve-dashboard": serve_dashboard_command,
+        "dashboard": dashboard_command,
     }
 
     _config_command_registry: dict[str, Any] = {
@@ -1865,7 +2016,7 @@ def main() -> None:
         if handler:
             sys.exit(handler(args))
         else:
-            parser.print_help()
+            config_parser.print_help()
             sys.exit(1)
     else:
         handler = _command_registry.get(args.command)

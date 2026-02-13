@@ -123,6 +123,34 @@ Start the MCP server for LLM integration. Typically invoked by MCP clients, not 
 uv run cocosearch mcp  # Runs until killed, used by Claude/OpenCode
 ```
 
+### Configuration Commands
+
+**Check configuration and connectivity:** `uv run cocosearch config check`
+
+Validates environment variables and checks connectivity to PostgreSQL, Ollama, and the embedding model. Returns exit code 0 if all checks pass, 1 if any fail.
+
+```bash
+uv run cocosearch config check
+```
+
+Output includes an environment variable table and a connectivity table:
+
+| Service              | Status          | Details                        |
+| -------------------- | --------------- | ------------------------------ |
+| PostgreSQL           | ✓ connected     |                                |
+| Ollama               | ✓ connected     |                                |
+| Model (nomic-embed-text) | ✓ available |                                |
+
+If a service is unreachable, the status shows `✗ unreachable` with a remediation hint (e.g., `Run: docker compose up -d`). The model check is skipped if Ollama is unreachable.
+
+**Show resolved configuration:** `uv run cocosearch config show`
+
+Display the fully resolved configuration with all sources and precedence levels.
+
+**Show config file path:** `uv run cocosearch config path`
+
+Display the path to the config file, or indicate if none is found.
+
 ## Observability
 
 Monitor index health, language distribution, symbol breakdown, and parse health.
@@ -162,7 +190,7 @@ uv run cocosearch stats myproject --json
 Web-based stats visualization:
 
 ```bash
-uv run cocosearch serve-dashboard
+uv run cocosearch dashboard
 # Opens browser to http://localhost:8080
 ```
 

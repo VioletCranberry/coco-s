@@ -180,18 +180,10 @@ def run_index(
     check_infrastructure(
         db_url=get_database_url(),
         ollama_url=os.environ.get("COCOSEARCH_OLLAMA_URL"),
+        embedding_model=os.environ.get(
+            "COCOSEARCH_EMBEDDING_MODEL", "nomic-embed-text"
+        ),
     )
-
-    # Invalidate query cache for this index before reindexing
-    # This ensures stale results aren't served during/after reindex
-    try:
-        removed = invalidate_index_cache(index_name)
-        if removed > 0:
-            logger.info(
-                f"Invalidated {removed} cached queries for index '{index_name}'"
-            )
-    except Exception as e:
-        logger.warning(f"Cache invalidation failed (non-fatal): {e}")
 
     # Initialize CocoIndex (database configured via COCOSEARCH_DATABASE_URL)
     cocoindex.init()
@@ -249,14 +241,40 @@ def run_index(
     # Run indexing and return statistics
     update_info = flow.update()
 
-    # Track parse status for all indexed files
-    try:
-        with psycopg.connect(db_url) as conn:
-            parse_summary = track_parse_results(
-                conn, index_name, codebase_path, table_name
-            )
-            logger.info(f"Parse tracking complete: {parse_summary}")
-    except Exception as e:
-        logger.warning(f"Parse tracking failed (non-fatal): {e}")
+    # Determine if any files actually changed
+    has_changes = True  # conservative default
+    if hasattr(update_info, "stats") and isinstance(update_info.stats, dict):
+        file_stats = update_info.stats.get("files", {})
+        total = (
+            file_stats.get("num_insertions", 0)
+            + file_stats.get("num_deletions", 0)
+            + file_stats.get("num_updates", 0)
+        )
+        has_changes = total > 0
+
+    if has_changes:
+        # Invalidate query cache so stale results aren't served after reindex
+        try:
+            removed = invalidate_index_cache(index_name)
+            if removed > 0:
+                logger.info(
+                    f"Invalidated {removed} cached queries for index '{index_name}'"
+                )
+        except Exception as e:
+            logger.warning(f"Cache invalidation failed (non-fatal): {e}")
+
+        # Track parse status for all indexed files
+        try:
+            with psycopg.connect(db_url) as conn:
+                parse_summary = track_parse_results(
+                    conn, index_name, codebase_path, table_name
+                )
+                logger.info(f"Parse tracking complete: {parse_summary}")
+        except Exception as e:
+            logger.warning(f"Parse tracking failed (non-fatal): {e}")
+    else:
+        logger.info(
+            "No file changes detected — skipping parse tracking and cache invalidation"
+        )
 
     return update_info

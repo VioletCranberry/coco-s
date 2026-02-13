@@ -13,7 +13,7 @@ import logging
 import os
 import sys
 import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 logger = logging.getLogger(__name__)
 
@@ -232,9 +232,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     _active_indexing.pop(index_name, None)
 
         thread = threading.Thread(target=_run, daemon=True)
-        thread.start()
         with _indexing_lock:
             _active_indexing[index_name] = thread
+        thread.start()
 
         action = "Fresh reindex" if fresh else "Reindex"
         self._json_response(
@@ -308,9 +308,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     _active_indexing.pop(index_name, None)
 
         thread = threading.Thread(target=_run, daemon=True)
-        thread.start()
         with _indexing_lock:
             _active_indexing[index_name] = thread
+        thread.start()
 
         self._json_response(
             {
@@ -493,6 +493,15 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     active = _active_indexing.get(idx["name"])
                 if active is not None and active.is_alive():
                     result["status"] = "indexing"
+                    # Correct DB so CLI reads consistent status (also refreshes
+                    # updated_at to prevent auto_recover_stale_indexing misfiring)
+                    if stats.status != "indexing":
+                        try:
+                            from cocosearch.management import set_index_status
+
+                            set_index_status(idx["name"], "indexing")
+                        except Exception:
+                            pass
                 if include_failures:
                     result["parse_failures"] = get_parse_failures(idx["name"])
                     result["grammar_failures"] = get_grammar_failures(idx["name"])
@@ -523,6 +532,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 active = _active_indexing.get(index_name)
             if active is not None and active.is_alive():
                 result["status"] = "indexing"
+                # Correct DB so CLI reads consistent status
+                if stats.status != "indexing":
+                    try:
+                        from cocosearch.management import set_index_status
+
+                        set_index_status(index_name, "indexing")
+                    except Exception:
+                        pass
             if include_failures:
                 result["parse_failures"] = get_parse_failures(index_name)
                 result["grammar_failures"] = get_grammar_failures(index_name)
@@ -558,7 +575,7 @@ def start_dashboard_server(port: int | None = None) -> str | None:
         port = int(env_port) if env_port else 0  # 0 = OS-assigned
 
     try:
-        server = HTTPServer(("127.0.0.1", port), DashboardHandler)
+        server = ThreadingHTTPServer(("127.0.0.1", port), DashboardHandler)
     except OSError as e:
         print(
             f"Warning: Could not start dashboard server on port {port}: {e}",

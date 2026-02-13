@@ -258,7 +258,7 @@ class TestAutoRecoverStaleIndexing:
 
     def test_recovers_stale_indexing_status(self, mock_db_pool):
         """auto_recover_stale_indexing flips 'indexing' to 'indexed' after threshold."""
-        stale_time = datetime.now() - timedelta(seconds=300 + 60)
+        stale_time = datetime.now() - timedelta(seconds=3600 + 60)
         pool, cursor, conn = mock_db_pool(
             results=[("myindex", "/path", "2024-01-01", stale_time, "indexing")]
         )

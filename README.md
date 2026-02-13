@@ -54,7 +54,7 @@
   <a href="#supported-grammars"><img src="https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes"></a>
 </p>
 
-Coco[-S]earch is a local-first hybrid semantic code search tool. It combines vector similarity and keyword matching (via RRF fusion) to find code by meaning, not just text. Powered by [CocoIndex](https://github.com/cocoindex-io/cocoindex) for indexing, [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) for syntax-aware chunking and symbol extraction, PostgreSQL with pgvector for storage, and Ollama for local embeddings. No external APIs — everything runs on your machine.
+Coco[-S]earch is a local-first hybrid semantic code search tool. It combines vector similarity and keyword matching (via RRF fusion) to find code by meaning, not just text. Powered by [CocoIndex](https://github.com/cocoindex-io/cocoindex) for indexing, [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) for syntax-aware chunking and symbol extraction, [PostgreSQL](https://www.postgresql.org/) with [pgvector](https://github.com/pgvector/pgvector) for storage, and [Ollama](https://ollama.com/) for local embeddings. No external APIs — everything runs on your machine.
 
 Available as a CLI, MCP server, or interactive REPL. Incremental indexing, `.gitignore`-aware. Supports 31+ languages with symbol-level filtering for 14+, plus domain-specific grammars for structured config files.
 
@@ -81,7 +81,7 @@ Search your code four ways — pick what fits your workflow:
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
 | **CLI**              | One-off searches, scripting, CI                                                                                                                                   | `cocosearch search "auth flow"`     |
 | **Interactive REPL** | Exploratory sessions — tweak filters, switch indexes, iterate on queries without restarting                                                                       | `cocosearch search --interactive`   |
-| **Web Dashboard**    | Visual search + index management in the browser — filters, syntax-highlighted results, charts, dark/light theme                                                   | `cocosearch serve-dashboard`        |
+| **Web Dashboard**    | Visual search + index management in the browser — filters, syntax-highlighted results, charts, dark/light theme                                                   | `cocosearch dashboard`              |
 | **MCP Server**       | AI assistant integration ([Claude Code](https://claude.com/product/claude-code), [Claude Desktop](https://claude.com/download), [OpenCode](https://opencode.ai/)) | `cocosearch mcp --project-from-cwd` |
 
 ### CLI
@@ -94,7 +94,7 @@ uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch index /path/
 uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch search "authentication flow" --pretty
 
 # Serve CocoSearch WEB dashboard
-uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch serve-dashboard
+uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch dashboard
 
 # Start interactive REPL
 uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch search --interactive
@@ -102,46 +102,68 @@ uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch search --int
 # View index stats with parse health
 uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch stats --pretty
 
-ndex: cocosearch
-Source: /GIT/coco-s
+Index: cocosearch
+Source: /GIT/personal/coco-s
 Status: Indexed
-Files: 155 | Chunks: 1,689 | Size: 11.8 MB
-Created: 2026-02-09
-Last Updated: 2026-02-10 (0 days ago)
+Files: 189 | Chunks: 1,982 | Size: 14.5 MB
+Created: 2026-02-09 18:48
+Last Updated: 2026-02-13 21:32 (0 days ago)
 
-                        Language Distribution
-┏━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Language     ┃  Files ┃   Chunks ┃ Distribution                   ┃
-┡━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ py           │    132 │     1405 │ ██████████████████████████████ │
-│ md           │     19 │      218 │ ████▋                          │
-│ html         │      1 │       62 │ █▎                             │
-│ toml         │      1 │        2 │                                │
-│ docker-comp… │      1 │        1 │                                │
-│ yaml         │      1 │        1 │                                │
-└──────────────┴────────┴──────────┴────────────────────────────────┘
+                     Language Distribution
+┏━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Language    ┃ Files ┃ Chunks ┃ Distribution                  ┃
+┡━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ py          │   162 │   1616 │ █████████████████████████████ │
+│ md          │    21 │    264 │ ████▋                         │
+│ html        │     1 │     96 │ █▋                            │
+│ toml        │     1 │      2 │                               │
+│ yaml        │     2 │      2 │                               │
+│ json        │     1 │      1 │                               │
+│ docker-com… │     1 │      1 │                               │
+└─────────────┴───────┴────────┴───────────────────────────────┘
 
-Parse health: 100.0% clean (132/132 files)
+                      Grammar Distribution
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━┓
+┃                   ┃ Base        ┃     ┃        ┃ Recognition ┃
+┃ Grammar           ┃ Language    ┃ Fi… ┃ Chunks ┃           % ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━┩
+│ docker-compose    │ yaml        │   1 │      1 │      100.0% │
+└───────────────────┴─────────────┴─────┴────────┴─────────────┘
+
+ Symbol Statistics
+┏━━━━━━━━━━┳━━━━━━━┓
+┃ Type     ┃ Count ┃
+┡━━━━━━━━━━╇━━━━━━━┩
+│ function │   909 │
+│ class    │   231 │
+└──────────┴───────┘
+
+Parse health: 100.0% clean (162/162 files)
                 Parse Status by Language
 ┏━━━━━━━━━━┳━━━━━━━┳━━━━━┳━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━┓
 ┃ Language ┃ Files ┃  OK ┃ Partial ┃ Error ┃ No Grammar ┃
 ┡━━━━━━━━━━╇━━━━━━━╇━━━━━╇━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━┩
-│ python   │   132 │ 132 │       0 │     0 │          0 │
-│ md       │    19 │   - │       - │     - │          - │
-│ html     │     1 │   - │       - │     - │          - │
-│ toml     │     1 │   - │       - │     - │          - │
-│ yaml     │     1 │   - │       - │     - │          - │
+│ python   │   162 │ 162 │       0 │     0 │          0 │
 └──────────┴───────┴─────┴─────────┴───────┴────────────┘
 
 # View index stats with parse health live
 uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch stats --live
+
+# List all indexes
+uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch list --pretty
+
+┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┓
+┃ Name       ┃ Table                                      ┃ Branch                  ┃ Status  ┃
+┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━┩
+│ cocosearch │ codeindex_cocosearch__cocosearch_chunks     │ main (ed00733)          │ Indexed │
+└────────────┴────────────────────────────────────────────┴─────────────────────────┴─────────┘
 ```
 
 For the full list of commands and flags, see [CLI Reference](./docs/cli-reference.md).
 
 ### Web Dashboard
 
-`cocosearch serve-dashboard` opens a browser UI at `http://localhost:8080` with:
+`cocosearch dashboard` opens a browser UI at `http://localhost:8080` with:
 
 - **Code search** — natural language queries with language, symbol type, and hybrid search filters. Results show syntax-highlighted snippets, score badges, match type, and symbol metadata.
 - **Index management** — create, reindex (incremental or fresh), and delete indexes from the browser.
@@ -169,9 +191,11 @@ Settings persist across queries — change `:limit`, `:lang`, `:context`, or `:i
 ```bash
 # 1. Start infrastructure.
 docker compose up -d
-# 2. Index your project (or use WEB dashboard).
+# 2. Verify services are ready.
+uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch config check
+# 3. Index your project (or use WEB dashboard).
 uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch index .
-# 3. Register with your AI assistant.
+# 4. Register with your AI assistant.
 claude mcp add --scope user cocosearch -- \
   uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch mcp --project-from-cwd
 ```
@@ -405,3 +429,17 @@ uv run pytest tests/unit/search/test_cache.py -v       # Single file
 uv run pytest -k "test_rrf_double_match" -v            # Single test by name
 uv run pytest tests/unit/handlers/ -v                  # Handler tests
 ```
+
+## Troubleshooting
+
+**Dashboard shows "Indexing" but CLI shows "Indexed"**
+
+The web dashboard and CLI now share a status sync mechanism: when the dashboard detects a live indexing thread, it corrects the database status so both interfaces agree. If you still see a discrepancy, check whether indexing is genuinely running (CPU usage, `docker stats` for Ollama activity).
+
+**Index appears stuck in "Indexing" status**
+
+After 1 hour with no progress updates, the status auto-recovers to "Indexed". You can also run `cocosearch index .` again to force a fresh index, which will reset the status.
+
+**High CPU after indexing appears complete**
+
+Ollama may still be processing embeddings in its queue. Check with `docker stats` or `ps aux | grep ollama`. CocoIndex may also perform background cleanup after the main indexing loop finishes.

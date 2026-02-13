@@ -245,14 +245,14 @@ def clear_index_path(index_name: str) -> bool:
         return False
 
 
-_STALE_INDEXING_THRESHOLD_SECONDS = 300  # 5 minutes
+_STALE_INDEXING_THRESHOLD_SECONDS = 3600  # 1 hour
 
 
 def auto_recover_stale_indexing(index_name: str) -> bool:
     """Auto-recover an index stuck in 'indexing' status.
 
     If the index has been in 'indexing' status for longer than the stale
-    threshold (15 minutes), flips it to 'indexed'. This handles cases
+    threshold (1 hour), flips it to 'indexed'. This handles cases
     where the indexing process completed but was interrupted before the
     finally block could update the status.
 

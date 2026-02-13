@@ -277,7 +277,6 @@ class TestStatsCommand:
                 args = argparse.Namespace(
                     index="testindex",
                     pretty=False,
-                    verbose=False,
                     json=True,
                     all=False,
                     staleness_threshold=7,
@@ -304,7 +303,6 @@ class TestStatsCommand:
                 args = argparse.Namespace(
                     index="missing",
                     pretty=False,
-                    verbose=False,
                     json=True,
                     all=False,
                     staleness_threshold=7,
