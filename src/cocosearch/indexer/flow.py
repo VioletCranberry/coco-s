@@ -134,7 +134,7 @@ def create_code_index_flow(
         # Step 5: Export to PostgreSQL with vector index
         code_embeddings.export(
             f"{index_name}_chunks",
-            cocoindex.storages.Postgres(),
+            cocoindex.targets.Postgres(),
             primary_key_fields=["filename", "location"],
             vector_indexes=[
                 cocoindex.VectorIndexDef(

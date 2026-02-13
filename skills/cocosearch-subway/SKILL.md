@@ -9,19 +9,12 @@ Generate an interactive London Underground-style subway map of a codebase. Lines
 
 ## Pre-flight Check
 
-Before generating the map, verify we have a usable index.
-
-**I'll run:**
-
-1. **Check for project config first:** Look for `cocosearch.yaml` in the project root. If it exists and has an `indexName` field, use that as the index name. **This is critical** -- the MCP `index_codebase` tool auto-derives names from the directory path if `index_name` is not specified, which may not match the configured name.
-2. `list_indexes()` -- Check what indexes exist
-3. `index_stats(index_name="<configured-name>")` -- Check index health, especially that it has symbols (requires v1.7+ index)
-
-**What to look for:**
-
-- **No index found:** Offer to run `index_codebase(path, index_name="<configured-name>")` first
-- **Index exists but no symbols:** The subway map needs symbol data. Suggest re-indexing.
-- **Index fresh with symbols:** Ready to explore and generate
+1. Read `cocosearch.yaml` for `indexName` (critical -- use this for all operations)
+2. `list_indexes()` to confirm project is indexed
+3. `index_stats(index_name="<configured-name>")` to check freshness and verify symbol data exists
+- No index → offer to index first
+- Index exists but no symbols → the subway map needs symbol data; suggest re-indexing
+- Stale (>7 days) → warn, but proceed
 
 ## Step 1 -- Explore the Codebase
 

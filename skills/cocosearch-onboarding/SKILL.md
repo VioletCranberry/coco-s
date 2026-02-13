@@ -153,27 +153,4 @@ Now you've seen the architecture, key layers, and conventions. Would you like me
 - Check staleness: `index_stats()` shows last update date
 - Regenerate CODEBASE_OVERVIEW.md quarterly or after big changes
 
-## Installation
-
-**Claude Code (project-local, recommended for team-shared skills):**
-
-```bash
-mkdir -p .claude/skills
-ln -sfn ../../skills/cocosearch-onboarding .claude/skills/cocosearch-onboarding
-```
-
-**Claude Code (global):**
-
-```bash
-mkdir -p ~/.claude/skills/cocosearch-onboarding
-cp skills/cocosearch-onboarding/SKILL.md ~/.claude/skills/cocosearch-onboarding/SKILL.md
-```
-
-**OpenCode:**
-
-```bash
-mkdir -p ~/.config/opencode/skills/cocosearch-onboarding
-cp skills/cocosearch-onboarding/SKILL.md ~/.config/opencode/skills/cocosearch-onboarding/SKILL.md
-```
-
-After installation, restart your AI coding assistant or run the skill activation command for your platform.
+For installation instructions, see `skills/README.md`.

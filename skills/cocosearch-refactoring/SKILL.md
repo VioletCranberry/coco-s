@@ -11,24 +11,11 @@ A systematic workflow for safe code refactoring. This skill guides you through c
 
 ## Pre-flight Check
 
-Before starting any refactoring, verify your semantic index is fresh and accurate.
-
-**Check index status:**
-
-```
-list_indexes()
-index_stats()
-```
-
-**Staleness check:** If `staleness_days > 7`, **strongly recommend reindexing**. Refactoring decisions based on stale data can miss critical dependencies.
-
-**If no index exists:** Indexing is REQUIRED before proceeding. Unlike debugging or onboarding, refactoring needs 100% accurate dependency data. Run:
-
-```
-index_codebase(path="/path/to/project")
-```
-
-Wait for indexing to complete, then proceed.
+1. Read `cocosearch.yaml` for `indexName` (critical -- use this for all operations)
+2. `list_indexes()` to confirm project is indexed
+3. `index_stats(index_name="<configured-name>")` to check freshness
+- No index → indexing is REQUIRED. Refactoring needs 100% accurate dependency data.
+- Stale (>7 days) → **strongly recommend reindexing**. Stale data can miss critical dependencies.
 
 ## Step 1: Understand the Refactoring Goal
 
@@ -302,41 +289,14 @@ Recommended next steps:
 
 **Impact analysis is critical:** Spend time searching for all dependencies. Missing a usage creates bugs.
 
-**Use hybrid search everywhere:** Refactoring is identifier-heavy. Hybrid search combines semantic + exact matching for best recall.
-
-**Use symbol_name globs:** Catch all variants of a symbol (User*, authenticate*, Config\*)
-
-**Use smart_context:** See full function/class bodies to understand how dependencies work
-
-**Leaf-first ordering:** Prevents cascading import failures and broken intermediate states
+**Leaf-first ordering:** Prevents cascading import failures and broken intermediate states.
 
 **User confirmation required:** Every code change requires explicit approval. User stays in control.
 
 **Test early and often:** Suggest running tests after each change, not just at the end. Catch failures early.
 
-**Safe intermediate states:** After each step, code should still compile/import (even if not fully migrated)
+**Safe intermediate states:** After each step, code should still compile/import (even if not fully migrated).
 
-## Installation
+For common search tips (hybrid search, smart_context, symbol filtering), see `skills/README.md`.
 
-**Claude Code (project-local):**
-
-```bash
-mkdir -p .claude/skills
-ln -sfn ../../skills/cocosearch-refactoring .claude/skills/cocosearch-refactoring
-```
-
-**Claude Code (global):**
-
-```bash
-mkdir -p ~/.claude/skills/cocosearch-refactoring
-cp skills/cocosearch-refactoring/SKILL.md ~/.claude/skills/cocosearch-refactoring/SKILL.md
-```
-
-**OpenCode:**
-
-```bash
-mkdir -p ~/.config/opencode/skills/cocosearch-refactoring
-cp skills/cocosearch-refactoring/SKILL.md ~/.config/opencode/skills/cocosearch-refactoring/SKILL.md
-```
-
-**Verify installation:** Restart Claude Code / OpenCode and check skill appears in skill list.
+For installation instructions, see `skills/README.md`.

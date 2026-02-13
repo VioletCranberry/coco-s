@@ -444,7 +444,7 @@ def _extract_symbols_with_query(
 # ============================================================================
 
 
-@cocoindex.op.function()
+@cocoindex.op.function(behavior_version=1)
 def extract_symbol_metadata(text: str, language: str) -> SymbolMetadata:
     """Extract symbol metadata from code chunk.
 

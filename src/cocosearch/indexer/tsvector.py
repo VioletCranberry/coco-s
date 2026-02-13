@@ -85,7 +85,7 @@ def preprocess_code_for_tsvector(content: str) -> str:
     return " ".join(all_tokens)
 
 
-@cocoindex.op.function()
+@cocoindex.op.function(behavior_version=1)
 def text_to_tsvector_sql(content: str) -> str:
     """Generate SQL expression for creating tsvector from content.
 

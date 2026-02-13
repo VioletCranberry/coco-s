@@ -8,7 +8,7 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "cocoindex[embeddings]>=0.3.28",
+    "cocoindex[embeddings]>=0.3.31",
     "mcp[cli]>=1.26.0",
     "pathspec>=1.0.3",
     "pgvector>=0.4.2",

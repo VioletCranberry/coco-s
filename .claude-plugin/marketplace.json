@@ -1,0 +1,19 @@
+{
+  "name": "cocosearch",
+  "owner": {
+    "name": "VioletCranberry",
+    "email": "zh6an0w.fedor@gmail.com"
+  },
+  "metadata": {
+    "description": "Local-first hybrid semantic code search with MCP tools and workflow skills",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "cocosearch",
+      "description": "Semantic code search MCP server with 7 workflow skills (quickstart, onboarding, explore, debugging, refactoring, new-feature, subway map)",
+      "version": "0.1.0",
+      "source": "./"
+    }
+  ]
+}

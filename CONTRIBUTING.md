@@ -26,6 +26,19 @@ uv run cocosearch index .
 
 PostgreSQL runs on port 5432, Ollama on port 11434. Defaults require no `.env` file.
 
+## CocoIndex Documentation
+
+Documentation is available [here](https://cocoindex.io/docs/)
+
+## Useful Claude Skills
+
+```bash
+/plugin marketplace add cocoindex-io/cocoindex-claude
+/plugin install cocoindex-skills@cocoindex
+```
+
+This provides specialized CocoIndex knowledge and workflow support within Claude Code.
+
 ## Process
 
 1. **Open an issue first** for non-trivial changes — bug reports, feature proposals, or refactoring ideas. This avoids duplicate work and lets us discuss the approach before you invest time.
@@ -54,6 +67,7 @@ uv run pytest -k "test_name" -v                  # Single test by name
 ```
 
 Before submitting a PR:
+
 - Run `uv run ruff check src/ tests/` and fix any issues.
 - Run `uv run ruff format src/ tests/`.
 - Run `uv run pytest` and ensure all tests pass.

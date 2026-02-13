@@ -11,13 +11,11 @@ A systematic workflow for adding new code to an existing codebase. This skill us
 
 ## Pre-flight Check
 
-Before adding any feature, verify the index is healthy and current.
-
-1. **Check for project config first:** Look for `cocosearch.yaml` in the project root. If it exists and has an `indexName` field, use that as the index name for all subsequent operations.
-2. **Check available indexes:** Run `list_indexes()` to confirm the project is indexed.
-3. **Check index freshness:** Run `index_stats(index_name="<configured-name>")` to get staleness information.
-   - If index is stale (>7 days old), warn: "Index is X days old — I may miss recent patterns. Want me to reindex first?"
-   - If no index exists, offer to run `index_codebase(path="<project-root>", index_name="<configured-name>")`.
+1. Read `cocosearch.yaml` for `indexName` (critical -- use this for all operations)
+2. `list_indexes()` to confirm project is indexed
+3. `index_stats(index_name="<configured-name>")` to check freshness
+- No index → offer to index before proceeding
+- Stale (>7 days) → warn: "Index is X days old -- I may miss recent patterns. Want me to reindex first?"
 
 ## Step 1: Understand the Feature
 
@@ -327,39 +325,14 @@ Recommended next steps:
 
 **Pattern-first development.** Always find the analog before writing code. The codebase IS the specification for how new code should look.
 
-**Use hybrid search everywhere.** Feature development involves both concept searches ("how does authentication work") and identifier searches ("find AuthService"). Hybrid search covers both.
-
-**Use `smart_context=True` for analogs.** You need full function/class bodies to properly replicate patterns, not truncated snippets.
-
 **Reuse, don't reinvent.** Before creating any utility, helper, or abstraction, search for existing ones. Duplicating functionality creates maintenance burden.
 
-**Match conventions exactly.** If existing functions use `snake_case`, don't introduce `camelCase`. If existing tests use `pytest.fixture`, don't use `setUp/tearDown`. Consistency matters more than personal preference.
+**Match conventions exactly.** If existing functions use `snake_case`, don't introduce `camelCase`. Consistency matters more than personal preference.
 
 **Test analog first.** Find how the closest feature is tested before writing your own tests. Match the coverage level, fixture pattern, and assertion style.
 
-**Wire last.** Create the core code and tests first. Registration and wiring are the final step — they're easy to do but hard to undo if the core design changes.
+**Wire last.** Create the core code and tests first. Registration and wiring are the final step.
 
-## Installation
+For common search tips (hybrid search, smart_context, symbol filtering), see `skills/README.md`.
 
-**Claude Code (project-local):**
-
-```bash
-mkdir -p .claude/skills
-ln -sfn ../../skills/cocosearch-new-feature .claude/skills/cocosearch-new-feature
-```
-
-**Claude Code (global):**
-
-```bash
-mkdir -p ~/.claude/skills/cocosearch-new-feature
-cp skills/cocosearch-new-feature/SKILL.md ~/.claude/skills/cocosearch-new-feature/SKILL.md
-```
-
-**OpenCode:**
-
-```bash
-mkdir -p ~/.config/opencode/skills/cocosearch-new-feature
-cp skills/cocosearch-new-feature/SKILL.md ~/.config/opencode/skills/cocosearch-new-feature/SKILL.md
-```
-
-After installation, restart your AI coding assistant or run the skill activation command for your platform.
+For installation instructions, see `skills/README.md`.

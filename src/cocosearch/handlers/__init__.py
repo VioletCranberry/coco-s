@@ -340,7 +340,7 @@ def get_custom_languages() -> list[cocoindex.functions.CustomLanguageSpec]:
     return specs
 
 
-@cocoindex.op.function()
+@cocoindex.op.function(behavior_version=1)
 def extract_chunk_metadata(text: str, language_id: str) -> ChunkMetadata:
     """Extract metadata from code chunk using appropriate handler.
 

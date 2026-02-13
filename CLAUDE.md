@@ -123,3 +123,34 @@ When exploring or searching this codebase, prefer CocoSearch MCP tools (`search_
 ## Configuration
 
 Project config via `cocosearch.yaml` (no leading dot) in project root. The `indexName` field sets the index name used by all commands. Environment variables prefixed with `COCOSEARCH_` (e.g., `COCOSEARCH_DATABASE_URL`, `COCOSEARCH_OLLAMA_URL`). Config keys map to env vars via camelCase→UPPER_SNAKE conversion (e.g., `indexName` → `COCOSEARCH_INDEX_NAME`). See `.env.example` for available options.
+
+## Plugin Usage (for projects using the CocoSearch plugin)
+
+When this plugin is active, you have access to MCP tools and workflow skills for code search.
+
+### MCP Tools
+- `search_code` — Semantic + keyword hybrid search. Always use `use_hybrid_search=True` and `smart_context=True`.
+- `index_codebase` — Index a directory for search
+- `list_indexes` — List all available indexes
+- `index_stats` — Statistics and health for an index
+- `clear_index` — Remove an index
+
+### Search Best Practices
+- Always check `cocosearch.yaml` for `indexName` first — use it for all operations
+- `use_hybrid_search=True` — combines semantic + keyword via RRF fusion
+- `smart_context=True` — expands to full function/class boundaries via Tree-sitter
+- `symbol_name` with glob patterns for precision (e.g., `User*`)
+- `symbol_type` for structural filtering: "function", "class", "method", "interface"
+- Prefer CocoSearch tools over Grep/Glob for semantic and intent-based queries
+
+### Workflow Skills
+- `/cocosearch:cocosearch-quickstart` — First-time setup and verification
+- `/cocosearch:cocosearch-onboarding` — Guided codebase tour
+- `/cocosearch:cocosearch-explore` — "How does X work?" (autonomous or interactive)
+- `/cocosearch:cocosearch-debugging` — Root cause analysis
+- `/cocosearch:cocosearch-refactoring` — Impact analysis and safe refactoring
+- `/cocosearch:cocosearch-new-feature` — Pattern-matching feature development
+- `/cocosearch:cocosearch-subway` — Codebase visualization as subway map
+
+### Prerequisites
+Docker running PostgreSQL 17 (pgvector) on port 5432 and Ollama on port 11434. Use `/cocosearch:cocosearch-quickstart` to verify.

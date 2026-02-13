@@ -7,20 +7,11 @@ description: Use when debugging an error, unexpected behavior, or tracing how co
 
 ## Pre-flight Check
 
-Before starting any debugging session, verify the index is healthy and current:
-
-1. **Check available indexes:**
-   - Run `list_indexes()` to confirm the project is indexed
-   - If no index exists, offer to run `index_codebase(path="<project-root>")`
-
-2. **Check index freshness:**
-   - Run `index_stats(index_name="<name>")` to get staleness information
-   - If index is stale (>7 days old), warn: "Index is X days old - results may not reflect recent code changes. Want me to reindex first?"
-   - If user declines reindex, proceed but note results may be outdated
-
-3. **Confirm ready to debug:**
-   - Index exists and is reasonably fresh? Proceed to Step 1.
-   - Index missing or very stale? Offer to index/reindex before debugging.
+1. Read `cocosearch.yaml` for `indexName` (critical -- use this for all operations)
+2. `list_indexes()` to confirm project is indexed
+3. `index_stats(index_name="<configured-name>")` to check freshness
+- No index → offer to index before debugging
+- Stale (>7 days) → warn: "Index is X days old -- results may not reflect recent changes. Want me to reindex first?"
 
 ## Step 1: Understand the Symptom
 
@@ -305,27 +296,4 @@ search_code(query="database transaction", smart_context=True)
 search_code(query="error handling", context_before=10, context_after=10)
 ```
 
-## Installation
-
-**Claude Code (project-local):**
-
-```bash
-mkdir -p .claude/skills
-ln -sfn ../../skills/cocosearch-debugging .claude/skills/cocosearch-debugging
-```
-
-**Claude Code (global):**
-
-```bash
-mkdir -p ~/.claude/skills/cocosearch-debugging
-cp skills/cocosearch-debugging/SKILL.md ~/.claude/skills/cocosearch-debugging/SKILL.md
-```
-
-**OpenCode:**
-
-```bash
-mkdir -p ~/.config/opencode/skills/cocosearch-debugging
-cp skills/cocosearch-debugging/SKILL.md ~/.config/opencode/skills/cocosearch-debugging/SKILL.md
-```
-
-After installation, restart your editor or run the `/skills` command to verify the skill is loaded.
+For installation instructions, see `skills/README.md`.

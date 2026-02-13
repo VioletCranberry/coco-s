@@ -123,22 +123,4 @@ search_code(query="error handling", language="python", smart_context=True)
 - Use `cocosearch-debugging` when investigating bugs
 - Use `cocosearch-refactoring` before large code changes
 
-## Installation
-
-**Claude Code (project-local):**
-```bash
-mkdir -p .claude/skills
-ln -sfn ../../skills/cocosearch-quickstart .claude/skills/cocosearch-quickstart
-```
-
-**Claude Code (global):**
-```bash
-mkdir -p ~/.claude/skills/cocosearch-quickstart
-cp skills/cocosearch-quickstart/SKILL.md ~/.claude/skills/cocosearch-quickstart/SKILL.md
-```
-
-**OpenCode:**
-```bash
-mkdir -p ~/.config/opencode/skills/cocosearch-quickstart
-cp skills/cocosearch-quickstart/SKILL.md ~/.config/opencode/skills/cocosearch-quickstart/SKILL.md
-```
+For installation instructions, see `skills/README.md`.

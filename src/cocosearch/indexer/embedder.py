@@ -9,7 +9,7 @@ import os
 import cocoindex
 
 
-@cocoindex.op.function()
+@cocoindex.op.function(behavior_version=1)
 def extract_extension(filename: str) -> str:
     """Extract file extension for language detection.
 
@@ -25,7 +25,7 @@ def extract_extension(filename: str) -> str:
     return ext[1:] if ext else ""
 
 
-@cocoindex.op.function()
+@cocoindex.op.function(behavior_version=1)
 def extract_language(filename: str, content: str) -> str:
     """Extract language identifier for SplitRecursively routing.
 

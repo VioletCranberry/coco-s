@@ -64,6 +64,39 @@ Available as a CLI, MCP server, or interactive REPL. Incremental indexing, `.git
 
 A personal initiative, originally scaffolded with [GSD](https://github.com/glittercowboy/get-shit-done) and refined by hand. Built as a local-first, private tool for accelerating self-onboarding and exploring spec-driven development. Ships with a CLI, MCP tools, dashboards (TUI/WEB), a status API, and reusable [Claude SKILLS](https://code.claude.com/docs/en/skills).
 
+## Quick Start
+
+```bash
+# 1. Start infrastructure.
+docker compose up -d
+# 2. Verify services are ready.
+uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch config check
+# 3. Index your project (or use WEB dashboard).
+uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch index .
+# 4. Register with your AI assistant.
+claude mcp add --scope user cocosearch -- \
+  uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch mcp --project-from-cwd
+```
+
+> **Note:** The MCP server automatically opens a web dashboard in your browser on a random port. Set `COCOSEARCH_DASHBOARD_PORT=8080` to pin it to a fixed port, or `COCOSEARCH_NO_DASHBOARD=1` to disable it.
+
+Install the CocoSearch plugin (recommended):
+
+```bash
+claude plugin marketplace add VioletCranberry/coco-s
+claude plugin install cocosearch@cocosearch
+# All 7 skills + MCP server configured automatically
+```
+
+Or install skills manually (for development):
+
+```bash
+mkdir -p .claude/skills
+for skill in cocosearch-onboarding cocosearch-refactoring cocosearch-debugging cocosearch-quickstart cocosearch-explore cocosearch-new-feature cocosearch-subway; do
+    ln -sfn "../../skills/$skill" ".claude/skills/$skill"
+done
+```
+
 ## Features
 
 - 🔍 **Hybrid search** -- combines semantic similarity and keyword matching via RRF fusion to find code by meaning and by text.
@@ -186,35 +219,6 @@ cocosearch> :index other-project
 
 Settings persist across queries — change `:limit`, `:lang`, `:context`, or `:index` without restarting. Supports command history (up/down arrows) and inline filters (`lang:python` directly in queries).
 
-## Quick Start
-
-```bash
-# 1. Start infrastructure.
-docker compose up -d
-# 2. Verify services are ready.
-uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch config check
-# 3. Index your project (or use WEB dashboard).
-uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch index .
-# 4. Register with your AI assistant.
-claude mcp add --scope user cocosearch -- \
-  uvx --from git+https://github.com/VioletCranberry/coco-s cocosearch mcp --project-from-cwd
-```
-
-> **Note:** The MCP server automatically opens a web dashboard in your browser on a random port. Set `COCOSEARCH_DASHBOARD_PORT=8080` to pin it to a fixed port, or `COCOSEARCH_NO_DASHBOARD=1` to disable it.
-
-Use skills:
-
-```bash
-# Clone this repository and symlink coco skills. For global installation symlink them to ~/.claude/skills/
-mkdir -p .claude/skills
-for skill in cocosearch-onboarding cocosearch-refactoring cocosearch-debugging cocosearch-quickstart cocosearch-explain cocosearch-new-feature cocosearch-subway; do
-    ln -sfn "../../skills/$skill" ".claude/skills/$skill"
-done
-# Then restart your Claude session and instruct it to
-# 'onboard current repository with CocoSearch' or use
-# '/cocosearch-quickstart' skill.
-```
-
 ## Where MCP wins
 
 For codebases of meaningful size, CocoSearch reduces the number of MCP tool calls needed to find relevant code — often from 5-15 iterative grep/read cycles down to 1-2 semantic searches. This means fewer round-trips, less irrelevant content in the context window, and lower token consumption for exploratory and intent-based queries.
@@ -259,8 +263,8 @@ For codebases of meaningful size, CocoSearch reduces the number of MCP tool call
 - **cocosearch-debugging** ([SKILL.md](./skills/cocosearch-debugging/SKILL.md)): Use when debugging an error, unexpected behavior, or tracing how code flows through a system. Guides root cause analysis using CocoSearch semantic and symbol search.
 - **cocosearch-onboarding** ([SKILL.md](./skills/cocosearch-onboarding/SKILL.md)): Use when onboarding to a new or unfamiliar codebase. Guides you through understanding architecture, key modules, and code patterns step-by-step using CocoSearch.
 - **cocosearch-refactoring** ([SKILL.md](./skills/cocosearch-refactoring/SKILL.md)): Use when planning a refactoring, extracting code into a new module, renaming across the codebase, or splitting a large file. Guides impact analysis and safe step-by-step execution using CocoSearch.
-- **cocosearch-explain** ([SKILL.md](./skills/cocosearch-explain/SKILL.md)): Use when a user asks how something works — a flow, logic path, subsystem, or concept. Guides targeted deep-dive explanations using CocoSearch semantic and hybrid search.
 - **cocosearch-new-feature** ([SKILL.md](./skills/cocosearch-new-feature/SKILL.md)): Use when adding new functionality — a new command, endpoint, module, handler, or capability. Guides placement, pattern matching, and integration using CocoSearch.
+- **cocosearch-explore** ([SKILL.md](./skills/cocosearch-explore/SKILL.md)): Use for codebase exploration — answering questions about how code works, tracing flows, or researching a topic. Autonomous mode for subagent/plan mode research; interactive mode for user-facing "how does X work?" explanations.
 - **cocosearch-subway** ([SKILL.md](./skills/cocosearch-subway/SKILL.md)): Use when the user wants to visualize codebase structure as an interactive London Underground-style subway map. AI-generated visualization using CocoSearch tools for exploration.
 
 ## How Search Works
