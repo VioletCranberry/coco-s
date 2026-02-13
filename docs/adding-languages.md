@@ -245,12 +245,14 @@ When adding a new language handler, verify all registrations are complete:
 - [ ] **cli.py languages_command**: display name override added if needed (extensions are derived from handler)
 - [ ] **Tests**: handler tests and/or symbol extraction tests added
 - [ ] **README.md**: Supported Languages section updated (count, table, lists)
+- [ ] **README.md**: Language badge added to the badges section at the top
 
 When adding a new grammar handler:
 
 - [ ] **Grammar handler**: `handlers/grammars/<grammar>.py` created with `GRAMMAR_NAME`, `BASE_LANGUAGE`, `PATH_PATTERNS`, `matches()`, `extract_metadata()`
 - [ ] **Tests**: `tests/unit/handlers/grammars/test_<grammar>.py` created
 - [ ] **README.md**: Supported Grammars section updated
+- [ ] **README.md**: Grammar badge added to the badges section at the top
 
 ## Reference
 

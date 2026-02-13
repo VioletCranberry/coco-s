@@ -11,6 +11,49 @@
   <a href="https://modelcontextprotocol.io/"><img src="https://img.shields.io/badge/MCP-compatible-8A2BE2?logo=anthropic&logoColor=white" alt="MCP"></a>
 </p>
 
+<p align="center">
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Bash-4EAA25?logo=gnubash&logoColor=white" alt="Bash"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/C-A8B9CC?logo=c&logoColor=white" alt="C"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/C%2B%2B-00599C?logo=cplusplus&logoColor=white" alt="C++"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/C%23-512BD4?logo=csharp&logoColor=white" alt="C#"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/CSS-1572B6?logo=css3&logoColor=white" alt="CSS"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Dockerfile-2496ED?logo=docker&logoColor=white" alt="Dockerfile"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/DTD-7A7A7A" alt="DTD"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Fortran-734F96?logo=fortran&logoColor=white" alt="Fortran"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white" alt="Go"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Groovy-4298B8?logo=apachegroovy&logoColor=white" alt="Groovy"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/HCL-844FBA?logo=terraform&logoColor=white" alt="HCL"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/HTML-E34F26?logo=html5&logoColor=white" alt="HTML"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Java-ED8B00?logo=openjdk&logoColor=white" alt="Java"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black" alt="JavaScript"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/JSON-000000?logo=json&logoColor=white" alt="JSON"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Kotlin-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Markdown-000000?logo=markdown&logoColor=white" alt="Markdown"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Pascal-0364B8" alt="Pascal"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/PHP-777BB4?logo=php&logoColor=white" alt="PHP"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white" alt="Python"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/R-276DC3?logo=r&logoColor=white" alt="R"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Ruby-CC342D?logo=ruby&logoColor=white" alt="Ruby"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white" alt="Rust"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Scala-DC322F?logo=scala&logoColor=white" alt="Scala"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Solidity-363636?logo=solidity&logoColor=white" alt="Solidity"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/SQL-336791" alt="SQL"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/Swift-F05138?logo=swift&logoColor=white" alt="Swift"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/TOML-9C4121?logo=toml&logoColor=white" alt="TOML"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/XML-0060AC" alt="XML"></a>
+  <a href="#supported-languages"><img src="https://img.shields.io/badge/YAML-CB171E?logo=yaml&logoColor=white" alt="YAML"></a>
+</p>
+
+<p align="center">
+  <a href="#supported-grammars"><img src="https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose"></a>
+  <a href="#supported-grammars"><img src="https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white" alt="GitHub Actions"></a>
+  <a href="#supported-grammars"><img src="https://img.shields.io/badge/GitLab_CI-FC6D26?logo=gitlab&logoColor=white" alt="GitLab CI"></a>
+  <a href="#supported-grammars"><img src="https://img.shields.io/badge/Helm_Template-0F1689?logo=helm&logoColor=white" alt="Helm Template"></a>
+  <a href="#supported-grammars"><img src="https://img.shields.io/badge/Helm_Values-0F1689?logo=helm&logoColor=white" alt="Helm Values"></a>
+  <a href="#supported-grammars"><img src="https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes"></a>
+</p>
+
 Coco[-S]earch is a local-first hybrid semantic code search tool. It combines vector similarity and keyword matching (via RRF fusion) to find code by meaning, not just text. Powered by [CocoIndex](https://github.com/cocoindex-io/cocoindex) for indexing, [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) for syntax-aware chunking and symbol extraction, PostgreSQL with pgvector for storage, and Ollama for local embeddings. No external APIs — everything runs on your machine.
 
 Available as a CLI, MCP server, or interactive REPL. Incremental indexing, `.gitignore`-aware. Supports 31+ languages with symbol-level filtering for 14+, plus domain-specific grammars for structured config files.
