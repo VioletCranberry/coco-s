@@ -52,32 +52,30 @@
     Local-first hybrid semantic code search
   </text>
 
-  <!-- Feature pills -->
-  <g transform="translate(240,185)" font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#8b949e">
-    <!-- Row 1 -->
-    <rect width="132" height="26" rx="13" fill="none" stroke="#30363d"/>
-    <text x="66" y="17" text-anchor="middle">Vector + Keyword</text>
+  <!-- Feature pills (right column) -->
+  <g font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" fill="#8b949e">
+    <rect x="784" y="18" width="132" height="26" rx="13" fill="none" stroke="#30363d"/>
+    <text x="850" y="35" text-anchor="middle">Vector + Keyword</text>
 
-    <rect x="144" width="104" height="26" rx="13" fill="none" stroke="#30363d"/>
-    <text x="196" y="17" text-anchor="middle">Tree-sitter</text>
+    <rect x="784" y="52" width="132" height="26" rx="13" fill="none" stroke="#30363d"/>
+    <text x="850" y="69" text-anchor="middle">Tree-sitter</text>
 
-    <rect x="260" width="60" height="26" rx="13" fill="none" stroke="#30363d"/>
-    <text x="290" y="17" text-anchor="middle">MCP</text>
+    <rect x="784" y="86" width="132" height="26" rx="13" fill="none" stroke="#30363d"/>
+    <text x="850" y="103" text-anchor="middle">MCP</text>
 
-    <rect x="332" width="84" height="26" rx="13" fill="none" stroke="#30363d"/>
-    <text x="374" y="17" text-anchor="middle">pgvector</text>
+    <rect x="784" y="120" width="132" height="26" rx="13" fill="none" stroke="#30363d"/>
+    <text x="850" y="137" text-anchor="middle">pgvector</text>
 
-    <!-- Row 2 -->
-    <rect y="34" width="94" height="26" rx="13" fill="none" stroke="#30363d"/>
-    <text x="47" y="51" text-anchor="middle">CocoIndex</text>
+    <rect x="784" y="154" width="132" height="26" rx="13" fill="none" stroke="#30363d"/>
+    <text x="850" y="171" text-anchor="middle">CocoIndex</text>
 
-    <rect x="106" y="34" width="74" height="26" rx="13" fill="none" stroke="#30363d"/>
-    <text x="143" y="51" text-anchor="middle">Ollama</text>
+    <rect x="784" y="188" width="132" height="26" rx="13" fill="none" stroke="#30363d"/>
+    <text x="850" y="205" text-anchor="middle">Ollama</text>
 
-    <rect x="192" y="34" width="96" height="26" rx="13" fill="none" stroke="#30363d"/>
-    <text x="240" y="51" text-anchor="middle">PostgreSQL</text>
+    <rect x="784" y="222" width="132" height="26" rx="13" fill="none" stroke="#30363d"/>
+    <text x="850" y="239" text-anchor="middle">PostgreSQL</text>
 
-    <rect x="300" y="34" width="74" height="26" rx="13" fill="none" stroke="#30363d"/>
-    <text x="337" y="51" text-anchor="middle">Docker</text>
+    <rect x="784" y="256" width="132" height="26" rx="13" fill="none" stroke="#30363d"/>
+    <text x="850" y="273" text-anchor="middle">Docker</text>
   </g>
 </svg>

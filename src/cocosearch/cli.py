@@ -1596,6 +1596,9 @@ def dashboard_command(args: argparse.Namespace) -> int:
 
     console = Console()
 
+    # Set project path so dashboard API has project context (same as --project-from-cwd in mcp command)
+    os.environ["COCOSEARCH_PROJECT_PATH"] = os.getcwd()
+
     # Resolve port: CLI > env > default
     if args.port is not None:
         port = args.port

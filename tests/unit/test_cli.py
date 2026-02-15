@@ -12,6 +12,7 @@ from cocosearch.cli import (
     list_command,
     stats_command,
     clear_command,
+    dashboard_command,
 )
 
 
@@ -674,3 +675,22 @@ class TestMCPCommand:
             mcp_command(args)
             call_kwargs = mock_run.call_args[1]
             assert call_kwargs["port"] == 3000
+
+
+class TestDashboardCommand:
+    """Tests for dashboard_command function."""
+
+    def test_sets_project_path_env_var(self, monkeypatch):
+        """dashboard_command sets COCOSEARCH_PROJECT_PATH to CWD before starting server."""
+        monkeypatch.delenv("COCOSEARCH_PROJECT_PATH", raising=False)
+        monkeypatch.setenv("COCOSEARCH_NO_DASHBOARD", "1")
+        fake_cwd = "/tmp/my-project"
+        monkeypatch.setattr("os.getcwd", lambda: fake_cwd)
+
+        with patch("cocosearch.mcp.run_server"):
+            args = argparse.Namespace(port=8080, host="localhost")
+            dashboard_command(args)
+
+        import os
+
+        assert os.environ.get("COCOSEARCH_PROJECT_PATH") == fake_cwd
