@@ -54,8 +54,15 @@ def get_repo_url(path: str | Path | None = None) -> str | None:
     if not url:
         return None
 
-    # Convert SSH to HTTPS: git@github.com:user/repo.git -> https://github.com/user/repo
-    if url.startswith("git@"):
+    # Convert SSH/git protocol URLs to HTTPS
+    if url.startswith("ssh://git@"):
+        url = url.replace("ssh://git@", "https://", 1)
+    elif url.startswith("ssh://"):
+        url = url.replace("ssh://", "https://", 1)
+    elif url.startswith("git://"):
+        url = url.replace("git://", "https://", 1)
+    elif url.startswith("git@"):
+        # git@github.com:user/repo.git -> https://github.com/user/repo
         url = url.replace(":", "/", 1).replace("git@", "https://", 1)
 
     # Strip .git suffix
