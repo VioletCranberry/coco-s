@@ -55,12 +55,19 @@ def reset_db_pool():
     """Reset database pool singleton between tests.
 
     This prevents connection pool state from leaking between tests.
-    The pool is reset in teardown to ensure each test starts fresh.
+    Pre-sets the pool to a mock before each test to prevent any real
+    DB connections. Tests that need specific results already patch
+    get_connection_pool at the module level (e.g.,
+    cocosearch.search.query.get_connection_pool), which overrides
+    this default. This safety net catches un-mocked calls from
+    metadata.py and other modules that would otherwise create real
+    ConnectionPool objects and timeout in CI (~34.5s each).
     """
-    yield
-    # Teardown: reset pool singleton
     import cocosearch.search.db as db_module
+    from tests.mocks.db import MockConnection, MockConnectionPool, MockCursor
 
+    db_module._pool = MockConnectionPool(connection=MockConnection(cursor=MockCursor()))
+    yield
     db_module._pool = None
 
 
