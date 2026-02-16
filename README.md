@@ -87,6 +87,10 @@ claude plugin install cocosearch@cocosearch
 # All 7 skills + MCP server configured automatically
 ```
 
+<p align="center">
+  <img src="./docs/plugin-examples.png" alt="CocoSearch plugin skills in Claude Code" width="720">
+</p>
+
 **Option B — Manual MCP registration:**
 
 ```bash
@@ -211,6 +215,17 @@ For the full list of commands and flags, see [CLI Reference](./docs/cli-referenc
 - **Code search** — natural language queries with language, symbol type, and hybrid search filters. Results show syntax-highlighted snippets, score badges, match type, and symbol metadata.
 - **Index management** — create, reindex (incremental or fresh), and delete indexes from the browser.
 - **Observability** — language distribution charts, parse health breakdown, staleness warnings, storage metrics.
+
+<details>
+<summary>Dashboard screenshots</summary>
+
+<p align="center">
+  <img src="./docs/dashboard-dark.png" alt="CocoSearch dashboard — dark theme" width="480">
+  &nbsp;&nbsp;
+  <img src="./docs/dashboard-light.png" alt="CocoSearch dashboard — light theme" width="480">
+</p>
+
+</details>
 
 ### Interactive REPL
 
