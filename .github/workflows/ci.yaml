@@ -26,6 +26,36 @@ jobs:
       - name: Ruff format check
         run: uv run ruff format --check src/ tests/
 
+  validate-versions:
+    name: Validate Versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          jq empty .claude-plugin/plugin.json
+          jq empty .claude-plugin/marketplace.json
+
+      - name: Check version consistency
+        run: |
+          PYPROJECT_VERSION=$(grep -m1 '^version' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          INIT_VERSION=$(grep '__version__' src/cocosearch/__init__.py | sed 's/__version__ = "\(.*\)"/\1/')
+          PLUGIN_VERSION=$(jq -r '.version' .claude-plugin/plugin.json)
+          MARKETPLACE_META=$(jq -r '.metadata.version' .claude-plugin/marketplace.json)
+          MARKETPLACE_PLUGIN=$(jq -r '.plugins[0].version' .claude-plugin/marketplace.json)
+
+          ERRORS=0
+          for pair in "INIT_VERSION:__init__.py" "PLUGIN_VERSION:plugin.json" "MARKETPLACE_META:marketplace.json metadata" "MARKETPLACE_PLUGIN:marketplace.json plugins[0]"; do
+            VAR="${pair%%:*}"; LABEL="${pair#*:}"
+            if [ "${!VAR}" != "$PYPROJECT_VERSION" ]; then
+              echo "::error::${LABEL} version (${!VAR}) != pyproject.toml (${PYPROJECT_VERSION})"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
+
+          [ $ERRORS -eq 0 ] && echo "All versions consistent: ${PYPROJECT_VERSION}" || exit 1
+
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest

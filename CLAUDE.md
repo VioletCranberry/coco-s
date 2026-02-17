@@ -81,6 +81,7 @@ uv run cocosearch mcp --project-from-cwd
 - **`management/`** — Index lifecycle: discovery (`discovery.py`), stats (`stats.py`), clearing (`clear.py`), git-based naming (`git.py`), metadata with collision detection and status tracking (`metadata.py`), project root detection (`context.py`)
 - **`handlers/`** — Language-specific chunking (HCL, Go Template, Dockerfile, Bash, Scala, Groovy) and grammar handlers (`handlers/grammars/` — Helm Template, Helm Values, GitHub Actions, GitLab CI, Docker Compose, Kubernetes) with autodiscovery registry
 - **`dashboard/`** — Terminal (Rich) and web (Chart.js) dashboards
+- **`.claude-plugin/`** — Claude Code plugin metadata: `plugin.json` (MCP server definition, version, keywords) and `marketplace.json` (marketplace listing). Versions must match `pyproject.toml` — the release workflow syncs them automatically.
 
 **Data flow:** Files → Tree-sitter parse → symbol extraction → chunking → Ollama embeddings → PostgreSQL (pgvector). Search queries → embedding → hybrid RRF (vector similarity + tsvector keyword) → context expansion → results.
 
@@ -146,6 +147,7 @@ Project config via `cocosearch.yaml` (no leading dot) in project root. The `inde
 - **docs/** — Update relevant docs (`architecture.md`, `how-it-works.md`, `retrieval.md`, `adding-languages.md`) when changing the systems they describe
 - **Test count assertions** — Update handler/grammar count assertions in `tests/unit/handlers/test_registry.py` and `tests/unit/handlers/test_grammar_registry.py` when adding handlers
 - **README.md** — Update feature lists, usage examples, or screenshots when user-facing behavior changes
+- **`.claude-plugin/`** — Plugin version files (`plugin.json`, `marketplace.json`) and `src/cocosearch/__init__.py` must stay in sync with `pyproject.toml`. The release workflow handles this automatically. If editing `marketplace.json` descriptions or `plugin.json` metadata manually, ensure accuracy (skill count, server command).
 
 Documentation updates should be part of the same change, not deferred to a follow-up.
 
