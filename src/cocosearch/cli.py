@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 import cocoindex
 from rich.console import Console
 
+from cocosearch import __version__
 from cocosearch.config import (
     CocoSearchConfig,
     ConfigError as ConfigLoadError,
@@ -1714,6 +1715,9 @@ def main() -> None:
         prog="cocosearch",
         description="Local-first semantic code search",
     )
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__}"
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -2144,6 +2148,7 @@ def main() -> None:
         "dashboard",
         "-h",
         "--help",
+        "--version",
     )
 
     # Handle <index_name> <subcommand> shorthand
