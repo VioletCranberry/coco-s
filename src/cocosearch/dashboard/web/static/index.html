@@ -1590,6 +1590,7 @@
             const colorMap = {
                 indexing: { primary: '#FF9800', secondary: '#e07840' },
                 indexed:  { primary: '#4CAF50', secondary: '#388E3C' },
+                stale:    { primary: '#FFC107', secondary: '#FFA000' },
                 error:    { primary: '#f44336', secondary: '#d32f2f' },
             };
             const defaultColors = { primary: '#f0a060', secondary: '#e07840' };
@@ -1598,6 +1599,7 @@
             const titleMap = {
                 indexing: 'Indexing\u2026 \u00b7 Coco[-S]earch',
                 indexed:  'Indexed \u00b7 Coco[-S]earch',
+                stale:    'Stale \u00b7 Coco[-S]earch',
                 error:    'Error \u00b7 Coco[-S]earch',
             };
             document.title = titleMap[status] || 'Coco[-S]earch';
@@ -1679,7 +1681,11 @@
                 statusEl.style.color = 'var(--accent-green)';
                 statusLabelEl.textContent = 'Ready to search';
             }
-            updateTabStatus(status);
+            let tabStatus = status;
+            if (status === 'indexed' && (stats.is_stale || (stats.commits_behind !== null && stats.commits_behind > 0))) {
+                tabStatus = 'stale';
+            }
+            updateTabStatus(tabStatus);
 
             // Parse Health
             const parseHealthEl = document.getElementById('parseHealth');
