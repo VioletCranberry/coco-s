@@ -83,13 +83,19 @@ This project was originally built for personal use — a solo experiment in loca
 
 - 💬 **Web AI Chat** -- ask questions about your codebase directly from the web dashboard via a `[Search] [Ask AI]` toggle. Powered by the [Claude Agent SDK](https://docs.claude.com/en/docs/agent-sdk/overview) — uses your existing Claude Code authentication, no extra API keys needed. The agent has access to semantic search, file reading, and grep. Chat responses render full markdown with syntax-highlighted code blocks, show tool invocations in collapsible panels, and display session stats (turns, tokens, cost). Optional: install with `uv tool install "cocosearch[web-chat]"` or run directly with `uvx "cocosearch[web-chat]" dashboard`.
 
-- 🔍 **Hybrid search** -- combines semantic similarity and keyword matching via RRF fusion to find code by meaning and by text.
-- 🏷️ **Symbol filtering** -- narrow results to functions, classes, methods, or interfaces; match symbol names with glob patterns.
-- 📐 **Context expansion** -- results automatically expand to enclosing function/class boundaries using Tree-sitter, so you see complete units of code.
-- ⚡ **Query caching** -- exact and semantic cache for fast repeated queries (0.95 cosine threshold).
-- 🩺 **Parse health tracking** -- per-language parse status, failure details, and staleness warnings when the index drifts from your branch.
+- 🔍 **Hybrid search** -- combines semantic similarity (pgvector cosine) and keyword matching (PostgreSQL tsvector) via Reciprocal Rank Fusion. Auto-detects code identifiers (camelCase, snake_case, PascalCase) and enables hybrid mode automatically — or force it with `--hybrid`. Definition symbols (functions, classes) get a 2x score boost. RRF constant k=60.
+
+- 🏷️ **Symbol filtering** -- narrow results to `function`, `class`, `method`, or `interface` with `--symbol-type`; match symbol names with glob patterns (`User*`, `*Handler`) via `--symbol-name`. Supported for 14 languages with Tree-sitter `.scm` queries. Filters apply before RRF fusion for better ranking quality.
+
+- 📐 **Context expansion** -- results automatically expand to enclosing function/class boundaries using Tree-sitter AST traversal, so you see complete units of code instead of arbitrary line ranges. Supports Python, JavaScript, TypeScript, Go, and Rust. Hard-capped at 50 lines per result, centered on the match. Disable with `--no-smart` or set explicit line counts with `-B`/`-A`/`-C`.
+
+- ⚡ **Query caching** -- two-level LRU cache (500 entries, 24h TTL): exact-match via SHA-256 hash of all search parameters, plus semantic fallback that finds paraphrased queries by cosine similarity (threshold 0.92, scanning last 50 entries). Cache auto-invalidates on reindex. Bypass with `--no-cache`.
+
+- 🩺 **Parse health tracking** -- tracks per-file parse status across four categories: `ok`, `partial` (Tree-sitter produced a tree with ERROR nodes), `error` (parse failure), and `no_grammar`. Detects index staleness by comparing the indexed commit hash and branch against your current HEAD — the dashboard and CLI show warnings when the index drifts behind. View with `cocosearch stats --pretty`.
+
 - 🔬 **Pipeline analysis** -- `cocosearch analyze` runs the search pipeline with full diagnostics: see identifier detection, mode selection, RRF fusion breakdown, definition boost effects, and per-stage timings. Available as CLI and MCP tool.
-- 🔒 **Privacy-first** -- everything runs locally. No external API calls, no telemetry. AI Chat is the only feature that calls an external API (Anthropic), and it's opt-in.
+
+- 🔒 **Privacy-first** -- everything runs on your machine — Ollama generates embeddings locally, PostgreSQL stores vectors locally, no telemetry, no external API calls. Your code never leaves your machine. AI Chat is the only feature that calls an external API (Anthropic), and it's fully opt-in — requires a separate install (`cocosearch[web-chat]`).
 
 <details>
 <summary>Screenshots</summary>
