@@ -750,13 +750,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     active = _active_indexing.get(idx["name"])
                 if active is not None and active.is_alive():
                     result["status"] = "indexing"
-                    # Correct DB so CLI reads consistent status (also refreshes
-                    # updated_at to prevent auto_recover_stale_indexing misfiring)
+                    # Correct DB so CLI reads consistent status. Use
+                    # update_timestamp=False to preserve the original
+                    # updated_at — otherwise staleness checks reset.
                     if stats.status != "indexing":
                         try:
                             from cocosearch.management import set_index_status
 
-                            set_index_status(idx["name"], "indexing")
+                            set_index_status(
+                                idx["name"], "indexing", update_timestamp=False
+                            )
                         except Exception:
                             pass
                 if include_failures:
@@ -789,12 +792,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 active = _active_indexing.get(index_name)
             if active is not None and active.is_alive():
                 result["status"] = "indexing"
-                # Correct DB so CLI reads consistent status
+                # Correct DB so CLI reads consistent status. Use
+                # update_timestamp=False to preserve the original
+                # updated_at — otherwise staleness checks reset.
                 if stats.status != "indexing":
                     try:
                         from cocosearch.management import set_index_status
 
-                        set_index_status(index_name, "indexing")
+                        set_index_status(index_name, "indexing", update_timestamp=False)
                     except Exception:
                         pass
             if include_failures:

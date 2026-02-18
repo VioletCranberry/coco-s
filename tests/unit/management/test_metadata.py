@@ -289,7 +289,10 @@ class TestAutoRecoverStaleIndexing:
         assert result is True
         # Should have issued a SELECT (get_index_metadata) + UPDATE (set_index_status)
         assert len(cursor.calls) == 2
-        assert "UPDATE" in cursor.calls[1][0]
+        update_sql = cursor.calls[1][0]
+        assert "UPDATE" in update_sql
+        # Recovery is housekeeping — must NOT reset updated_at
+        assert "updated_at" not in update_sql
 
     def test_skips_fresh_indexing_status(self, mock_db_pool):
         """auto_recover_stale_indexing does not recover fresh indexing."""
@@ -743,6 +746,34 @@ class TestSetIndexStatus:
             set_index_status("myindex", "indexed")
 
         assert conn.committed
+
+    def test_updates_timestamp_by_default(self, mock_db_pool):
+        """set_index_status includes updated_at in SQL by default."""
+        pool, cursor, conn = mock_db_pool(results=[])
+        cursor.rowcount = 1
+
+        with patch(
+            "cocosearch.management.metadata.get_connection_pool", return_value=pool
+        ):
+            set_index_status("myindex", "indexed")
+
+        sql = cursor.calls[0][0]
+        assert "updated_at" in sql
+
+    def test_skips_timestamp_when_disabled(self, mock_db_pool):
+        """set_index_status omits updated_at when update_timestamp=False."""
+        pool, cursor, conn = mock_db_pool(results=[])
+        cursor.rowcount = 1
+
+        with patch(
+            "cocosearch.management.metadata.get_connection_pool", return_value=pool
+        ):
+            set_index_status("myindex", "indexed", update_timestamp=False)
+
+        sql = cursor.calls[0][0]
+        assert "UPDATE" in sql
+        assert "status" in sql
+        assert "updated_at" not in sql
 
     def test_returns_false_on_missing_table(self):
         """set_index_status returns False when metadata table doesn't exist."""

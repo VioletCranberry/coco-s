@@ -1668,6 +1668,8 @@
             const statusEl = document.getElementById('indexStatus');
             const statusLabelEl = document.getElementById('statusLabel');
             const status = stats.status || 'indexed';
+            const isStaleState = status === 'indexed' &&
+                (stats.is_stale || (stats.commits_behind !== null && stats.commits_behind > 0));
             if (status === 'indexing') {
                 statusEl.textContent = 'Indexing...';
                 statusEl.style.color = 'var(--accent-orange)';
@@ -1676,16 +1678,16 @@
                 statusEl.textContent = 'Error';
                 statusEl.style.color = 'var(--accent-red, #ef4444)';
                 statusLabelEl.textContent = 'Indexing failed';
+            } else if (isStaleState) {
+                statusEl.textContent = 'Stale';
+                statusEl.style.color = '#FFC107';
+                statusLabelEl.textContent = stats.commits_behind > 0 ? 'Behind HEAD' : 'Outdated index';
             } else {
                 statusEl.textContent = 'Indexed';
                 statusEl.style.color = 'var(--accent-green)';
                 statusLabelEl.textContent = 'Ready to search';
             }
-            let tabStatus = status;
-            if (status === 'indexed' && (stats.is_stale || (stats.commits_behind !== null && stats.commits_behind > 0))) {
-                tabStatus = 'stale';
-            }
-            updateTabStatus(tabStatus);
+            updateTabStatus(isStaleState ? 'stale' : status);
 
             // Parse Health
             const parseHealthEl = document.getElementById('parseHealth');
