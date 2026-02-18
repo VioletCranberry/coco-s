@@ -415,44 +415,44 @@ For codebases of meaningful size, CocoSearch reduces the number of MCP tool call
 
 ## Supported Languages
 
-CocoSearch indexes 31 programming languages. Symbol-aware languages (✓) support `--symbol-type` and `--symbol-name` filtering.
+CocoSearch indexes 31 programming languages. Symbol-aware languages support `--symbol-type` and `--symbol-name` filtering. Context-aware languages support smart expansion to function/class boundaries.
 
 ```
-┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┓
-┃ Language   ┃ Extensions                  ┃ Symbols ┃
-┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━┩
-│ C          │ .c, .h                      │    ✓    │
-│ C++        │ .cpp, .cc, .cxx, .hpp, .hxx │    ✓    │
-│ C#         │ .cs                         │    ✗    │
-│ CSS        │ .css, .scss                 │    ✓    │
-│ DTD        │ .dtd                        │    ✗    │
-│ Fortran    │ .f, .f90, .f95, .f03        │    ✗    │
-│ Go         │ .go                         │    ✓    │
-│ Groovy     │ .groovy, .gradle            │    ✗    │
-│ HTML       │ .html, .htm                 │    ✗    │
-│ Java       │ .java                       │    ✓    │
-│ Javascript │ .js, .mjs, .cjs, .jsx       │    ✓    │
-│ JSON       │ .json                       │    ✗    │
-│ Kotlin     │ .kt, .kts                   │    ✗    │
-│ Markdown   │ .md, .mdx                   │    ✗    │
-│ Pascal     │ .pas, .dpr                  │    ✗    │
-│ Php        │ .php                        │    ✓    │
-│ Python     │ .py, .pyw, .pyi             │    ✓    │
-│ R          │ .r, .R                      │    ✗    │
-│ Ruby       │ .rb                         │    ✓    │
-│ Rust       │ .rs                         │    ✓    │
-│ Scala      │ .scala                      │    ✓    │
-│ Solidity   │ .sol                        │    ✗    │
-│ SQL        │ .sql                        │    ✗    │
-│ Swift      │ .swift                      │    ✗    │
-│ TOML       │ .toml                       │    ✗    │
-│ Typescript │ .ts, .tsx, .mts, .cts       │    ✓    │
-│ XML        │ .xml                        │    ✗    │
-│ YAML       │ .yaml, .yml                 │    ✗    │
-│ Bash       │ .sh, .bash, .zsh            │    ✓    │
-│ Dockerfile │ Dockerfile                  │    ✗    │
-│ HCL        │ .tf, .hcl, .tfvars          │    ✓    │
-└────────────┴─────────────────────────────┴─────────┘
+┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┓
+┃ Language   ┃ Extensions                  ┃ Symbols ┃ Context ┃
+┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━┩
+│ C          │ .c, .h                      │    ✓    │    ✗    │
+│ C++        │ .cpp, .cc, .cxx, .hpp, .hxx │    ✓    │    ✗    │
+│ C#         │ .cs                         │    ✗    │    ✗    │
+│ CSS        │ .css, .scss                 │    ✓    │    ✗    │
+│ DTD        │ .dtd                        │    ✗    │    ✗    │
+│ Fortran    │ .f, .f90, .f95, .f03        │    ✗    │    ✗    │
+│ Go         │ .go                         │    ✓    │    ✓    │
+│ Groovy     │ .groovy, .gradle            │    ✗    │    ✗    │
+│ HTML       │ .html, .htm                 │    ✗    │    ✗    │
+│ Java       │ .java                       │    ✓    │    ✗    │
+│ Javascript │ .js, .mjs, .cjs, .jsx       │    ✓    │    ✓    │
+│ JSON       │ .json                       │    ✗    │    ✗    │
+│ Kotlin     │ .kt, .kts                   │    ✗    │    ✗    │
+│ Markdown   │ .md, .mdx                   │    ✗    │    ✗    │
+│ Pascal     │ .pas, .dpr                  │    ✗    │    ✗    │
+│ Php        │ .php                        │    ✓    │    ✗    │
+│ Python     │ .py, .pyw, .pyi             │    ✓    │    ✓    │
+│ R          │ .r, .R                      │    ✗    │    ✗    │
+│ Ruby       │ .rb                         │    ✓    │    ✗    │
+│ Rust       │ .rs                         │    ✓    │    ✓    │
+│ Scala      │ .scala                      │    ✓    │    ✗    │
+│ Solidity   │ .sol                        │    ✗    │    ✗    │
+│ SQL        │ .sql                        │    ✗    │    ✗    │
+│ Swift      │ .swift                      │    ✗    │    ✗    │
+│ TOML       │ .toml                       │    ✗    │    ✗    │
+│ Typescript │ .ts, .tsx, .mts, .cts       │    ✓    │    ✓    │
+│ XML        │ .xml                        │    ✗    │    ✗    │
+│ YAML       │ .yaml, .yml                 │    ✗    │    ✗    │
+│ Bash       │ .sh, .bash, .zsh            │    ✓    │    ✗    │
+│ Dockerfile │ Dockerfile                  │    ✗    │    ✗    │
+│ HCL        │ .tf, .hcl, .tfvars          │    ✓    │    ✗    │
+└────────────┴─────────────────────────────┴─────────┴─────────┘
 ```
 
 <details>

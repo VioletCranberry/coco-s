@@ -47,6 +47,9 @@ DEFINITION_NODE_TYPES: dict[str, set[str]] = {
     "rust": {"function_item", "impl_item", "struct_item", "trait_item"},
 }
 
+# Languages that support smart context expansion (derived from DEFINITION_NODE_TYPES)
+CONTEXT_EXPANSION_LANGUAGES: set[str] = set(DEFINITION_NODE_TYPES.keys())
+
 # File extension to tree-sitter language mapping
 EXTENSION_TO_LANGUAGE: dict[str, str] = {
     # Python
@@ -440,6 +443,7 @@ def get_context_with_boundaries(
 
 
 __all__ = [
+    "CONTEXT_EXPANSION_LANGUAGES",
     "ContextExpander",
     "get_context_with_boundaries",
     "MAX_CONTEXT_LINES",

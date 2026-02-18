@@ -50,6 +50,7 @@ from cocosearch.search.analyze import (
     format_analysis_pretty,
 )
 from cocosearch.search.formatter import format_json, format_pretty
+from cocosearch.search.context_expander import CONTEXT_EXPANSION_LANGUAGES
 from cocosearch.search.query import (
     LANGUAGE_EXTENSIONS,
     SYMBOL_AWARE_LANGUAGES,
@@ -1264,6 +1265,7 @@ def languages_command(args: argparse.Namespace) -> int:
                 "name": display_name,
                 "extensions": ", ".join(exts),
                 "symbols": lang in SYMBOL_AWARE_LANGUAGES,
+                "context": lang in CONTEXT_EXPANSION_LANGUAGES,
             }
         )
 
@@ -1281,6 +1283,7 @@ def languages_command(args: argparse.Namespace) -> int:
                 "name": display_names.get(lang, lang.title()),
                 "extensions": display_exts.get(lang, ", ".join(handler.EXTENSIONS)),
                 "symbols": lang in SYMBOL_AWARE_LANGUAGES,
+                "context": lang in CONTEXT_EXPANSION_LANGUAGES,
             }
         )
 
@@ -1295,14 +1298,17 @@ def languages_command(args: argparse.Namespace) -> int:
         table.add_column("Language", style="cyan", no_wrap=True)
         table.add_column("Extensions", style="dim")
         table.add_column("Symbols", justify="center")
+        table.add_column("Context", justify="center")
 
         for lang in languages:
             symbol_mark = "[green]✓[/green]" if lang["symbols"] else "[dim]✗[/dim]"
-            table.add_row(lang["name"], lang["extensions"], symbol_mark)
+            context_mark = "[green]✓[/green]" if lang["context"] else "[dim]✗[/dim]"
+            table.add_row(lang["name"], lang["extensions"], symbol_mark, context_mark)
 
         console.print(table)
         console.print(
-            "\n[dim]Symbol-aware languages support --symbol-type and --symbol-name filtering.[/dim]"
+            "\n[dim]Symbol-aware languages support --symbol-type and --symbol-name filtering.\n"
+            "Context-aware languages support smart expansion to function/class boundaries.[/dim]"
         )
 
     return 0

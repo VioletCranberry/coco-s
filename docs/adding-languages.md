@@ -12,17 +12,19 @@ Every indexed file is chunked by CocoIndex's `SplitRecursively`. The chunking st
 
 ## Systems Overview
 
-CocoSearch has three independent systems for language support:
+CocoSearch has four independent systems for language support:
 
 1. **Language Handlers** (`src/cocosearch/handlers/`) — custom chunking and metadata extraction for languages not in CocoIndex's built-in Tree-sitter list. Matched by file extension.
 2. **Grammar Handlers** (`src/cocosearch/handlers/grammars/`) — domain-specific chunking for files that share a base language but have distinct structure (e.g., GitHub Actions is a grammar of YAML). Matched by file path + content patterns.
 3. **Symbol Extraction** (`src/cocosearch/indexer/symbols.py`) — tree-sitter query-based extraction of functions, classes, methods, and other symbols for `--symbol-type` / `--symbol-name` filtering.
+4. **Context Expansion** (`src/cocosearch/search/context_expander.py`) — tree-sitter-based smart expansion to enclosing function/class boundaries for search results. Currently supports Python, JavaScript, TypeScript, Go, Rust.
 
 These systems are independent. A language can have:
 - A handler only (e.g., Dockerfile, Bash)
 - Symbol extraction only (e.g., Java, C, Ruby)
 - Both (e.g., HCL/Terraform)
 - A grammar handler (e.g., GitHub Actions, GitLab CI, Docker Compose)
+- Context expansion (e.g., Python, Go, Rust)
 
 ## Checking Tree-sitter's Built-in Language List
 
@@ -231,6 +233,44 @@ Priority: Grammar match > Language match > TextHandler fallback.
 | `helm-template` | gotmpl | `templates/*.yaml`, `templates/*.tpl` | `apiVersion:` or `{{` |
 | `helm-values` | yaml | `values*.yaml` in chart dirs | `## @section` or YAML with comments |
 
+## Path E: Adding Context Expansion (Smart Boundaries)
+
+Use this when you want `smart_context=True` to expand search results to enclosing function/class boundaries for a language. Currently supported: Python, JavaScript, TypeScript, Go, Rust.
+
+### Steps
+
+1. **Add node types to `DEFINITION_NODE_TYPES`** in `src/cocosearch/search/context_expander.py`:
+   ```python
+   DEFINITION_NODE_TYPES: dict[str, set[str]] = {
+       # ...existing...
+       "new_language": {"function_declaration", "class_declaration"},
+   }
+   ```
+   Use the tree-sitter node types for function/class definitions in that language. You can explore them with:
+   ```bash
+   uv run python -c "
+   from tree_sitter_language_pack import get_parser
+   p = get_parser('new_language')
+   # Parse a sample file and inspect node types
+   "
+   ```
+
+2. **Add extension mappings to `EXTENSION_TO_LANGUAGE`** in the same file:
+   ```python
+   EXTENSION_TO_LANGUAGE: dict[str, str] = {
+       # ...existing...
+       ".ext": "new_language",
+   }
+   ```
+
+3. **`CONTEXT_EXPANSION_LANGUAGES` updates automatically** — it's derived from `DEFINITION_NODE_TYPES.keys()`.
+
+### Files to Modify
+
+| File | Action |
+|------|--------|
+| `src/cocosearch/search/context_expander.py` | Modify — `DEFINITION_NODE_TYPES` and `EXTENSION_TO_LANGUAGE` |
+
 ## Registration Checklist
 
 When adding a new language handler, verify all registrations are complete:
@@ -242,6 +282,8 @@ When adding a new language handler, verify all registrations are complete:
 - [ ] **SYMBOL_AWARE_LANGUAGES**: language added to set in `search/query.py`
 - [ ] **_map_symbol_type**: any new AST node types mapped to standard types
 - [ ] **_build_qualified_name**: special qualified name logic added if needed
+- [ ] **DEFINITION_NODE_TYPES** (if context expansion): node types added in `search/context_expander.py`
+- [ ] **EXTENSION_TO_LANGUAGE** (if context expansion): extension mappings added in `search/context_expander.py`
 - [ ] **cli.py languages_command**: display name override added if needed (extensions are derived from handler)
 - [ ] **Tests**: handler tests and/or symbol extraction tests added
 - [ ] **README.md**: Supported Languages section updated (count, table, lists)

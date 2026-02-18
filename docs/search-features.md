@@ -113,6 +113,8 @@ uv run cocosearch search "parse config" -C 5 --no-smart --pretty
 3. Centers the expansion on the original match location
 4. Falls back to fixed lines if no enclosing scope found
 
+**Supported languages:** Python, JavaScript, TypeScript, Go, Rust. For unsupported languages, smart context falls back to fixed-line expansion. Run `cocosearch languages` to see which languages have context support.
+
 | Option       | CLI Flag     | MCP Parameter       | Behavior                          |
 | ------------ | ------------ | ------------------- | --------------------------------- |
 | Lines after  | `-A <n>`     | `context_after: n`  | Show n lines after match          |
