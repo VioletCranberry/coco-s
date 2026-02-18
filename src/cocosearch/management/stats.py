@@ -5,7 +5,7 @@ for indexed codebases.
 """
 
 from dataclasses import dataclass, asdict, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 from cocosearch.management.metadata import (
     auto_recover_stale_indexing,
@@ -239,11 +239,19 @@ class IndexStats:
             Dictionary representation suitable for JSON serialization.
         """
         data = asdict(self)
-        # Convert datetime to ISO format string for JSON serialization
+        # Convert datetime to ISO format string for JSON serialization.
+        # Attach UTC timezone to naive datetimes so browsers interpret
+        # the timestamp correctly (PostgreSQL stores UTC without tzinfo).
         if data["created_at"] is not None:
-            data["created_at"] = data["created_at"].isoformat()
+            dt = data["created_at"]
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            data["created_at"] = dt.isoformat()
         if data["updated_at"] is not None:
-            data["updated_at"] = data["updated_at"].isoformat()
+            dt = data["updated_at"]
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            data["updated_at"] = dt.isoformat()
         return data
 
 
