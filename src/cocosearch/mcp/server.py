@@ -97,7 +97,7 @@ def _apply_thread_liveness_status(
         result["status"] = "indexing"
         if db_status != "indexing":
             try:
-                set_index_status(index_name, "indexing")
+                set_index_status(index_name, "indexing", update_timestamp=False)
             except Exception:
                 pass
 

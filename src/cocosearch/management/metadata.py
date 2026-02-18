@@ -288,15 +288,21 @@ def auto_recover_stale_indexing(index_name: str) -> bool:
         elapsed,
         _STALE_INDEXING_THRESHOLD_SECONDS,
     )
-    return set_index_status(index_name, "indexed")
+    return set_index_status(index_name, "indexed", update_timestamp=False)
 
 
-def set_index_status(index_name: str, status: str) -> bool:
+def set_index_status(
+    index_name: str, status: str, *, update_timestamp: bool = True
+) -> bool:
     """Set the status of an index.
 
     Args:
         index_name: The name of the index.
         status: The status to set (e.g., 'indexing', 'indexed').
+        update_timestamp: Whether to update ``updated_at`` to NOW().
+            Set to ``False`` for housekeeping corrections (e.g.
+            auto-recovery, thread-liveness) that should not reset the
+            timestamp used by staleness checks.
 
     Returns:
         True if a row was updated, False if not found (including when
@@ -306,14 +312,24 @@ def set_index_status(index_name: str, status: str) -> bool:
     try:
         with pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    UPDATE cocosearch_index_metadata
-                    SET status = %s, updated_at = NOW()
-                    WHERE index_name = %s
-                    """,
-                    (status, index_name),
-                )
+                if update_timestamp:
+                    cur.execute(
+                        """
+                        UPDATE cocosearch_index_metadata
+                        SET status = %s, updated_at = NOW()
+                        WHERE index_name = %s
+                        """,
+                        (status, index_name),
+                    )
+                else:
+                    cur.execute(
+                        """
+                        UPDATE cocosearch_index_metadata
+                        SET status = %s
+                        WHERE index_name = %s
+                        """,
+                        (status, index_name),
+                    )
                 updated = cur.rowcount > 0
             conn.commit()
         return updated
