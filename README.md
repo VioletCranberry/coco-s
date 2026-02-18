@@ -87,7 +87,7 @@ This project was originally built for personal use — a solo experiment in loca
 
 - 🏷️ **Symbol filtering** -- narrow results to `function`, `class`, `method`, or `interface` with `--symbol-type`; match symbol names with glob patterns (`User*`, `*Handler`) via `--symbol-name`. Supported for 14 languages with Tree-sitter `.scm` queries. Filters apply before RRF fusion for better ranking quality.
 
-- 📐 **Context expansion** -- results automatically expand to enclosing function/class boundaries using Tree-sitter AST traversal, so you see complete units of code instead of arbitrary line ranges. Supports Python, JavaScript, TypeScript, Go, and Rust. Hard-capped at 50 lines per result, centered on the match. Disable with `--no-smart` or set explicit line counts with `-B`/`-A`/`-C`.
+- 📐 **Context expansion** -- results automatically expand to enclosing function/class boundaries using Tree-sitter AST traversal, so you see complete units of code instead of arbitrary line ranges. Supports Python, JavaScript, TypeScript, Go, Rust, and Scala. Hard-capped at 50 lines per result, centered on the match. Disable with `--no-smart` or set explicit line counts with `-B`/`-A`/`-C`.
 
 - ⚡ **Query caching** -- two-level LRU cache (500 entries, 24h TTL): exact-match via SHA-256 hash of all search parameters, plus semantic fallback that finds paraphrased queries by cosine similarity (threshold 0.92, scanning last 50 entries). Cache auto-invalidates on reindex. Bypass with `--no-cache`.
 
@@ -390,7 +390,7 @@ CocoSearch indexes 31 programming languages. Symbol-aware languages support `--s
 │ R          │ .r, .R                      │    ✗    │    ✗    │
 │ Ruby       │ .rb                         │    ✓    │    ✗    │
 │ Rust       │ .rs                         │    ✓    │    ✓    │
-│ Scala      │ .scala                      │    ✓    │    ✗    │
+│ Scala      │ .scala                      │    ✓    │    ✓    │
 │ Solidity   │ .sol                        │    ✗    │    ✗    │
 │ SQL        │ .sql                        │    ✗    │    ✗    │
 │ Swift      │ .swift                      │    ✗    │    ✗    │

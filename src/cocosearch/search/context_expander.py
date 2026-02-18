@@ -45,6 +45,12 @@ DEFINITION_NODE_TYPES: dict[str, set[str]] = {
     },
     "go": {"function_declaration", "method_declaration", "type_declaration"},
     "rust": {"function_item", "impl_item", "struct_item", "trait_item"},
+    "scala": {
+        "class_definition",
+        "trait_definition",
+        "object_definition",
+        "function_definition",
+    },
 }
 
 # Languages that support smart context expansion (derived from DEFINITION_NODE_TYPES)
@@ -68,6 +74,8 @@ EXTENSION_TO_LANGUAGE: dict[str, str] = {
     ".go": "go",
     # Rust
     ".rs": "rust",
+    # Scala
+    ".scala": "scala",
 }
 
 
