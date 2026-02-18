@@ -2957,8 +2957,8 @@
             const bar = document.getElementById('chatStatsBar');
             const parts = [];
 
-            if (stats.num_turns != null && stats.max_turns) {
-                parts.push('Turns: ' + stats.num_turns + '/' + stats.max_turns);
+            if (stats.num_turns != null) {
+                parts.push('Turns: ' + stats.num_turns);
             }
 
             if (stats.usage) {

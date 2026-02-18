@@ -34,6 +34,7 @@ except ImportError:
     _SDK_AVAILABLE = False
 
 _MAX_SESSIONS = 10
+_MAX_TURNS = 20
 _SESSION_TIMEOUT_SECS = 30 * 60  # 30 minutes
 _CLEANUP_INTERVAL_SECS = 5 * 60  # 5 minutes
 
@@ -177,7 +178,7 @@ class ChatSession:
                 "Always cite file paths and line numbers in your answers."
             ),
             include_partial_messages=True,
-            max_turns=20,
+            max_turns=_MAX_TURNS,
         )
         self._client = ClaudeSDKClient(options)
         await self._client.connect()
@@ -254,11 +255,9 @@ class ChatSession:
                                 }
                             )
                 elif isinstance(message, ResultMessage):
-                    # Emit session stats from the completed turn
                     stats: dict[str, Any] = {
                         "type": "stats",
                         "num_turns": message.num_turns,
-                        "max_turns": 20,
                         "cost_usd": message.total_cost_usd,
                         "duration_ms": message.duration_ms,
                     }
