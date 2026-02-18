@@ -106,6 +106,7 @@ SYMBOL_AWARE_LANGUAGES = {
     "php",
     "hcl",
     "bash",
+    "scala",
     "css",
 }
 

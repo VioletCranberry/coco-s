@@ -109,6 +109,34 @@ def sample_json_file(tmp_path):
 
 
 @pytest.fixture
+def sample_scala_file(tmp_path):
+    """Create sample Scala file with class, trait, object, and function."""
+    content = """package com.example
+
+class Calculator {
+  def add(x: Int, y: Int): Int = x + y
+
+  def subtract(x: Int, y: Int): Int = x - y
+}
+
+trait Serializable {
+  def serialize(): String
+}
+
+object Utils {
+  def helper(): Unit = {
+    println("hello")
+  }
+}
+
+def topLevel(x: Int): String = x.toString
+"""
+    filepath = tmp_path / "Calculator.scala"
+    filepath.write_text(content)
+    return str(filepath)
+
+
+@pytest.fixture
 def large_python_function(tmp_path):
     """Create Python file with function larger than 50 lines."""
     lines = ["def large_function():"]
@@ -157,6 +185,10 @@ class TestGetLanguageFromPath:
     def test_rust_extension(self):
         """Should return rust for .rs files."""
         assert _get_language_from_path("/src/lib.rs") == "rust"
+
+    def test_scala_extension(self):
+        """Should return scala for .scala files."""
+        assert _get_language_from_path("/src/Main.scala") == "scala"
 
     def test_unsupported_extension(self):
         """Should return None for unsupported extensions."""
@@ -243,6 +275,28 @@ z = x + y
         # No enclosing function/class, should return original
         assert start == 2
         assert end == 2
+
+    def test_class_boundary_detection_scala(self, expander, sample_scala_file):
+        """Should find enclosing class in Scala."""
+        # Line 4 is inside Calculator class (def add)
+        start, end = expander.find_enclosing_scope(sample_scala_file, 4, 4, "scala")
+        # Should expand to include the class definition
+        assert start <= 3  # class Calculator line
+        assert end >= 6  # closing brace
+
+    def test_trait_boundary_detection_scala(self, expander, sample_scala_file):
+        """Should find enclosing trait in Scala."""
+        # Line 10 is inside Serializable trait (def serialize)
+        start, end = expander.find_enclosing_scope(sample_scala_file, 10, 10, "scala")
+        assert start <= 9  # trait Serializable line
+        assert end >= 11  # closing brace
+
+    def test_object_boundary_detection_scala(self, expander, sample_scala_file):
+        """Should find enclosing function/object in Scala."""
+        # Line 15 is inside Utils.helper (println) — walks up to function_definition first
+        start, end = expander.find_enclosing_scope(sample_scala_file, 15, 15, "scala")
+        assert start <= 14  # def helper line
+        assert end >= 16  # closing brace
 
     def test_unsupported_language_returns_original(self, expander, sample_json_file):
         """Unsupported language should return original range."""
@@ -409,6 +463,35 @@ class TestGetContextLines:
         # Should expand based on JavaScript function
         all_lines = before + match + after
         assert len(all_lines) > 1  # Expanded beyond single line
+
+    def test_smart_expands_to_scala_class(self, expander, sample_scala_file):
+        """smart=True should expand to Scala class boundaries."""
+        before, match, after, is_bof, is_eof = expander.get_context_lines(
+            sample_scala_file,
+            start_line=4,  # Inside Calculator.add method
+            end_line=4,
+            smart=True,
+        )
+
+        all_lines = before + match + after
+        line_nums = [num for num, _ in all_lines]
+
+        # Should expand to include class definition
+        assert any(num <= 3 for num in line_nums)  # Has class def line
+        assert 4 in line_nums  # Original match line included
+
+    def test_auto_detect_scala_language(self, expander, sample_scala_file):
+        """Should auto-detect scala from .scala extension."""
+        before, match, after, is_bof, is_eof = expander.get_context_lines(
+            sample_scala_file,
+            start_line=4,
+            end_line=4,
+            smart=True,
+        )
+
+        # Should expand (language detected from .scala extension)
+        all_lines = before + match + after
+        assert len(all_lines) > 1
 
     def test_auto_detect_language(self, expander, sample_python_file):
         """Should auto-detect language from file extension."""
