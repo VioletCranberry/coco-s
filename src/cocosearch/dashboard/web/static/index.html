@@ -148,10 +148,34 @@
         }
 
         .controls-grid .branch-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            margin: 4px 0;
+        }
+
+        .controls-grid .branch-display .branch-line {
+            display: block;
+            text-align: center;
+        }
+
+        .controls-grid .branch-display .branch-name {
             font-size: 20px;
             font-weight: 600;
             color: var(--text-primary);
-            margin: 4px 0;
+        }
+
+        .controls-grid .branch-display .branch-behind {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .controls-grid .branch-display .branch-count {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
         }
 
         .controls-grid .action-row {
@@ -1300,7 +1324,11 @@
             </div>
             <div class="summary-card">
                 <h3>Repository</h3>
-                <span id="branchBadge" class="branch-display" style="display: none;"></span>
+                <div id="branchBadge" class="branch-display" style="display: none;">
+                    <span class="branch-line branch-name"></span>
+                    <span class="branch-line branch-behind"></span>
+                    <span class="branch-line branch-count"></span>
+                </div>
                 <div class="label">Branch &amp; commit</div>
             </div>
             <div class="summary-card">
@@ -1660,15 +1688,22 @@
             // Branch badge
             const branchBadge = document.getElementById('branchBadge');
             if (stats.branch) {
-                const parts = [stats.branch + (stats.commit_hash ? ' (' + stats.commit_hash + ')' : '')];
+                branchBadge.querySelector('.branch-name').textContent = stats.branch + (stats.commit_hash ? ' (' + stats.commit_hash + ')' : '');
+                const behindEl = branchBadge.querySelector('.branch-behind');
                 if (stats.commits_behind !== null && stats.commits_behind !== undefined) {
-                    parts.push(stats.commits_behind === 0 ? 'up to date' : stats.commits_behind + ' commits behind');
+                    behindEl.textContent = stats.commits_behind === 0 ? 'up to date' : stats.commits_behind + ' commits behind';
+                    behindEl.style.display = '';
+                } else {
+                    behindEl.style.display = 'none';
                 }
+                const countEl = branchBadge.querySelector('.branch-count');
                 if (stats.branch_commit_count !== null && stats.branch_commit_count !== undefined) {
-                    parts.push(stats.branch_commit_count.toLocaleString() + ' commits');
+                    countEl.textContent = stats.branch_commit_count.toLocaleString() + ' commits';
+                    countEl.style.display = '';
+                } else {
+                    countEl.style.display = 'none';
                 }
-                branchBadge.textContent = parts.join(' \u00b7 ');
-                branchBadge.style.display = 'inline';
+                branchBadge.style.display = 'flex';
             } else {
                 branchBadge.style.display = 'none';
             }
