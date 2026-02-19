@@ -255,7 +255,7 @@ Search your code four ways — pick what fits your workflow:
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
 | **CLI**              | One-off searches, scripting, CI                                                                                                                                   | `cocosearch search "auth flow"`     |
 | **Interactive REPL** | Exploratory sessions — tweak filters, switch indexes, iterate on queries without restarting                                                                       | `cocosearch search --interactive`   |
-| **Web Dashboard**    | Visual search + index management in the browser — filters, syntax-highlighted results, charts, dark/light theme                                                   | `cocosearch dashboard`              |
+| **Web Dashboard**    | Visual search + index management in the browser — multi-project discovery, filters, syntax-highlighted results, charts, open-in-editor, retro terminal theme       | `cocosearch dashboard`              |
 | **MCP Server**       | AI assistant integration ([Claude Code](https://claude.com/product/claude-code), [Claude Desktop](https://claude.com/download), [OpenCode](https://opencode.ai/)) | `cocosearch mcp --project-from-cwd` |
 
 ### CLI
@@ -293,7 +293,8 @@ For the full list of commands and flags, see [CLI Reference](./docs/cli-referenc
 
 `cocosearch dashboard` opens a browser UI at `http://localhost:8080` with:
 
-- **Code search** — natural language queries with language, symbol type, and hybrid search filters. Results show syntax-highlighted snippets, score badges, match type, and symbol metadata.
+- **Multi-project management** — auto-discovers projects under `--projects-dir` (or current directory). Switch between indexed projects via a dropdown; unindexed projects appear with an "Index Now" option. In Docker mode, mount your projects directory and manage everything from one dashboard.
+- **Code search** — natural language queries with language, symbol type, and hybrid search filters. Results show syntax-highlighted snippets, score badges, match type, and symbol metadata. Click any result to open it in your editor (`COCOSEARCH_EDITOR`, `$EDITOR`, or `$VISUAL`).
 - **Index management** — create, reindex (incremental or fresh), and delete indexes from the browser.
 - **AI Chat** — integrated `[Search] [Ask AI]` pill toggle within the search section. Streaming responses with markdown rendering, syntax-highlighted code blocks (Prism.js), collapsible tool use display, and a stats bar showing turns, tokens, and cost. Requires `cocosearch[web-chat]` and `claude` CLI on PATH (Claude Code users only).
 - **Observability** — language distribution charts, parse health breakdown, staleness warnings, storage metrics.
