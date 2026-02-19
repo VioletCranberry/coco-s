@@ -99,6 +99,8 @@ jobs:
     steps:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
 
       - name: Download dist artifact
         uses: actions/download-artifact@v4
@@ -119,6 +121,8 @@ jobs:
     steps:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
 
       - name: Download dist artifact
         uses: actions/download-artifact@v4
