@@ -60,6 +60,23 @@ Coco[-S]earch is a local-first hybrid semantic code search tool. It combines vec
 
 Available as a WEB dashboard, CLI, MCP server, or interactive REPL. Incremental indexing, `.gitignore`-aware. Supports 31+ languages with symbol-level filtering for 14+, plus domain-specific grammars for structured config files.
 
+<details>
+<summary>Screenshots</summary>
+
+<p align="center">
+  <img src="./screenshots/dashboard.png" alt="CocoSearch dashboard" width="960">
+</p>
+
+<p align="center">
+  <img src="./screenshots/dashboard_search.png" alt="CocoSearch search results" width="960">
+</p>
+
+<p align="center">
+  <img src="./screenshots/dashboard_ai.png" alt="CocoSearch AI chat" width="960">
+</p>
+
+</details>
+
 ## 📑 Table of Contents
 
 - [⚠️ Disclaimer](#disclaimer)
@@ -100,23 +117,6 @@ This project was originally built for personal use — a solo experiment in loca
 - 🔬 **Pipeline analysis** -- `cocosearch analyze` runs the search pipeline with full diagnostics: see identifier detection, mode selection, RRF fusion breakdown, definition boost effects, and per-stage timings. Available as CLI and MCP tool.
 
 - 🔒 **Privacy-first** -- everything runs on your machine — Ollama generates embeddings locally, PostgreSQL stores vectors locally, no telemetry, no external API calls. Your code never leaves your machine. AI Chat is the only feature that calls an external API (Anthropic), and it's fully opt-in — requires a separate install (`cocosearch[web-chat]`).
-
-<details>
-<summary>Screenshots</summary>
-
-<p align="center">
-  <img src="./docs/dashboard-example-dark.png" alt="CocoSearch dashboard — dark theme" width="480">
-  &nbsp;&nbsp;
-  <img src="./docs/dashboard-example-light.png" alt="CocoSearch dashboard — light theme" width="480">
-</p>
-
-<p align="center">
-  <img src="./docs/ai-search-example-dark.png" alt="CocoSearch AI chat — dark theme" width="480">
-  &nbsp;&nbsp;
-  <img src="./docs/search-example-light.png" alt="CocoSearch search results — light theme" width="480">
-</p>
-
-</details>
 
 ## Quick Start
 
