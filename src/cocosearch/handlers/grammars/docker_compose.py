@@ -8,7 +8,6 @@ Content markers: 'services:'
 """
 
 import fnmatch
-import os
 import re
 
 import cocoindex
@@ -29,15 +28,19 @@ class DockerComposeHandler:
     SEPARATOR_SPEC = cocoindex.functions.CustomLanguageSpec(
         language_name="docker-compose",
         separators_regex=[
-            # Level 1: Top-level keys (services, volumes, networks, etc.)
+            # Level 1: YAML document separator
+            r"\n---",
+            # Level 2: Top-level keys (services, volumes, networks, etc.)
             r"\n[a-zA-Z_][\w-]*:\s*\n",
-            # Level 2: Service/volume/network boundaries (2-space indented keys)
+            # Level 3: Service/volume/network boundaries (2-space indented keys)
             r"\n  [a-zA-Z_][\w-]*:",
-            # Level 3: Blank lines
+            # Level 4: Nested keys (4-space indented, e.g. ports:, environment:)
+            r"\n    [a-zA-Z_][\w-]*:",
+            # Level 5: Blank lines
             r"\n\n+",
-            # Level 4: Single newlines
+            # Level 6: Single newlines
             r"\n",
-            # Level 5: Whitespace (last resort)
+            # Level 7: Whitespace (last resort)
             r" ",
         ],
         aliases=[],
@@ -51,6 +54,12 @@ class DockerComposeHandler:
     # Service/item definition (2-space indented key)
     _ITEM_RE = re.compile(r"^  ([a-zA-Z_][\w-]*):", re.MULTILINE)
 
+    # Nested key (4+ space indented key, e.g. ports:, environment:, deploy:)
+    _NESTED_KEY_RE = re.compile(r"^\s{4,}([a-zA-Z_][\w-]*):", re.MULTILINE)
+
+    # YAML list item key (e.g., "- name: value", "  - image: nginx")
+    _LIST_ITEM_KEY_RE = re.compile(r"^\s*-\s+([a-zA-Z_][\w-]*):", re.MULTILINE)
+
     # Top-level compose keys
     _TOP_LEVEL_KEYS = frozenset(
         {
@@ -61,6 +70,7 @@ class DockerComposeHandler:
             "secrets",
             "version",
             "name",
+            "include",
         }
     )
 
@@ -74,9 +84,10 @@ class DockerComposeHandler:
         Returns:
             True if this is a Docker Compose file.
         """
-        basename = os.path.basename(filepath)
         for pattern in self.PATH_PATTERNS:
-            if fnmatch.fnmatch(basename, pattern):
+            if fnmatch.fnmatch(filepath, pattern) or fnmatch.fnmatch(
+                filepath, f"*/{pattern}"
+            ):
                 if content is not None:
                     return "services:" in content
                 return True
@@ -96,16 +107,38 @@ class DockerComposeHandler:
         Examples:
             Service chunk: block_type="service", hierarchy="service:web"
             Top-level: block_type="services", hierarchy="services"
+            Nested key: block_type="nested-key", hierarchy="nested-key:ports"
+            List item: block_type="list-item", hierarchy="list-item:image"
         """
         stripped = self._strip_comments(text)
 
-        # Check for service/item definition first (indented key)
+        # Check for service/item definition first (2-space indented key)
         item_match = self._ITEM_RE.match(stripped)
         if item_match:
             item_name = item_match.group(1)
             return {
                 "block_type": "service",
                 "hierarchy": f"service:{item_name}",
+                "language_id": self.GRAMMAR_NAME,
+            }
+
+        # Check for nested key (4+ space indented)
+        nested_match = self._NESTED_KEY_RE.match(stripped)
+        if nested_match:
+            key = nested_match.group(1)
+            return {
+                "block_type": "nested-key",
+                "hierarchy": f"nested-key:{key}",
+                "language_id": self.GRAMMAR_NAME,
+            }
+
+        # Check for YAML list item key (e.g., "- name: value")
+        list_match = self._LIST_ITEM_KEY_RE.match(stripped)
+        if list_match:
+            key = list_match.group(1)
+            return {
+                "block_type": "list-item",
+                "hierarchy": f"list-item:{key}",
                 "language_id": self.GRAMMAR_NAME,
             }
 
@@ -116,6 +149,22 @@ class DockerComposeHandler:
             return {
                 "block_type": key,
                 "hierarchy": key,
+                "language_id": self.GRAMMAR_NAME,
+            }
+
+        # YAML document separator (--- chunks)
+        if "---" in text:
+            return {
+                "block_type": "document",
+                "hierarchy": "document",
+                "language_id": self.GRAMMAR_NAME,
+            }
+
+        # Value continuation (chunk has content but no recognizable key)
+        if stripped:
+            return {
+                "block_type": "value",
+                "hierarchy": "value",
                 "language_id": self.GRAMMAR_NAME,
             }
 
