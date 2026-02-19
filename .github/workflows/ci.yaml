@@ -66,6 +66,12 @@ jobs:
           enable-cache: true
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Restore cached virtual environment
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-${{ hashFiles('uv.lock') }}
+
       - name: Install dependencies
         run: uv sync --frozen
 
