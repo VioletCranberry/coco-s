@@ -209,7 +209,7 @@ class TestExtractChunkMetadataGrammarDispatch:
 
     def test_dispatches_to_github_actions(self):
         """extract_chunk_metadata dispatches to GitHub Actions handler."""
-        text = "build:\n    runs-on: ubuntu-latest"
+        text = "  build:\n    runs-on: ubuntu-latest"
         result = extract_chunk_metadata(text, "github-actions")
         assert result.language_id == "github-actions"
         assert result.block_type == "job"
