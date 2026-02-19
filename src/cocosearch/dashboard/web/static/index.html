@@ -212,15 +212,7 @@
 
         .controls-grid select {
             width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 0;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            font-size: 14px;
-            cursor: pointer;
             margin-top: 4px;
-            font-family: 'IBM Plex Mono', monospace;
         }
 
         .controls-grid .source-path {
@@ -416,7 +408,46 @@
 
         /* Select dropdown terminal styling */
         select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
             font-family: 'IBM Plex Mono', monospace;
+            padding: 8px 28px 8px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 0;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e07840' d='M2 4l4 4 4-4' stroke='%23e07840' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        select:hover {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 8px rgba(224, 120, 64, 0.3);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 12px rgba(224, 120, 64, 0.4);
+        }
+
+        select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        select option:hover,
+        select option:checked {
+            background: var(--accent-orange);
+            color: var(--bg-primary);
         }
 
         .action-btn {
@@ -749,14 +780,10 @@
         }
 
         .search-filters select {
-            padding: 4px 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 0;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
+            padding: 4px 24px 4px 8px;
             font-size: 13px;
-            font-family: 'IBM Plex Mono', monospace;
-            cursor: pointer;
+            background-position: right 6px center;
+            background-size: 10px 10px;
         }
 
         .search-advanced {
