@@ -1478,8 +1478,13 @@ class TestParseStatsEnrichment:
 
         assert "docker-compose" not in result.parse_stats["by_language"]
 
-    def test_dockerfile_appears_in_parse_health(self):
-        """Dockerfile with parse tracking shows as tracked, not skipped."""
+    def test_dockerfile_not_shown_as_skipped(self):
+        """Dockerfile without parse results is silently omitted, not shown as skipped.
+
+        Dockerfile has a tree-sitter grammar (in LANGUAGE_MAP with queries/dockerfile.scm),
+        so it should never be marked as a text-only format. If it has no parse results
+        (e.g., stale index), it's simply omitted until re-index produces real stats.
+        """
         languages = [
             {"language": "py", "file_count": 50, "chunk_count": 200},
             {"language": "dockerfile", "file_count": 2, "chunk_count": 4},
@@ -1493,25 +1498,43 @@ class TestParseStatsEnrichment:
                     "error": 0,
                     "no_grammar": 0,
                 },
-                "dockerfile": {
-                    "files": 2,
-                    "ok": 2,
-                    "partial": 0,
-                    "error": 0,
-                    "no_grammar": 0,
-                },
             },
-            "total_files": 52,
-            "total_ok": 52,
+            "total_files": 50,
+            "total_ok": 50,
             "parse_health_pct": 100.0,
         }
 
         result = self._make_comprehensive_stats(languages, parse_stats)
 
-        assert "dockerfile" in result.parse_stats["by_language"]
-        df_entry = result.parse_stats["by_language"]["dockerfile"]
-        assert df_entry.get("skipped") is not True
-        assert df_entry["ok"] == 2
+        # Dockerfile should NOT appear as a skipped text-only format
+        assert "dockerfile" not in result.parse_stats["by_language"]
+
+    def test_parseable_language_without_results_not_skipped(self):
+        """Parseable languages (not in _SKIP_PARSE_EXTENSIONS) without parse results
+        are silently omitted, not shown as skipped text-only formats."""
+        languages = [
+            {"language": "py", "file_count": 50, "chunk_count": 200},
+            {"language": "rs", "file_count": 10, "chunk_count": 30},
+        ]
+        parse_stats = {
+            "by_language": {
+                "python": {
+                    "files": 50,
+                    "ok": 50,
+                    "partial": 0,
+                    "error": 0,
+                    "no_grammar": 0,
+                },
+            },
+            "total_files": 50,
+            "total_ok": 50,
+            "parse_health_pct": 100.0,
+        }
+
+        result = self._make_comprehensive_stats(languages, parse_stats)
+
+        # 'rs' (Rust) is parseable — should NOT appear as skipped
+        assert "rs" not in result.parse_stats["by_language"]
 
     def test_skipped_entries_dont_affect_health_pct(self):
         """total_files and total_ok are unchanged by enrichment of skipped entries."""

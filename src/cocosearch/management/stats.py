@@ -828,10 +828,16 @@ def get_comprehensive_stats(
 
         # Enrich with skipped text-only languages from chunks table
         # (grammar-handled languages are excluded — they have their own stats section)
+        # Only genuinely text-only formats (in _SKIP_PARSE_EXTENSIONS) get added
+        # as skipped. Parseable languages without parse results (e.g., dockerfile
+        # from a stale index) are silently omitted — they'll get real stats on
+        # next re-index.
         tracked_languages = set(parse_stats["by_language"].keys())
         for lang_stat in languages:
             lang = lang_stat["language"]
             if lang in grammar_names:
+                continue
+            if lang not in _SKIP_PARSE_EXTENSIONS:
                 continue
             mapped_lang = LANGUAGE_MAP.get(lang)
             # Skip if already tracked under either the raw extension or mapped name
