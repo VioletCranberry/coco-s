@@ -1360,3 +1360,207 @@ class TestComprehensiveStatsAutoRecovery:
         assert result.commit_hash == "abc1234"
         assert result.commits_behind == 0
         assert result.branch_commit_count == 1234
+
+
+class TestParseStatsEnrichment:
+    """Tests for parse stats enrichment in get_comprehensive_stats.
+
+    Verifies that text-only formats (MD, YAML, JSON, etc.) appear as 'skipped'
+    entries in parse health, while grammar-handled languages are excluded.
+    """
+
+    def _make_comprehensive_stats(self, languages, parse_stats):
+        """Call get_comprehensive_stats with given languages and parse_stats."""
+        with (
+            patch("cocosearch.management.stats.get_stats") as mock_stats,
+            patch(
+                "cocosearch.management.stats.get_language_stats",
+                return_value=languages,
+            ),
+            patch("cocosearch.management.stats.get_symbol_stats", return_value={}),
+            patch(
+                "cocosearch.management.stats.get_parse_stats",
+                return_value=parse_stats,
+            ),
+            patch("cocosearch.management.stats.get_grammar_stats", return_value=[]),
+            patch(
+                "cocosearch.management.stats.check_staleness",
+                return_value=(False, 0),
+            ),
+            patch(
+                "cocosearch.management.stats.get_index_metadata",
+                return_value={
+                    "index_name": "test",
+                    "canonical_path": "/path",
+                    "created_at": None,
+                    "updated_at": None,
+                    "status": "indexed",
+                    "branch": "main",
+                    "commit_hash": "abc1234",
+                    "branch_commit_count": 100,
+                },
+            ),
+            patch("cocosearch.management.stats.auto_recover_stale_indexing"),
+            patch("cocosearch.management.stats.collect_warnings", return_value=[]),
+            patch("cocosearch.management.git.get_repo_url", return_value=None),
+            patch(
+                "cocosearch.management.stats.check_branch_staleness",
+                return_value={
+                    "branch_changed": False,
+                    "commits_changed": False,
+                    "indexed_branch": "main",
+                    "indexed_commit": "abc1234",
+                    "current_branch": "main",
+                    "current_commit": "abc1234",
+                    "commits_behind": 0,
+                },
+            ),
+        ):
+            mock_stats.return_value = {
+                "name": "test",
+                "file_count": 100,
+                "chunk_count": 500,
+                "storage_size": 1024,
+                "storage_size_pretty": "1.0 KB",
+            }
+            return get_comprehensive_stats("test")
+
+    def test_text_only_formats_added_as_skipped(self):
+        """MD appears as skipped entry when in chunks but not parse_results."""
+        languages = [
+            {"language": "py", "file_count": 50, "chunk_count": 200},
+            {"language": "md", "file_count": 20, "chunk_count": 40},
+        ]
+        parse_stats = {
+            "by_language": {
+                "python": {
+                    "files": 50,
+                    "ok": 48,
+                    "partial": 2,
+                    "error": 0,
+                    "no_grammar": 0,
+                },
+            },
+            "total_files": 50,
+            "total_ok": 48,
+            "parse_health_pct": 96.0,
+        }
+
+        result = self._make_comprehensive_stats(languages, parse_stats)
+
+        assert "md" in result.parse_stats["by_language"]
+        md_entry = result.parse_stats["by_language"]["md"]
+        assert md_entry["skipped"] is True
+        assert md_entry["files"] == 20
+
+    def test_grammar_handled_excluded_from_enrichment(self):
+        """Grammar-handled languages (e.g., docker-compose) are NOT added to parse health."""
+        languages = [
+            {"language": "py", "file_count": 50, "chunk_count": 200},
+            {"language": "docker-compose", "file_count": 3, "chunk_count": 10},
+        ]
+        parse_stats = {
+            "by_language": {
+                "python": {
+                    "files": 50,
+                    "ok": 50,
+                    "partial": 0,
+                    "error": 0,
+                    "no_grammar": 0,
+                },
+            },
+            "total_files": 50,
+            "total_ok": 50,
+            "parse_health_pct": 100.0,
+        }
+
+        result = self._make_comprehensive_stats(languages, parse_stats)
+
+        assert "docker-compose" not in result.parse_stats["by_language"]
+
+    def test_dockerfile_not_shown_as_skipped(self):
+        """Dockerfile without parse results is silently omitted, not shown as skipped.
+
+        Dockerfile has a tree-sitter grammar (in LANGUAGE_MAP with queries/dockerfile.scm),
+        so it should never be marked as a text-only format. If it has no parse results
+        (e.g., stale index), it's simply omitted until re-index produces real stats.
+        """
+        languages = [
+            {"language": "py", "file_count": 50, "chunk_count": 200},
+            {"language": "dockerfile", "file_count": 2, "chunk_count": 4},
+        ]
+        parse_stats = {
+            "by_language": {
+                "python": {
+                    "files": 50,
+                    "ok": 50,
+                    "partial": 0,
+                    "error": 0,
+                    "no_grammar": 0,
+                },
+            },
+            "total_files": 50,
+            "total_ok": 50,
+            "parse_health_pct": 100.0,
+        }
+
+        result = self._make_comprehensive_stats(languages, parse_stats)
+
+        # Dockerfile should NOT appear as a skipped text-only format
+        assert "dockerfile" not in result.parse_stats["by_language"]
+
+    def test_parseable_language_without_results_not_skipped(self):
+        """Parseable languages (not in _SKIP_PARSE_EXTENSIONS) without parse results
+        are silently omitted, not shown as skipped text-only formats."""
+        languages = [
+            {"language": "py", "file_count": 50, "chunk_count": 200},
+            {"language": "rs", "file_count": 10, "chunk_count": 30},
+        ]
+        parse_stats = {
+            "by_language": {
+                "python": {
+                    "files": 50,
+                    "ok": 50,
+                    "partial": 0,
+                    "error": 0,
+                    "no_grammar": 0,
+                },
+            },
+            "total_files": 50,
+            "total_ok": 50,
+            "parse_health_pct": 100.0,
+        }
+
+        result = self._make_comprehensive_stats(languages, parse_stats)
+
+        # 'rs' (Rust) is parseable — should NOT appear as skipped
+        assert "rs" not in result.parse_stats["by_language"]
+
+    def test_skipped_entries_dont_affect_health_pct(self):
+        """total_files and total_ok are unchanged by enrichment of skipped entries."""
+        languages = [
+            {"language": "py", "file_count": 50, "chunk_count": 200},
+            {"language": "md", "file_count": 20, "chunk_count": 40},
+            {"language": "yaml", "file_count": 10, "chunk_count": 15},
+        ]
+        parse_stats = {
+            "by_language": {
+                "python": {
+                    "files": 50,
+                    "ok": 48,
+                    "partial": 2,
+                    "error": 0,
+                    "no_grammar": 0,
+                },
+            },
+            "total_files": 50,
+            "total_ok": 48,
+            "parse_health_pct": 96.0,
+        }
+
+        result = self._make_comprehensive_stats(languages, parse_stats)
+
+        # Skipped entries should NOT inflate total_files or total_ok
+        assert result.parse_stats["total_files"] == 50
+        assert result.parse_stats["total_ok"] == 48
+        assert result.parse_stats["parse_health_pct"] == 96.0
