@@ -17,6 +17,9 @@ class DockerfileHandler:
 
     EXTENSIONS = [".dockerfile"]
 
+    # Additional include patterns for extensionless Dockerfiles/Containerfiles
+    INCLUDE_PATTERNS = ["Dockerfile", "Dockerfile.*", "Containerfile"]
+
     SEPARATOR_SPEC = cocoindex.functions.CustomLanguageSpec(
         language_name="dockerfile",
         separators_regex=[
