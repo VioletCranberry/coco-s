@@ -2344,6 +2344,7 @@
 
                 // Determine which index to select
                 let selectedIndex = 0;
+                let projectNotIndexed = false;
                 if (projectContext) {
                     if (projectContext.is_indexed) {
                         // Find the project's index in the list and auto-select it
@@ -2356,6 +2357,7 @@
                         }
                     } else {
                         // Project not indexed — show the banner, hide loading
+                        projectNotIndexed = true;
                         document.getElementById('loadingMessage').style.display = 'none';
                         const banner = document.getElementById('notIndexedBanner');
                         document.getElementById('notIndexedPath').textContent = projectContext.project_path;
@@ -2363,7 +2365,9 @@
                     }
                 }
 
-                if (allIndexes.length > 0) {
+                if (projectNotIndexed) {
+                    // Don't load dashboard data — just show the not-indexed banner
+                } else if (allIndexes.length > 0) {
                     await loadDashboard(selectedIndex);
 
                     // Auto-poll if any index is currently being indexed
