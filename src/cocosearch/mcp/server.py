@@ -33,12 +33,12 @@ from typing import Annotated  # noqa: E402
 import cocoindex  # noqa: E402
 from mcp.server.fastmcp import Context, FastMCP  # noqa: E402
 from pydantic import Field  # noqa: E402
-from starlette.responses import (
+from starlette.responses import (  # noqa: E402
     FileResponse,
     HTMLResponse,
     JSONResponse,
     StreamingResponse,
-)  # noqa: E402
+)
 
 from cocosearch.management.context import derive_index_name  # noqa: E402
 from cocosearch.dashboard.web import STATIC_DIR, get_dashboard_html  # noqa: E402
